@@ -66,10 +66,10 @@ runFragmentParser (CodeSection c) = case Text.Megaparsec.parse parseCodeFragment
             Right r -> CodeFragment r
 
 parseCodeFragment :: Parser AST
-parseCodeFragment = AST <$> (lexeme $ whitespace *> many parseDeclaration) <* eof
+parseCodeFragment = AST <$> (whitespace *> (lexeme $ many (lexeme parseDeclaration)) <* eof)
 
 parseDeclaration :: Parser Declaration
-parseDeclaration = lexeme $ do
+parseDeclaration = do
     name <- identifier  -- we parse the name and later ensure it comes up again for the implementation
 
     base <- Declaration name 
@@ -77,7 +77,8 @@ parseDeclaration = lexeme $ do
         <*> (symbol name *> (option [] (parens (sepBy identifier (symbol ",")))))
         <*> (symbol ":=" *> parseImplementation)
         
-    (locals, constraints) <- option ([], []) (symbol "where" *> parseWherePart)
+    (locals, constraints) <- option ([], []) (try $ symbol "where" *> parseWherePart)
+
     return $ base locals constraints
     where
         parseWherePart = partitionEithers <$> sepBy1 (Left <$> try parseLocal <|> Right <$> parseExpr) (symbol ",")
@@ -101,7 +102,7 @@ parsePrimitiveType = Positive <$ symbol "Z+"
 parseImplementation :: Parser Implementation
 parseImplementation = between (symbol "{") (symbol "}") parseConditional <|> Unconditional <$> parseExpr
     where
-        parseConditional = Conditional <$> many (try parseBranch) <*> (symbol "otherwise" *> parseExpr)     -- TODO: consider not using many but something that requires at least 1
+        parseConditional = Conditional <$> many (try parseBranch) <*> (parseExpr <* symbol "otherwise")     -- TODO: consider not using many but something that requires at least 1
         parseBranch = Branch <$> parseExpr <*> (symbol "if" *> parseExpr)
 
 parseLocal :: Parser Local

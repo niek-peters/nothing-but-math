@@ -1,7 +1,8 @@
 hello
 <<<
 f : N x N -> N
-f(a, b) := a + b
+f(a, b) := a + c
+where c := 2 * b
 
 g : N x N -> N
 g(a, b) := a * b

@@ -1,0 +1,7 @@
+<<<
+min : Z x Z -> Z
+min(a, b) := {
+    a if a < b
+    b otherwise
+}
+>>>

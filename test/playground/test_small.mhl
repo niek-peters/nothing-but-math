@@ -1,6 +1,6 @@
 hello guys
 <<<
-f : N -> N
-f(x) := x
+f : N -> Z+
+f(x) := x + 1
 >>>
 goodbye
