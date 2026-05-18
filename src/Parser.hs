@@ -35,7 +35,7 @@ parens :: Parser a -> Parser a
 parens = between (symbol "(") (symbol ")")
 
 keywords :: Set.Set String
-keywords = Set.fromList ["if", "otherwise", "where", "True", "False", "Z+", "Z", "N", "Q", "R", "B"]
+keywords = Set.fromList ["if", "otherwise", "where", "True", "False", "Z+", "Z", "N", "Q", "R", "B"]    -- TODO: make it impossible to declare floor/sqrt/mod, but still allow the first two in function calls
 
 identifier :: Parser String
 identifier = (lexeme . try) $ do
@@ -77,7 +77,7 @@ parseDeclaration = do
         <*> (symbol name *> (option [] (parens (sepBy identifier (symbol ",")))))
         <*> (symbol ":=" *> parseImplementation)
         
-    (locals, constraints) <- option ([], []) (try $ symbol "where" *> parseWherePart)
+    (locals, constraints) <- option ([], []) (try $ symbol "where" *> (parseWherePart))
 
     return $ base locals constraints
     where
@@ -118,7 +118,7 @@ exprTable =
   [ [ binaryR "^"    (Binary Pow) ]
   , [ binary  "*"    (Binary Mult)
     , binary  "/"    (Binary Div)
-    , binary  "mod"  (Binary Mod) 
+    , reservedOp "mod" (Binary Mod) 
     ]
   , [ binary  "+"    (Binary Add)
     , binary  "-"    (Binary Sub) 
@@ -135,6 +135,7 @@ exprTable =
   where
     binary  name f = InfixL (f <$ symbol name)
     binaryR name f = InfixR (f <$ symbol name)  -- right-associative
+    reservedOp name f = InfixL (f <$ (lexeme . try) (string name <* notFollowedBy alphaNumChar))
 
 parseTerm :: Parser Expr
 parseTerm = try parseTuple
