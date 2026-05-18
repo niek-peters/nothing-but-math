@@ -4,11 +4,11 @@ import Data.List.NonEmpty (NonEmpty)
 
 type Id = String
 
-newtype Library = Library [Fragment]
+newtype AST = AST [Declaration]
     deriving (Show, Eq)
 
-data Fragment = Text String | Code [Declaration]
-    deriving (Show, Eq)
+-- data Fragment = Text String | Code [Declaration]
+--     deriving (Show, Eq)
 
 data Declaration = Declaration 
     Id              -- name
