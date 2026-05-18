@@ -1,0 +1,55 @@
+module AST (Library) where
+
+import Data.List.NonEmpty (NonEmpty)
+
+type Id = String
+
+newtype Library = Library [Declaration]
+    deriving (Show, Eq)
+
+data Declaration = Declaration 
+    Id              -- name
+    Signature       -- type signature
+    [Id]            -- arguments
+    Implementation  
+    [Local]         -- local declarations
+    [Expr]          -- constraints
+    deriving (Show, Eq)
+
+data Signature = Signature 
+    (Maybe Type)    -- argument type
+    Type            -- return type
+    deriving (Show, Eq)
+
+newtype Type = Type (NonEmpty PrimitiveType)
+    deriving (Show, Eq)
+
+data PrimitiveType = Positive | Natural | Integer | Rational | Real
+    deriving (Show, Eq)
+
+data Implementation = Unconditional Expr 
+                    | Conditional [Branch] Expr -- piecewise function. Expr is otherwise branch
+    deriving (Show, Eq)
+
+data Branch = Branch Expr Expr  -- Expr, if Expr
+    deriving (Show, Eq)
+
+data Local = Local Id Implementation
+    deriving (Show, Eq)
+
+data Expr   = Call Id [Expr]
+            | ImmediateInt Int
+            | ImmediateBool Bool
+            | Binary BinaryOp Expr Expr     
+            | Unary UnaryOp Expr            -- E.g. sqrt(a)
+            | Sequence [Expr]               -- E.g. (a, b, c) 
+    deriving (Show, Eq)
+
+data BinaryOp = Add | Sub | Mult | Div | Pow | Mod | Eq | Neq | Less | Greater | LessEq | GreaterEq | Divides
+    deriving (Show, Eq)
+
+data UnaryOp = Sqrt | Floor
+    deriving (Show, Eq)
+
+-- b :: Type
+-- b = Type $ pure Positive
