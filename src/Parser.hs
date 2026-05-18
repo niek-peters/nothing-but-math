@@ -10,6 +10,8 @@ import Data.Either (partitionEithers)
 import Data.List.NonEmpty (fromList)
 import Control.Monad.Combinators.Expr
 
+-- TODO: consider enforcing newlines in many places
+
 type Parser = Parsec Void String
 
 newtype ParseResult = ParseResult [Fragment]
