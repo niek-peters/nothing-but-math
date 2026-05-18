@@ -50,6 +50,6 @@ data BinaryOp = Add | Sub | Mult | Div | Pow | Mod | Eq | Neq | Less | Greater |
 
 data UnaryOp = Sqrt | Floor
     deriving (Show, Eq)
-
+-- test
 -- b :: Type
 -- b = Type $ pure Positive
