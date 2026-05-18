@@ -1,4 +1,4 @@
-module Parser (Parser.parse) where
+module Parser (Parser.parse, runSectionsParser) where
 
 import Text.Megaparsec
 import Data.Void (Void)
@@ -9,7 +9,6 @@ import AST
 import Data.Either (partitionEithers)
 import Data.List.NonEmpty (fromList)
 import Control.Monad.Combinators.Expr
-import Control.Monad (void)
 
 type Parser = Parsec Void String
 
@@ -45,29 +44,20 @@ identifier = (lexeme . try) $ do
     then fail $ "Cannot use keyword " ++ show name ++ " as an identifier"
     else return name
 
--- testParseSections :: String -> SplitResult
--- testParseSections str = case Text.Megaparsec.parse parseSections "" str of
---     Left e -> error $ show e
---     Right r -> r
-
--- parse :: String -> ParseResult
--- parse str = case Text.Megaparsec.parse parseSections "" str of
---     Left e -> error $ show e
---     Right (SplitResult r) -> ParseResult $ map refine r
---     where
---         refine (TextSection t) = TextFragment t
---         refine (CodeSection c) = case Text.Megaparsec.parse parseCodeFragment "" c of
---             Left e -> error $ show e
---             Right r -> CodeFragment r
-
 parse :: String -> ParseResult
 parse str = ParseResult $ map runFragmentParser sections
     where (SplitResult sections) = runSectionsParser str
-    
+
 runSectionsParser :: String -> SplitResult
 runSectionsParser str = case Text.Megaparsec.parse parseSections "" str of
     Left e -> error $ show e
     Right r -> r
+
+parseSections :: Parser SplitResult
+parseSections = SplitResult <$> manyTill (choice [codeStr, textStr]) eof
+  where
+    codeStr = CodeSection <$> (try (string "<<<") *> manyTill anySingle (string ">>>"))
+    textStr = TextSection <$> some (notFollowedBy (string "<<<") *> anySingle)
 
 runFragmentParser :: Section -> Fragment
 runFragmentParser (TextSection t) = TextFragment t
@@ -76,43 +66,10 @@ runFragmentParser (CodeSection c) = case Text.Megaparsec.parse parseCodeFragment
             Right r -> CodeFragment r
 
 parseCodeFragment :: Parser AST
-parseCodeFragment = AST <$> many parseDeclaration
-
--- parseLibrary :: Parser Library
--- parseLibrary = whitespace *> (Library <$> concat <$> manyTill (try codeBlock <|> text) eof)
---   where
---     codeBlock = symbol "<<<" *> manyTill parseDeclaration (symbol ">>>")  -- only parse within code blocks
---     text = anySingle *> pure []         -- ignore text
-
-
--- parseFull :: Parser ParseResult
--- parseFull = do
---     sections <- splitSections
---     return 
-
-
-parseSections :: Parser SplitResult
-parseSections = SplitResult <$> manyTill (choice [codeStr, textStr]) eof
-  where
-    codeStr = CodeSection <$> (try (string "<<<") *> manyTill anySingle (string ">>>"))
-    textStr = TextSection <$> some (notFollowedBy (string "<<<") *> anySingle)
-
--- parseLibrary :: Parser Library
--- parseLibrary = Library <$> manyTill parseFragment eof
-
--- parseFragment :: Parser Fragment
--- parseFragment = try parseCodeBlock <|> parseTextBlock
-
--- parseCodeBlock :: Parser Fragment
--- parseCodeBlock = Code <$> (symbol "<<<" *> manyTill (parseDeclaration <* whitespace) (symbol ">>>"))
-
--- parseTextBlock :: Parser Fragment
--- parseTextBlock = Text <$> some (notFollowedBy (string "<<<") *> anySingle) 
-
-
+parseCodeFragment = AST <$> (lexeme $ whitespace *> many parseDeclaration) <* eof
 
 parseDeclaration :: Parser Declaration
-parseDeclaration = do
+parseDeclaration = lexeme $ do
     name <- identifier  -- we parse the name and later ensure it comes up again for the implementation
 
     base <- Declaration name 
