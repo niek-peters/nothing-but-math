@@ -1,10 +1,13 @@
-module AST (Library) where
+module AST where
 
 import Data.List.NonEmpty (NonEmpty)
 
 type Id = String
 
-newtype Library = Library [Declaration]
+newtype Library = Library [Fragment]
+    deriving (Show, Eq)
+
+data Fragment = Text String | Code [Declaration]
     deriving (Show, Eq)
 
 data Declaration = Declaration 
@@ -31,18 +34,21 @@ data Implementation = Unconditional Expr
                     | Conditional [Branch] Expr -- piecewise function. Expr is otherwise branch
     deriving (Show, Eq)
 
-data Branch = Branch Expr Expr  -- Expr, if Expr
+data Branch = Branch Expr Expr  -- Expr if Expr
     deriving (Show, Eq)
 
-data Local = Local Id Implementation
+data Local = Local 
+    (NonEmpty Id)   -- singular usually, but also allows tuple destructuring, e.g. (a, b) := f(x)
+    Implementation  
     deriving (Show, Eq)
 
 data Expr   = Call Id [Expr]
             | ImmediateInt Int
+            | ImmediateReal Double
             | ImmediateBool Bool
             | Binary BinaryOp Expr Expr     
             | Unary UnaryOp Expr            -- E.g. sqrt(a)
-            | Sequence [Expr]               -- E.g. (a, b, c) 
+            | Tuple [Expr]               -- E.g. (a, b, c) 
     deriving (Show, Eq)
 
 data BinaryOp = Add | Sub | Mult | Div | Pow | Mod | Eq | Neq | Less | Greater | LessEq | GreaterEq | Divides
@@ -50,6 +56,6 @@ data BinaryOp = Add | Sub | Mult | Div | Pow | Mod | Eq | Neq | Less | Greater |
 
 data UnaryOp = Sqrt | Floor
     deriving (Show, Eq)
--- test
+
 -- b :: Type
 -- b = Type $ pure Positive

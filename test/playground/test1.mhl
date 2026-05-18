@@ -1,0 +1,17 @@
+hello
+<<<
+f : N x N -> N
+f(a, b) := a + b
+
+g : N x N -> N
+g(a, b) := a * b
+>>>
+
+gniersk
+
+<<<
+h : N x N -> N
+h(a, b) := f(a, b) * g(a, b)
+>>>
+
+goodbye

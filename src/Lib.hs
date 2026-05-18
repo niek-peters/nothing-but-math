@@ -8,4 +8,4 @@ compile path = do
     text <- readFile path
 
     let parsed = parse text
-    putStr parsed
+    putStr $ show parsed

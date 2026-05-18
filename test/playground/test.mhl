@@ -8,9 +8,9 @@ gcd(a, b) := {
 
 egcd : N x N -> Z+ x Z x Z
 egcd(a, b) := {
-    (a, 1, 0)                           if b = 0 
-    (g, y_1, x_1 - floor(a / b) * y_1)  otherwise
-} where a >= b, (g, x_1, y_1) := egcd(b, a mod b)
+    (a, 1, 0)                     if b = 0 
+    (g, y, x - floor(a / b) * y)  otherwise
+} where a >= b, (g, x, y) := egcd(b, a mod b)
 
 modInv : N x Z+ -> Z+
 modInv(a, m) := x mod m

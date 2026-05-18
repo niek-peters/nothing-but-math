@@ -1,0 +1,6 @@
+hello guys
+<<<
+f : N -> N
+f(x) := x
+>>>
+goodbye
