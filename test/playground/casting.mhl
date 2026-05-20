@@ -1,0 +1,10 @@
+<<<
+f : N x N -> Z
+f(a, b) := a - b
+
+g : Z -> N
+g(x) := {
+    0 if x <= 0
+    x otherwise
+}
+>>>

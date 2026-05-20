@@ -10,4 +10,4 @@ compile path = do
     text <- readFile path
 
     let parsed = parse text
-    pPrint $ collectGlobals parsed
+    pPrint $ parsed
