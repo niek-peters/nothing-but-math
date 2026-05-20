@@ -7,9 +7,6 @@ type Id = String
 newtype AST = AST [Declaration]
     deriving (Show, Eq)
 
--- data Fragment = Text String | Code [Declaration]
---     deriving (Show, Eq)
-
 data Declaration = Declaration 
     Id              -- name
     Signature       -- type signature
@@ -47,7 +44,7 @@ data Expr   = Call Id [Expr]
             | ImmediateReal Double
             | ImmediateBool Bool
             | Binary BinaryOp Expr Expr     
-            | Unary UnaryOp Expr            -- E.g. sqrt(a)
+            | Unary UnaryOp Expr         -- E.g. sqrt(a)
             | Tuple [Expr]               -- E.g. (a, b, c) 
     deriving (Show, Eq)
 
@@ -56,6 +53,3 @@ data BinaryOp = Add | Sub | Mult | Div | Pow | Mod | Eq | Neq | Less | Greater |
 
 data UnaryOp = Sqrt | Floor
     deriving (Show, Eq)
-
--- b :: Type
--- b = Type $ pure Positive

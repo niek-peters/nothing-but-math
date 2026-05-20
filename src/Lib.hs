@@ -1,7 +1,7 @@
 module Lib
     ( compile
     ) where
-import Parser (parse, runSectionsParser)
+import Parser (parse)
 import Text.Show.Pretty (pPrint)
 
 compile :: FilePath -> IO ()

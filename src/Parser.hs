@@ -1,4 +1,4 @@
-module Parser (Parser.parse, runSectionsParser) where
+module Parser (Parser.parse) where
 
 import Text.Megaparsec
 import Data.Void (Void)
@@ -116,28 +116,33 @@ parseExpr :: Parser Expr
 parseExpr = makeExprParser parseTerm exprTable
 
 exprTable :: [[Operator Parser Expr]]
-exprTable =
-  [ [ binaryR "^"    (Binary Pow) ]
-  , [ binary  "*"    (Binary Mult)
-    , binary  "/"    (Binary Div)
-    , reservedOp "mod" (Binary Mod) 
-    ]
-  , [ binary  "+"    (Binary Add)
-    , binary  "-"    (Binary Sub) 
-    ]
-  , [ binary  "="    (Binary Eq)
-    , binary  "!="   (Binary Neq)
-    , binary  "<="   (Binary LessEq)
-    , binary  ">="   (Binary GreaterEq)
-    , binary  "<"    (Binary Less)
-    , binary  ">"    (Binary Greater)
-    , binary  "|"    (Binary Divides)
+exprTable = [
+    [ 
+      binaryR "^"    (Binary Pow) 
+    ], 
+    [ 
+      binary  "*"    (Binary Mult), 
+      binary  "/"    (Binary Div), 
+      reservedOp "mod" (Binary Mod) 
+    ], 
+    [ 
+      binary  "+"    (Binary Add), 
+      binary  "-"    (Binary Sub) 
+    ], 
+    [ 
+      binary  "="    (Binary Eq), 
+      binary  "!="   (Binary Neq), 
+      binary  "<="   (Binary LessEq), 
+      binary  ">="   (Binary GreaterEq), 
+      binary  "<"    (Binary Less), 
+      binary  ">"    (Binary Greater), 
+      binary  "|"    (Binary Divides)
     ]
   ]
   where
     binary  name f = InfixL (f <$ symbol name)
     binaryR name f = InfixR (f <$ symbol name)  -- right-associative
-    reservedOp name f = InfixL (f <$ (lexeme . try) (string name <* notFollowedBy alphaNumChar))
+    reservedOp name f = InfixL (f <$ (lexeme . try) (string name <* notFollowedBy alphaNumChar))  -- this ensures it does not eat identifiers starting with the name of some operator. E.g. a function called modInv
 
 parseTerm :: Parser Expr
 parseTerm = try parseTuple
@@ -153,17 +158,10 @@ parseTuple = Tuple <$> parens (sepBy1 parseExpr (symbol ","))
 parseCall :: Parser Expr
 parseCall = do
   name <- identifier
-  -- Check if there's a '(' immediately following the name
   maybeArgs <- optional (parens (sepBy parseExpr (symbol ",")))
   
   return $ case (name, maybeArgs) of
-    -- It was a variable reference: f
-    (n, Nothing)     -> Call n []
-    
-    -- It was a function call: f(...)
-    -- Now we handle your special unary cases
-    ("floor", Just [e]) -> Unary Floor e
+    (n, Nothing)     -> Call n []         -- value reference
+    ("floor", Just [e]) -> Unary Floor e  -- handle special built-in operations that are written like function calls in the DSL
     ("sqrt",  Just [e])  -> Unary Sqrt e
-    
-    -- It was a standard function call: gcd(a, b)
-    (n, Just args)   -> Call n args
+    (n, Just args)   -> Call n args       -- function call
