@@ -1,4 +1,4 @@
-module Parser (Parser.parse) where
+module Parser (Parser.parse, ParseResult(..), Fragment(..)) where
 
 import Text.Megaparsec
 import Data.Void (Void)
