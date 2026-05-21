@@ -70,12 +70,10 @@ elabBinary Add (e1, t1@(Type (pt1 :| []))) (e2, t2@(Type (pt2 :| []))) = (IRBina
     where   operand1 = fst $ maybeCastExpr e1 t1 justResType
             operand2 = fst $ maybeCastExpr e2 t2 justResType
             justResType = Just resType
-            resType | t1 == t2 = t1
-                    | otherwise = Type $ pure $ getGreaterNumberType pt1 pt2
+            resType = Type $ pure $ getGreaterNumberType pt1 pt2
 elabBinary _ _ _ = error "GG"
 
--- assumes types are not equal
--- also assumes types are number types
+-- assumes types are number types
 getGreaterNumberType :: PrimitiveType -> PrimitiveType -> PrimitiveType
 getGreaterNumberType Boolean _ = error "LOGIC ERROR: getGreaterNumberType called with Boolean type"
 getGreaterNumberType _ Boolean = error "LOGIC ERROR: getGreaterNumberType called with Boolean type"
