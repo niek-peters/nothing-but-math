@@ -24,7 +24,7 @@ data Signature = Signature
 newtype Type = Type (NonEmpty PrimitiveType)
     deriving (Show, Eq)
 
-data PrimitiveType = Positive | Natural | Integer | Rational | Real
+data PrimitiveType = Positive | Natural | Integer | Rational | Real | Boolean
     deriving (Show, Eq)
 
 data Implementation = Unconditional Expr 
@@ -45,7 +45,7 @@ data Expr   = Call Id [Expr]
             | ImmediateBool Bool
             | Binary BinaryOp Expr Expr     
             | Unary UnaryOp Expr         -- E.g. sqrt(a)
-            | Tuple [Expr]               -- E.g. (a, b, c) 
+            | Tuple (NonEmpty Expr)      -- E.g. (a, b, c) 
     deriving (Show, Eq)
 
 data BinaryOp = Add | Sub | Mult | Div | Pow | Mod | Eq | Neq | Less | Greater | LessEq | GreaterEq | Divides

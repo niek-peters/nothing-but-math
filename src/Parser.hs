@@ -153,7 +153,7 @@ parseTerm = try parseTuple
   <|> ImmediateBool <$> (True <$ symbol "True" <|> False <$ symbol "False")
 
 parseTuple :: Parser Expr
-parseTuple = Tuple <$> parens (sepBy1 parseExpr (symbol ","))
+parseTuple = Tuple . fromList <$> parens (sepBy1 parseExpr (symbol ","))
 
 parseCall :: Parser Expr
 parseCall = do
