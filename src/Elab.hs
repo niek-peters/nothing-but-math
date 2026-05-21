@@ -63,36 +63,6 @@ elabExpr (Binary op e1 e2) mt scopes = maybeCastExpr resExpr resType mt
     where   (resExpr, resType) = elabBinary op resE1 resE2
             resE1 = elabExpr e1 Nothing scopes  -- right now we don't infer requested operand types from the requested type
             resE2 = elabExpr e2 Nothing scopes
-
--- elabExpr (ImmediateInt i) mt _ = case mt of
---                     Nothing -> (IRImmediateInt i, t1)
---                     Just rt | rt == t1 -> (IRImmediateInt i, t1)
---                             | not $ isNumberType rt -> error $ "TYPE ERROR: Cannot cast from '" ++ show t1 ++ "' to '" ++ show rt ++ "'"
---                             | otherwise -> (IRCast (IRImmediateInt i) t1 rt, rt)
---     where   t1 = Type $ pure pt
---             pt  | i < 0 = Integer
---                 | i > 0 = Positive
---                 | otherwise = Natural
--- elabExpr (ImmediateReal r) mt _ = case mt of
---                     Nothing -> (IRImmediateReal r, t1)
---                     Just rt | rt == t1 -> (IRImmediateReal r, t1)
---                             | rt == (Type $ (Rational :| [])) -> (IRCast (IRImmediateReal r) t1 rt, rt)
---                             | otherwise -> error $ "TYPE ERROR: Cannot cast from '" ++ show t1 ++ "' to '" ++ show rt ++ "'"
---     where   t1 = Type $ pure Real
--- elabExpr (ImmediateBool b) mt _ = case mt of
---                     Nothing -> (IRImmediateBool b, t1)
---                     Just rt | rt == t1 -> (IRImmediateBool b, t1)
---                             | otherwise -> error $ "TYPE ERROR: Cannot cast from '" ++ show t1 ++ "' to '" ++ show rt ++ "'"
---     where   t1 = Type $ pure Boolean  
--- elabExpr (ImmediateInt i) mt _ = (IRImmediateInt i, t2)
---     where   t2 = case mt of
---                     Nothing -> t1
---                     Just rt | not $ isNumberType rt -> error $ "TYPE ERROR: Cannot cast from '" ++ show t1 ++ "' to '" ++ show rt ++ "'"
---                             | otherwise -> rt
---             t1 = Type $ pure pt
---             pt  | i < 0 = Integer
---                 | i > 0 = Positive
---                 | otherwise = Natural
 elabExpr _ _ _ = error "GG"
 
 elabBinary :: BinaryOp -> (IRExpr, Type) -> (IRExpr, Type) -> (IRExpr, Type) 
@@ -102,6 +72,7 @@ elabBinary Add (e1, t1@(Type (pt1 :| []))) (e2, t2@(Type (pt2 :| []))) = (IRBina
             justResType = Just resType
             resType | t1 == t2 = t1
                     | otherwise = Type $ pure $ getGreaterNumberType pt1 pt2
+elabBinary _ _ _ = error "GG"
 
 -- assumes types are not equal
 -- also assumes types are number types
@@ -122,7 +93,6 @@ getGreaterNumberType _ Positive = Positive
 isTupleType :: Type -> Bool
 isTupleType (Type (_ :| [])) = False
 isTupleType _ = True
-
 
 isNumberType :: Type -> Bool
 isNumberType (Type (_ :| (_:_))) = False    -- tuple
