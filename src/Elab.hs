@@ -1,7 +1,7 @@
 module Elab where
 import Parser (ParseResult(..), Fragment (..))
 import qualified Data.Map as Map
-import AST (Id, Signature, AST(..), Declaration (..), Expr (..), Type (..), PrimitiveType (..), BinaryOp (..))
+import AST (Id, Signature, AST(..), Declaration (..), Expr (..), Type (..), PrimitiveType (..), BinaryOp (..), UnaryOp (..))
 import IR (IRExpr (..), IRBinaryOp (..))
 import Data.List.NonEmpty (NonEmpty(..))
 import qualified Data.List.NonEmpty as NonEmpty
@@ -63,14 +63,41 @@ elabExpr (Binary op e1 e2) mt scopes = maybeCastExpr resExpr resType mt
     where   (resExpr, resType) = elabBinary op resE1 resE2
             resE1 = elabExpr e1 Nothing scopes  -- right now we don't infer requested operand types from the requested type
             resE2 = elabExpr e2 Nothing scopes
+elabExpr (Unary op e) mt scopes = maybeCastExpr resExpr resType mt
+    where   (resExpr, resType) = elabUnary op resE
+            resE = elabExpr e Nothing scopes  -- right now we don't infer the requested operand type from the requested type
+
 
 elabExpr _ _ _ = error "GG"
 
+
+elabUnary :: UnaryOp -> (IRExpr, Type) -> (IRExpr, Type)
+elabUnary op@Sqrt (e, (Type (t :| [])))
+    | t == Boolean = error $ "TYPE ERROR: Unary operation '" ++ show op ++ "' not defined for type '" ++ show t ++ "'"
+    | otherwise = (IRUnary Sqrt e, Type $ pure Real)
+
+-- floor operation is not defined for integer types
+elabUnary Floor (e, (Type (Real :| []))) = (IRUnary Floor e, Type $ pure Integer)
+elabUnary Floor (e, (Type (Rational :| []))) = (IRUnary Floor e, Type $ pure Integer)
+
+-- any remaining undefined operations
+elabUnary op (_, t) = error $ "TYPE ERROR: Unary operation '" ++ show op ++ "' not defined for type '" ++ show t ++ "'"
+
+
 elabBinary :: BinaryOp -> (IRExpr, Type) -> (IRExpr, Type) -> (IRExpr, Type) 
 -- we have special cases for integer powers, which don't do any type casting and have the result keep the type of the left operand
-elabBinary Pow (e1, t1@(Type (_ :| []))) (e2, (Type (Positive :| []))) = (IRBinary IRPow e1 e2, t1)
-elabBinary Pow (e1, t1@(Type (_ :| []))) (e2, (Type (Natural :| []))) = (IRBinary IRPow e1 e2, t1)
-elabBinary Pow (e1, t1@(Type (_ :| []))) (e2, (Type (Integer :| []))) = (IRBinary IRPow e1 e2, t1)
+elabBinary op@Pow (e1, t1@(Type (pt1 :| []))) (e2, (Type t2@(pt2 :| [])))
+    -- | pt1 == Boolean = error $ "TYPE ERROR: Binary operation '" ++ show op ++ "' not defined for types '" ++ show t1 ++ "' and '" ++ show t2 ++ "'"
+    | pt2 == Positive || pt2 == Natural || pt2 == Integer = (IRBinary IRPow e1 e2, t1)  -- we use a pattern guard to fall through to the generic case if false
+-- elabBinary op@Pow (e1, t1@(Type (pt :| []))) (e2, (Type t2@(Natural :| [])))
+--     | pt == Boolean = error $ "TYPE ERROR: Binary operation '" ++ show op ++ "' not defined for types '" ++ show t1 ++ "' and '" ++ show t2 ++ "'"
+--     | otherwise = (IRBinary IRPow e1 e2, t1)
+-- elabBinary op@Pow (e1, t1@(Type (pt :| []))) (e2, (Type t2@(Integer :| [])))
+--     | pt == Boolean = error $ "TYPE ERROR: Binary operation '" ++ show op ++ "' not defined for types '" ++ show t1 ++ "' and '" ++ show t2 ++ "'"
+--     | otherwise = (IRBinary IRPow e1 e2, t1)
+-- elabBinary Pow (e1, t1@(Type (_ :| []))) (e2, (Type (Positive :| []))) = (IRBinary IRPow e1 e2, t1)
+-- elabBinary Pow (e1, t1@(Type (_ :| []))) (e2, (Type (Natural :| []))) = (IRBinary IRPow e1 e2, t1)
+-- elabBinary Pow (e1, t1@(Type (_ :| []))) (e2, (Type (Integer :| []))) = (IRBinary IRPow e1 e2, t1)
 
 -- and then the generic case where both operands get casted to the same type
 elabBinary op o1@(_, (Type (pt1 :| []))) o2@(_, (Type (pt2 :| []))) = (resExpr, resType)
