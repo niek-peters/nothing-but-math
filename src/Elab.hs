@@ -72,9 +72,8 @@ elabExpr _ _ _ = error "GG"
 
 
 elabUnary :: UnaryOp -> (IRExpr, Type) -> (IRExpr, Type)
-elabUnary op@Sqrt (e, (Type (t :| [])))
-    | t == Boolean = error $ "TYPE ERROR: Unary operation '" ++ show op ++ "' not defined for type '" ++ show t ++ "'"
-    | otherwise = (IRUnary Sqrt e, Type $ pure Real)
+elabUnary Sqrt (e, (Type (t :| [])))
+    | t /= Boolean = (IRUnary Sqrt e, Type $ pure Real) -- we use a pattern guard to fall through to the other cases if false
 
 -- floor operation is not defined for integer types
 elabUnary Floor (e, (Type (Real :| []))) = (IRUnary Floor e, Type $ pure Integer)
