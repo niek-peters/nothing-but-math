@@ -215,12 +215,6 @@ toAtLeastInteger Positive = Integer
 toAtLeastInteger Natural = Integer
 toAtLeastInteger t = t
 
--- toAtLeastRational :: PrimitiveType -> PrimitiveType
--- toAtLeastRational Positive = Rational
--- toAtLeastRational Natural = Rational
--- toAtLeastRational Integer = Rational
--- toAtLeastRational t = t
-
 toAtMostInteger :: PrimitiveType -> PrimitiveType
 toAtMostInteger Real = Integer      -- these two will throw a type error in castExpr
 toAtMostInteger Rational = Integer  -- I opted to have it throw there so we get the full nice error message
@@ -263,15 +257,6 @@ getGreaterNumberType Natural _ = Natural
 getGreaterNumberType _ Natural = Natural
 getGreaterNumberType Positive _ = Positive
 -- getGreaterNumberType _ Positive = Positive
-
--- isTupleType :: Type -> Bool
--- isTupleType (Type (_ :| [])) = False
--- isTupleType _ = True
-
--- isNumberType :: Type -> Bool
--- isNumberType (Type (_ :| (_:_))) = False    -- tuple
--- isNumberType (Type (Boolean :| [])) = False
--- isNumberType _  = True
 
 maybeCastExpr :: IRExpr -> Type -> Maybe Type -> (IRExpr, Type)
 maybeCastExpr e f Nothing = (e, f)
