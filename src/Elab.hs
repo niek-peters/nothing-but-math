@@ -3,9 +3,10 @@ import Parser (ParseResult(..), Fragment (..))
 import qualified Data.Map as Map
 import AST (Id, Signature (..), AST(..), Declaration (..), Expr (..), Type (..), PrimitiveType (..), BinaryOp (..), UnaryOp (..))
 import IR (IRExpr (..), IRBinaryOp (..))
-import Data.List.NonEmpty (NonEmpty(..))
+import Data.List.NonEmpty (NonEmpty(..), toList, fromList)
 import qualified Data.List.NonEmpty as NonEmpty
 import qualified Data.Functor
+import Data.Foldable1 (Foldable1(toNonEmpty))
 
 -- From the design of the DSL we get some unique benefits:
 -- 1. There are only 2 levels of scope: global and local
@@ -52,7 +53,15 @@ resolveIdent ident (locals, globals) = case Map.lookup ident locals of
 
 -- expression to elaborate, possible requested type of expression, identifier scopes, elaborated expression with type 
 elabExpr :: Expr -> Maybe Type -> Scopes -> (IRExpr, Type)
--- elabExpr (Call ident args) mt scopes    | 
+elabExpr (Call ident []) mt scopes = case maybeFrom of
+    Just from -> error $ "TYPE ERROR: Call to function '" ++ show ident ++ "' missing args '" ++ show from ++ "'"
+    Nothing -> maybeCastExpr (IRCall ident []) to mt
+    where   (Signature maybeFrom to) = resolveIdent ident scopes
+elabExpr (Call ident es) mt scopes = case maybeFrom of
+    Nothing -> error $ "TYPE ERROR: Reference to constant '" ++ show ident ++ "' incorrectly called like a function with args: " ++ show es
+    Just _ -> maybeCastExpr (IRCall ident (toList resArgs)) to mt
+    where   (resArgs, _) = elabExprs (fromList es) maybeFrom scopes
+            (Signature maybeFrom to) = resolveIdent ident scopes
 -- elabExpr e@(Call ident []) mt scopes    | from == Nothing = maybeCastExpr (IRCall ident []) to mt
 --     where   (Signature from to) = resolveIdent ident scopes
 -- elabExpr e@(Call ident es) mt scopes
