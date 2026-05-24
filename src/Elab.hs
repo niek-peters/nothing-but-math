@@ -85,19 +85,9 @@ elabUnary op (_, t) = error $ "TYPE ERROR: Unary operation '" ++ show op ++ "' n
 
 
 elabBinary :: BinaryOp -> (IRExpr, Type) -> (IRExpr, Type) -> (IRExpr, Type) 
--- we have special cases for integer powers, which don't do any type casting and have the result keep the type of the left operand
-elabBinary op@Pow (e1, t1@(Type (pt1 :| []))) (e2, (Type t2@(pt2 :| [])))
-    -- | pt1 == Boolean = error $ "TYPE ERROR: Binary operation '" ++ show op ++ "' not defined for types '" ++ show t1 ++ "' and '" ++ show t2 ++ "'"
-    | pt2 == Positive || pt2 == Natural || pt2 == Integer = (IRBinary IRPow e1 e2, t1)  -- we use a pattern guard to fall through to the generic case if false
--- elabBinary op@Pow (e1, t1@(Type (pt :| []))) (e2, (Type t2@(Natural :| [])))
---     | pt == Boolean = error $ "TYPE ERROR: Binary operation '" ++ show op ++ "' not defined for types '" ++ show t1 ++ "' and '" ++ show t2 ++ "'"
---     | otherwise = (IRBinary IRPow e1 e2, t1)
--- elabBinary op@Pow (e1, t1@(Type (pt :| []))) (e2, (Type t2@(Integer :| [])))
---     | pt == Boolean = error $ "TYPE ERROR: Binary operation '" ++ show op ++ "' not defined for types '" ++ show t1 ++ "' and '" ++ show t2 ++ "'"
---     | otherwise = (IRBinary IRPow e1 e2, t1)
--- elabBinary Pow (e1, t1@(Type (_ :| []))) (e2, (Type (Positive :| []))) = (IRBinary IRPow e1 e2, t1)
--- elabBinary Pow (e1, t1@(Type (_ :| []))) (e2, (Type (Natural :| []))) = (IRBinary IRPow e1 e2, t1)
--- elabBinary Pow (e1, t1@(Type (_ :| []))) (e2, (Type (Integer :| []))) = (IRBinary IRPow e1 e2, t1)
+-- we have a special case for integer powers, which don't do any type casting and have the result keep the type of the left operand
+elabBinary Pow (e1, t1@(Type (pt1 :| []))) (e2, (Type (pt2 :| [])))
+    | pt1 /= Boolean && (pt2 == Positive || pt2 == Natural || pt2 == Integer) = (IRBinary IRPow e1 e2, t1)  -- we use a pattern guard to fall through to the generic case if false
 
 -- and then the generic case where both operands get casted to the same type
 elabBinary op o1@(_, (Type (pt1 :| []))) o2@(_, (Type (pt2 :| []))) = (resExpr, resType)
