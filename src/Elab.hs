@@ -1,12 +1,13 @@
-module Elab where
+module Elab (elab) where
 
-import Parser (ParseResult(..), ParseFragment (..))
 import qualified Data.Map as Map
 import AST (Id, Signature (..), AST(..), Declaration (..), Expr (..), Type (..), PrimitiveType (..), BinaryOp (..), UnaryOp (..), Local (..), Implementation (..), Branch (..))
 import IR (IRExpr (..), IRBinaryOp (..), IR (..), IRDeclaration (IRDeclaration), IRImplementation (IRUnconditional, IRConditional), IRBranch (IRBranch), IRLocal (..))
 import Data.List.NonEmpty (NonEmpty(..), toList, fromList)
 import qualified Data.List.NonEmpty as NonEmpty
 import qualified Data.Functor
+import Types
+import Parser (ParseResult)
 
 -- From the design of the DSL we get some unique benefits:
 -- 1. There are only 2 levels of scope: global and local
@@ -27,27 +28,24 @@ import qualified Data.Functor
 
 -- So, we will not be having compile-time type errors for mismatches in number types, instead inserting many type casts automatically and trusting the developer that the given type signature is correct
 
--- TODO: generalize these parser and elab fragment types to a generic
-newtype ElabResult = ElabResult [ElabFragment]
-    deriving (Show, Eq)
-data ElabFragment = TextFragment String | CodeFragment IR
-    deriving (Show, Eq)
+-- TODO: make error messages always show the part of the AST where it went wrong
+
+type ElabResult = [Fragment String IR]
 
 type Scope = Map.Map Id Signature
--- type LocalScope = Map.Map Id Type
 type Scopes = (Scope, Scope)    -- local scope, global scope
 
 elab :: ParseResult -> ElabResult
-elab (ParseResult frags) = ElabResult $ map elabFragment frags
+elab frags = map elabFragment frags
     where   globals = collectGlobals frags
 
-            elabFragment (Parser.TextFragment str) = Elab.TextFragment str
-            elabFragment (Parser.CodeFragment (AST decls)) = Elab.CodeFragment $ IR $ map (`elabDeclaration` globals) decls
+            elabFragment (TextFragment str) = TextFragment str
+            elabFragment (CodeFragment (AST decls)) = CodeFragment $ IR $ map (`elabDeclaration` globals) decls
 
-collectGlobals :: [ParseFragment] -> Scope
+collectGlobals :: ParseResult -> Scope
 collectGlobals frags = foldl collect Map.empty frags
-    where   collect m (Parser.TextFragment _) = m
-            collect m (Parser.CodeFragment ast) = collectGlobalsFromAST m ast
+    where   collect m (TextFragment _) = m
+            collect m (CodeFragment ast) = collectGlobalsFromAST m ast
 
 collectGlobalsFromAST :: Scope -> AST -> Scope
 collectGlobalsFromAST m (AST decls) = foldl insertDeclaration m decls
@@ -55,7 +53,7 @@ collectGlobalsFromAST m (AST decls) = foldl insertDeclaration m decls
 
 insertIdent :: Scope -> Id -> Signature -> Scope
 insertIdent m ident sig 
-    | Map.member ident m = error $ "ERROR: Duplicate declaration of '" ++ show ident ++ "'"
+    | Map.member ident m = error $ "ERROR: Duplicate declaration of '" ++ ident ++ "'"
     | otherwise = Map.insert ident sig m
 
 resolveIdent :: Id -> (Scope, Scope) -> Signature
@@ -63,7 +61,7 @@ resolveIdent ident (locals, globals) = case Map.lookup ident locals of
     Just sig -> sig
     Nothing -> case Map.lookup ident globals of
         Just sig -> sig
-        Nothing -> error $ "ERROR: Reference to undefined value '" ++ show ident ++  "'"
+        Nothing -> error $ "ERROR: Reference to undefined value '" ++ ident ++  "'"
 
 elabDeclaration :: Declaration -> Scope -> IRDeclaration
 elabDeclaration (Declaration ident sig@(Signature from to) params impl locals constraints) globals 
@@ -107,7 +105,7 @@ elabDestructure (locals, globals) (idents, (Type pts))
             valueCount = length pts
 
             insertLocal locals' (ident, pt) = case Map.lookup ident globals of
-                Just _ -> error $ "ERROR: Local declaration of '" ++ show ident ++ "' is disallowed as it shadows a global declaration of the same name"
+                Just _ -> error $ "ERROR: Local declaration of '" ++ ident ++ "' is disallowed as it shadows a global declaration of the same name"
                 Nothing -> insertIdent locals' ident (Signature Nothing (Type $ pure pt))
 
 elabImplementation :: Implementation -> Maybe Type -> Scopes -> IRImplementation
@@ -124,11 +122,11 @@ elabBranch (Branch e1 e2) mt scopes = IRBranch resE1 resE2
 -- expression to elaborate, possible requested type of expression, identifier scopes, elaborated expression with type 
 elabExpr :: Expr -> Maybe Type -> Scopes -> (IRExpr, Type)
 elabExpr (Call ident []) mt scopes = case maybeFrom of
-    Just from -> error $ "TYPE ERROR: Call to function '" ++ show ident ++ "' missing args '" ++ show from ++ "'"
+    Just from -> error $ "TYPE ERROR: Call to function '" ++ ident ++ "' missing args '" ++ show from ++ "'"
     Nothing -> maybeCastExpr (IRCall ident []) to mt
     where   (Signature maybeFrom to) = resolveIdent ident scopes
 elabExpr (Call ident es) mt scopes = case maybeFrom of
-    Nothing -> error $ "TYPE ERROR: Reference to constant '" ++ show ident ++ "' incorrectly called like a function with args: " ++ show es
+    Nothing -> error $ "TYPE ERROR: Reference to constant '" ++ ident ++ "' incorrectly called like a function with args: " ++ show es
     Just _ -> maybeCastExpr (IRCall ident (toList resArgs)) to mt
     where   (resArgs, _) = elabExprs (fromList es) maybeFrom scopes
             (Signature maybeFrom to) = resolveIdent ident scopes
@@ -212,11 +210,11 @@ toAtLeastInteger Positive = Integer
 toAtLeastInteger Natural = Integer
 toAtLeastInteger t = t
 
-toAtLeastRational :: PrimitiveType -> PrimitiveType
-toAtLeastRational Positive = Rational
-toAtLeastRational Natural = Rational
-toAtLeastRational Integer = Rational
-toAtLeastRational t = t
+-- toAtLeastRational :: PrimitiveType -> PrimitiveType
+-- toAtLeastRational Positive = Rational
+-- toAtLeastRational Natural = Rational
+-- toAtLeastRational Integer = Rational
+-- toAtLeastRational t = t
 
 toAtMostInteger :: PrimitiveType -> PrimitiveType
 toAtMostInteger Real = Integer      -- these two will throw a type error in castExpr
@@ -259,16 +257,16 @@ getGreaterNumberType _ Integer = Integer
 getGreaterNumberType Natural _ = Natural
 getGreaterNumberType _ Natural = Natural
 getGreaterNumberType Positive _ = Positive
-getGreaterNumberType _ Positive = Positive
+-- getGreaterNumberType _ Positive = Positive
 
-isTupleType :: Type -> Bool
-isTupleType (Type (_ :| [])) = False
-isTupleType _ = True
+-- isTupleType :: Type -> Bool
+-- isTupleType (Type (_ :| [])) = False
+-- isTupleType _ = True
 
-isNumberType :: Type -> Bool
-isNumberType (Type (_ :| (_:_))) = False    -- tuple
-isNumberType (Type (Boolean :| [])) = False
-isNumberType _  = True
+-- isNumberType :: Type -> Bool
+-- isNumberType (Type (_ :| (_:_))) = False    -- tuple
+-- isNumberType (Type (Boolean :| [])) = False
+-- isNumberType _  = True
 
 maybeCastExpr :: IRExpr -> Type -> Maybe Type -> (IRExpr, Type)
 maybeCastExpr e f Nothing = (e, f)

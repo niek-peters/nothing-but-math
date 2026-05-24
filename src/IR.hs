@@ -1,4 +1,4 @@
-module IR where
+module IR where -- export everything
 
 import AST (Id, Signature, UnaryOp, PrimitiveType)
 import Data.List.NonEmpty (NonEmpty)

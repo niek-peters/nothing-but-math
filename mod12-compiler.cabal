@@ -30,6 +30,7 @@ library
       IR
       Lib
       Parser
+      Types
   other-modules:
       Paths_mod12_compiler
   autogen-modules:

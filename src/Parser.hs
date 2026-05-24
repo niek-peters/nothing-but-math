@@ -1,4 +1,4 @@
-module Parser (Parser.parse, ParseResult(..), ParseFragment(..)) where
+module Parser (Parser.parse, ParseResult) where
 
 import Text.Megaparsec
 import Data.Void (Void)
@@ -9,20 +9,14 @@ import AST
 import Data.Either (partitionEithers)
 import Data.List.NonEmpty (fromList)
 import Control.Monad.Combinators.Expr
+import Types
 
 -- TODO: consider enforcing newlines in many places
 
 type Parser = Parsec Void String
 
-newtype ParseResult = ParseResult [ParseFragment]
-    deriving (Show, Eq)
-data ParseFragment = TextFragment String | CodeFragment AST
-    deriving (Show, Eq)
-
-newtype SplitResult = SplitResult [Section]
-    deriving (Show, Eq)
-data Section = TextSection String | CodeSection String
-    deriving (Show, Eq)
+type ParseResult = [Fragment String AST]
+type SplitResult = [Fragment String String]
 
 whitespace :: Parser ()
 whitespace = Lexer.space space1 (Lexer.skipLineComment "%") empty
@@ -47,8 +41,8 @@ identifier = (lexeme . try) $ do
     else return name
 
 parse :: String -> ParseResult
-parse str = ParseResult $ map runFragmentParser sections
-    where (SplitResult sections) = runSectionsParser str
+parse str = map runFragmentParser sections
+    where sections = runSectionsParser str
 
 runSectionsParser :: String -> SplitResult
 runSectionsParser str = case Text.Megaparsec.parse parseSections "" str of
@@ -56,14 +50,14 @@ runSectionsParser str = case Text.Megaparsec.parse parseSections "" str of
     Right r -> r
 
 parseSections :: Parser SplitResult
-parseSections = SplitResult <$> manyTill (choice [codeStr, textStr]) eof
+parseSections = manyTill (choice [codeStr, textStr]) eof
   where
-    codeStr = CodeSection <$> (try (string "<<<") *> manyTill anySingle (string ">>>"))
-    textStr = TextSection <$> some (notFollowedBy (string "<<<") *> anySingle)
+    codeStr = CodeFragment <$> (try (string "<<<") *> manyTill anySingle (string ">>>"))
+    textStr = TextFragment <$> some (notFollowedBy (string "<<<") *> anySingle)
 
-runFragmentParser :: Section -> ParseFragment
-runFragmentParser (TextSection t) = TextFragment t
-runFragmentParser (CodeSection c) = case Text.Megaparsec.parse parseCodeFragment "" c of
+runFragmentParser :: Fragment String String -> Fragment String AST
+runFragmentParser (TextFragment t) = TextFragment t
+runFragmentParser (CodeFragment c) = case Text.Megaparsec.parse parseCodeFragment "" c of
             Left e -> error $ show e
             Right r -> CodeFragment r
 
