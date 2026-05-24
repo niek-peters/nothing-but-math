@@ -36,7 +36,7 @@ data Branch = Branch Expr Expr  -- Expr if Expr
 
 data Local = Local 
     (NonEmpty Id)   -- singular usually, but also allows tuple destructuring, e.g. (a, b) := f(x)
-    Implementation  
+    Expr  
     deriving (Show, Eq)
 
 data Expr   = Call Id [Expr]

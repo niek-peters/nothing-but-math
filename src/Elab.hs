@@ -1,12 +1,12 @@
 module Elab where
+    
 import Parser (ParseResult(..), Fragment (..))
 import qualified Data.Map as Map
-import AST (Id, Signature (..), AST(..), Declaration (..), Expr (..), Type (..), PrimitiveType (..), BinaryOp (..), UnaryOp (..))
-import IR (IRExpr (..), IRBinaryOp (..))
+import AST (Id, Signature (..), AST(..), Declaration (..), Expr (..), Type (..), PrimitiveType (..), BinaryOp (..), UnaryOp (..), Local (..), Implementation (..), Branch (..))
+import IR (IRExpr (..), IRBinaryOp (..), IR (..), IRDeclaration (IRDeclaration), IRImplementation (IRUnconditional, IRConditional), IRBranch (IRBranch), IRLocal (..))
 import Data.List.NonEmpty (NonEmpty(..), toList, fromList)
 import qualified Data.List.NonEmpty as NonEmpty
 import qualified Data.Functor
-import Data.Foldable1 (Foldable1(toNonEmpty))
 
 -- From the design of the DSL we get some unique benefits:
 -- 1. There are only 2 levels of scope: global and local
@@ -31,16 +31,21 @@ type Scope = Map.Map Id Signature
 -- type LocalScope = Map.Map Id Type
 type Scopes = (Scope, Scope)    -- local scope, global scope
 
-collectGlobals :: ParseResult -> Scope
-collectGlobals (ParseResult frags) = foldl collect Map.empty frags
-    where   collect m (TextFragment _) = m
-            collect m (CodeFragment ast) = collectGlobalsFromAST m ast
+elab :: ParseResult -> IR
+elab parsed = IR $ map (`elabDeclaration` globals) decls
+    where   (globals, decls) = collectGlobals parsed
+
+collectGlobals :: ParseResult -> (Scope, [Declaration])
+collectGlobals (ParseResult frags) = foldl collect (Map.empty, []) frags
+    where   collect (m, decls) (TextFragment _) = (m, decls)
+            collect (m, decls) (CodeFragment ast@(AST newDecls)) = (collectGlobalsFromAST m ast, decls ++ newDecls)
 
 collectGlobalsFromAST :: Scope -> AST -> Scope
 collectGlobalsFromAST m (AST decls) = foldl insertDeclaration m decls
+    where   insertDeclaration scope (Declaration ident sig _ _ _ _) = insertIdent scope ident sig
 
-insertDeclaration :: Scope -> Declaration -> Scope
-insertDeclaration m (Declaration ident sig _ _ _ _) 
+insertIdent :: Scope -> Id -> Signature -> Scope
+insertIdent m ident sig 
     | Map.member ident m = error $ "ERROR: Duplicate declaration of '" ++ show ident ++ "'"
     | otherwise = Map.insert ident sig m
 
@@ -50,6 +55,62 @@ resolveIdent ident (locals, globals) = case Map.lookup ident locals of
     Nothing -> case Map.lookup ident globals of
         Just sig -> sig
         Nothing -> error $ "ERROR: Reference to undefined value '" ++ show ident ++  "'"
+
+elabDeclaration :: Declaration -> Scope -> IRDeclaration
+elabDeclaration (Declaration ident sig@(Signature from to) params impl locals constraints) globals 
+    = IRDeclaration ident sig params resImpl resLocals resConstraints
+    where   resImpl = elabImplementation impl (Just to) scopes
+
+            resConstraints = map elabCondition constraints
+            elabCondition e = fst $ elabExpr e (Just $ Type $ pure Boolean) scopes
+
+            scopes = (localScope, globals)
+
+            -- local scope consists of parameters and local declarations
+            localScope = collectLocals (elabParams from params ++ localDecls) globals
+
+            (localDecls, resLocals) = unzip $ map (`elabLocal` globals) locals
+
+elabParams :: Maybe Type -> [Id] -> [(NonEmpty Id, Type)]
+elabParams Nothing [] = []
+elabParams Nothing params = error $ "TYPE ERROR: Constant signature specifies no parameters but implementation lists " ++ show (length params) ++ ", namely: " ++ show params
+elabParams (Just (Type pts)) params
+    | paramTypeCount /= paramCount = error $ "TYPE ERROR: Function signature specifies " ++ show paramTypeCount ++ " parameters but implementation lists " ++ show paramCount ++ ", namely: " ++ show params
+    | otherwise = zip (map pure params) (map (Type . pure) (toList pts))
+    where   paramTypeCount = length pts
+            paramCount = length params
+-- elabParams (Signature (Just t) _) [] = error $ "TYPE ERROR: Function signature specifies parameter types '" ++ show t ++ "' but no parameters are present"
+
+collectLocals :: [(NonEmpty Id, Type)] -> Scope -> Scope
+collectLocals decls globals = foldl collect Map.empty decls
+    where   collect m decl = elabDestructure (m, globals) decl
+
+-- NOTE: for now we disallow referencing locals in other locals
+elabLocal :: Local -> Scope -> ((NonEmpty Id, Type), IRLocal)
+elabLocal (Local idents expr) globals = ((idents, resType), (IRLocal idents resExpr))
+    where   (resExpr, resType) = elabExpr expr Nothing (Map.empty, globals)
+
+elabDestructure :: Scopes -> (NonEmpty Id, Type) -> Scope
+elabDestructure (locals, globals) (idents, (Type pts)) 
+                | identCount /= valueCount = error $ "TYPE ERROR: Tuple destructuring has member count different from value. Value had " ++ show valueCount ++ " values, but tried to destructure to " ++ show identCount ++ " members for identifiers '" ++ show idents ++ "'"
+                | otherwise = foldl insertLocal locals (NonEmpty.zip idents pts)
+    where   identCount = length idents
+            valueCount = length pts
+
+            insertLocal locals' (ident, pt) = case Map.lookup ident globals of
+                Just _ -> error $ "ERROR: Local declaration of '" ++ show ident ++ "' is disallowed as it shadows a global declaration of the same name"
+                Nothing -> insertIdent locals' ident (Signature Nothing (Type $ pure pt))
+
+elabImplementation :: Implementation -> Maybe Type -> Scopes -> IRImplementation
+elabImplementation (Unconditional expr) mt scopes = IRUnconditional $ fst $ elabExpr expr mt scopes
+elabImplementation (Conditional ifs other) mt scopes = IRConditional resIfs resOther
+    where   resIfs = map (\branch -> elabBranch branch mt scopes) ifs
+            resOther = fst $ elabExpr other mt scopes
+
+elabBranch :: Branch -> Maybe Type -> Scopes -> IRBranch
+elabBranch (Branch e1 e2) mt scopes = IRBranch resE1 resE2
+    where   resE1 = fst $ elabExpr e1 mt scopes
+            resE2 = fst $ elabExpr e2 (Just $ Type $ pure Boolean) scopes
 
 -- expression to elaborate, possible requested type of expression, identifier scopes, elaborated expression with type 
 elabExpr :: Expr -> Maybe Type -> Scopes -> (IRExpr, Type)
@@ -62,17 +123,6 @@ elabExpr (Call ident es) mt scopes = case maybeFrom of
     Just _ -> maybeCastExpr (IRCall ident (toList resArgs)) to mt
     where   (resArgs, _) = elabExprs (fromList es) maybeFrom scopes
             (Signature maybeFrom to) = resolveIdent ident scopes
--- elabExpr e@(Call ident []) mt scopes    | from == Nothing = maybeCastExpr (IRCall ident []) to mt
---     where   (Signature from to) = resolveIdent ident scopes
--- elabExpr e@(Call ident es) mt scopes
---     | 
---     where   sig = resolveIdent ident scopes
-
---             irExprs = map (\expr -> convert $ elabExpr expr Nothing scopes) es  -- right now we don't pass the requested type from the requested function argument types
-
---             -- ensures arguments are not tuples
---             convert (e1, (Type (t :| []))) = (e1, t)
---             convert _ = error $ "TYPE ERROR: Cannot call function with tuple. Tried passing tuple in call: " ++ show e
 elabExpr (ImmediateInt i) mt _ = maybeCastExpr (IRImmediateInt i) (Type $ pure pt) mt
     where   pt  | i < 0 = Integer
                 | i > 0 = Positive
@@ -81,30 +131,13 @@ elabExpr (ImmediateReal r) mt _ = maybeCastExpr (IRImmediateReal r) (Type $ pure
 elabExpr (ImmediateBool b) mt _ = maybeCastExpr (IRImmediateBool b) (Type $ pure Boolean) mt
 elabExpr (Binary op e1 e2) mt scopes = maybeCastExpr resExpr resType mt
     where   (resExpr, resType) = elabBinary op resE1 resE2
-            resE1 = elabExpr e1 Nothing scopes  -- right now we don't infer requested operand types from the requested type
+            resE1 = elabExpr e1 Nothing scopes  -- NOTE: right now we don't infer requested operand types from the requested type
             resE2 = elabExpr e2 Nothing scopes
 elabExpr (Unary op e) mt scopes = maybeCastExpr resExpr resType mt
     where   (resExpr, resType) = elabUnary op resE
-            resE = elabExpr e Nothing scopes  -- right now we don't infer the requested operand type from the requested type
+            resE = elabExpr e Nothing scopes  -- NOTE: right now we don't infer the requested operand type from the requested type
 elabExpr (Tuple es) mt scopes = (IRTuple resExprs, resType)
     where   (resExprs, resType) = elabExprs es mt scopes
--- elabExpr e@(Tuple es) mt scopes = (IRTuple resExprs, Type resType)
---     where   (resExprs, resType) = Data.Functor.unzip irExprs
---             irExprs = NonEmpty.map (\(expr, mt1) -> convert $ elabExpr expr mt1 scopes) (zipMaybeTypes es mt)  -- we pass the requested type from the requested tuple type
-            
---             -- ensures tuple items are not tuples themselves
---             convert (e1, (Type (t :| []))) = (e1, t)
---             convert _ = error $ "TYPE ERROR: Cannot nest tuples. Tried nesting in expression: " ++ show e
-
--- elabExpr e@(Tuple es) mt scopes = maybeCastExpr (IRTuple resExprs) (Type resType) mt 
---     where   (resExprs, resType) = Data.Functor.unzip irExprs
---             irExprs = NonEmpty.map (\expr -> convert $ elabExpr expr Nothing scopes) es  -- right now we don't pass the requested type from the requested tuple type
-            
---             -- ensures tuple items are not tuples themselves
---             convert (e1, (Type (t :| []))) = (e1, t)
---             convert _ = error $ "TYPE ERROR: Cannot nest tuples. Tried nesting in expression: " ++ show e
-
-elabExpr _ _ _ = error "GG"
 
 -- used for tuples and function calls
 elabExprs :: NonEmpty Expr -> Maybe Type -> Scopes -> (NonEmpty IRExpr, Type)
@@ -115,12 +148,6 @@ elabExprs es mt scopes = (resExprs, Type resType)
             -- ensures tuple items or function call arguments are not tuples (nesting is not allowed)
             convert (e1, (Type (t :| []))) = (e1, t)
             convert (e1, _) = error $ "TYPE ERROR: Cannot use tuples inside other tuples or as function call arguments. Encountered nested tuple: " ++ show e1
-
-
--- convert :: (Expr, Type) -> (Expr, PrimitiveType)
--- convert (e1, (Type (t :| []))) = (e1, t)
--- convert _ = error $ "TYPE ERROR: Cannot nest tuples. Tried nesting in expression: " ++ show e
-
 
 zipMaybeTypes :: NonEmpty a -> Maybe Type -> NonEmpty (a, Maybe Type)
 zipMaybeTypes a Nothing = NonEmpty.map (\c -> (c, Nothing)) a
@@ -234,9 +261,6 @@ isNumberType (Type (_ :| (_:_))) = False    -- tuple
 isNumberType (Type (Boolean :| [])) = False
 isNumberType _  = True
 
--- maybeCastExprs :: NonEmpty IRExpr -> Type -> Maybe Type -> (NonEmpty IRExpr, Type)
--- maybeCastExprs es 
-
 maybeCastExpr :: IRExpr -> Type -> Maybe Type -> (IRExpr, Type)
 maybeCastExpr e f Nothing = (e, f)
 maybeCastExpr e f (Just t)  | f == t = (e, f)
@@ -247,23 +271,13 @@ castExpr (IRTuple es) (Type f) (Type t)
     | length f == length t = (IRTuple resExprs, Type resType)
     where   (resExprs, resType) = Data.Functor.unzip castExprs
             castExprs = NonEmpty.map (\(e, (pf, pt)) -> castPrimitiveExpr e pf pt) (NonEmpty.zip es (NonEmpty.zip f t))
-    -- | length f /= length t = error $ "TYPE ERROR: Cannot cast from '" ++ show f ++ "' to '" ++ show t ++ "'. Tried casting expression: " ++ show e
-    -- | otherwise =  map (\(e, (pf, pt)) -> castExpr e (Type $ pure pf) (Type $ pure pt)) (NonEmpty.zip es (NonEmpty.zip f t))
 castExpr e (Type (f :| [])) (Type (t :| [])) = (resExpr, Type $ pure resType)
     where   (resExpr, resType) = castPrimitiveExpr e f t
--- castExpr e f t  | isTypeCastLegal f t = (IRCast e f t, t)
---                 | otherwise = error $ "TYPE ERROR: Cannot cast from '" ++ show f ++ "' to '" ++ show t ++ "'. Tried casting expression: " ++ show e
 castExpr e f t = error $ "TYPE ERROR: Cannot cast from '" ++ show f ++ "' to '" ++ show t ++ "'. Tried casting expression: " ++ show e
 
 castPrimitiveExpr :: IRExpr -> PrimitiveType -> PrimitiveType -> (IRExpr, PrimitiveType)
 castPrimitiveExpr e f t | isPrimitiveCastLegal f t = (IRCast e f t, t)
                         | otherwise = error $ "TYPE ERROR: Cannot cast from '" ++ show f ++ "' to '" ++ show t ++ "'. Tried casting expression: " ++ show e
-
-
-
--- isTypeCastLegal :: Type -> Type -> Bool
--- isTypeCastLegal (Type f) (Type t)   | length f /= length t = False
---                                     | otherwise = all (\(a, b) -> a == b || isPrimitiveCastLegal a b) (NonEmpty.zip f t)
 
 -- assumes types are not equal
 isPrimitiveCastLegal :: PrimitiveType -> PrimitiveType -> Bool

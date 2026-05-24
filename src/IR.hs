@@ -1,6 +1,6 @@
 module IR where
 
-import AST (Id, Signature, BinaryOp, UnaryOp, Type, PrimitiveType)
+import AST (Id, Signature, UnaryOp, PrimitiveType)
 import Data.List.NonEmpty (NonEmpty)
 
 newtype IR = IR [IRDeclaration]
@@ -25,7 +25,7 @@ data IRBranch = IRBranch IRExpr IRExpr  -- Expr if Expr
 
 data IRLocal = IRLocal 
     (NonEmpty Id)   -- singular usually, but also allows tuple destructuring, e.g. (a, b) := f(x)
-    IRImplementation  
+    IRExpr  
     deriving (Show, Eq)
 
 data IRExpr = IRCast IRExpr PrimitiveType PrimitiveType       -- wraps an expr that should be cast from type to type

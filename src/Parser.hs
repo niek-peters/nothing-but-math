@@ -107,8 +107,9 @@ parseImplementation = between (symbol "{") (symbol "}") parseConditional <|> Unc
         parseConditional = Conditional <$> many (try parseBranch) <*> (parseExpr <* symbol "otherwise")     -- TODO: consider not using many but something that requires at least 1
         parseBranch = Branch <$> parseExpr <*> (symbol "if" *> parseExpr)
 
+-- NOTE: for now locals are unconditional
 parseLocal :: Parser Local
-parseLocal = Local <$> parseLHS <* symbol ":=" <*> parseImplementation
+parseLocal = Local <$> parseLHS <* symbol ":=" <*> parseExpr
   where
     parseLHS = fromList <$> (parens (sepBy1 identifier (symbol ",")) <|> pure <$> identifier)   -- LHS is either a single id or a parenthesized tuple of ids
 
