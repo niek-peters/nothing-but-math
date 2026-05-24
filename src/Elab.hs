@@ -73,10 +73,14 @@ elabDeclaration (Declaration ident sig@(Signature from to) params impl locals co
 
             scopes = (localScope, globals)
 
-            -- local scope consists of parameters and local declarations
-            localScope = collectLocals (elabParams from params ++ localDecls) globals
+            -- we then add the local declarations to the local scope
+            localScope = collectLocals localDecls tmpScopes
 
-            (localDecls, resLocals) = unzip $ map (`elabLocal` globals) locals
+            (localDecls, resLocals) = unzip $ map (`elabLocal` tmpScopes) locals
+            tmpScopes = (tmpLocalScope, globals)
+
+            -- we initialize the local scope with the function parameters
+            tmpLocalScope = collectLocals (elabParams from params) (Map.empty, globals)
 
 elabParams :: Maybe Type -> [Id] -> [(NonEmpty Id, Type)]
 elabParams Nothing [] = []
@@ -88,14 +92,15 @@ elabParams (Just (Type pts)) params
             paramCount = length params
 -- elabParams (Signature (Just t) _) [] = error $ "TYPE ERROR: Function signature specifies parameter types '" ++ show t ++ "' but no parameters are present"
 
-collectLocals :: [(NonEmpty Id, Type)] -> Scope -> Scope
-collectLocals decls globals = foldl collect Map.empty decls
+
+collectLocals :: [(NonEmpty Id, Type)] -> Scopes -> Scope
+collectLocals decls (locals, globals) = foldl collect locals decls
     where   collect m decl = elabDestructure (m, globals) decl
 
 -- NOTE: for now we disallow referencing locals in other locals
-elabLocal :: Local -> Scope -> ((NonEmpty Id, Type), IRLocal)
-elabLocal (Local idents expr) globals = ((idents, resType), (IRLocal idents resExpr))
-    where   (resExpr, resType) = elabExpr expr Nothing (Map.empty, globals)
+elabLocal :: Local -> Scopes -> ((NonEmpty Id, Type), IRLocal)
+elabLocal (Local idents expr) scopes = ((idents, resType), (IRLocal idents resExpr))
+    where   (resExpr, resType) = elabExpr expr Nothing scopes
 
 elabDestructure :: Scopes -> (NonEmpty Id, Type) -> Scope
 elabDestructure (locals, globals) (idents, (Type pts)) 

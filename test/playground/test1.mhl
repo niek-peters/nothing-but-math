@@ -1,18 +1,18 @@
 hello
 <<<
-f : N x N -> N
+f : N x N -> Q
 f(a, b) := a + c
-where c := 2 * b
+where c := (5 / 2) * b
 
 g : N x N -> N
-g(a, b) := a * b
+g(a, b) := a ^ b
 >>>
 
 gniersk
 
 <<<
 h : N x N -> N
-h(a, b) := f(a, b) * g(a, b)
+h(a, b) := floor(f(a, b) * g(a, b))
 >>>
 
 goodbye

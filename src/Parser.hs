@@ -7,7 +7,7 @@ import qualified Text.Megaparsec.Char.Lexer as Lexer
 import qualified Data.Set as Set
 import AST
 import Data.Either (partitionEithers)
-import Data.List.NonEmpty (fromList)
+import Data.List.NonEmpty (fromList, NonEmpty ((:|)))
 import Control.Monad.Combinators.Expr
 import Types
 
@@ -140,15 +140,15 @@ exprTable = [
     reservedOp name f = InfixL (f <$ (lexeme . try) (string name <* notFollowedBy alphaNumChar))  -- this ensures it does not eat identifiers starting with the name of some operator. E.g. a function called modInv
 
 parseTerm :: Parser Expr
-parseTerm = try parseTuple
-  <|> parens parseExpr
+parseTerm = parens (try parseTuple <|> parseExpr)
   <|> parseCall
   <|> try (ImmediateReal <$> lexeme Lexer.float)
   <|> ImmediateInt  <$> lexeme Lexer.decimal
   <|> ImmediateBool <$> (True <$ symbol "True" <|> False <$ symbol "False")
 
+-- NOTE: we explicitly disallow single-element tuples here
 parseTuple :: Parser Expr
-parseTuple = Tuple . fromList <$> parens (sepBy1 parseExpr (symbol ","))
+parseTuple = Tuple <$> ((:|) <$> (parseExpr <* symbol ",") <*> sepBy1 parseExpr (symbol ","))
 
 parseCall :: Parser Expr
 parseCall = do

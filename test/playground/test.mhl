@@ -23,5 +23,5 @@ newtIter : Z+ x Z+ -> Z+
 newtIter(n, x) := {
     newtIter(n, y)  if y < x
     x               otherwise
-} where y = floor((x + floor(n / x)) / 2)
+} where y := floor((x + floor(n / x)) / 2)
 >>>
