@@ -1,6 +1,6 @@
 module IR where
 
-import AST (Id, Signature, BinaryOp, UnaryOp, Type)
+import AST (Id, Signature, BinaryOp, UnaryOp, Type, PrimitiveType)
 import Data.List.NonEmpty (NonEmpty)
 
 newtype IR = IR [IRDeclaration]
@@ -28,7 +28,7 @@ data IRLocal = IRLocal
     IRImplementation  
     deriving (Show, Eq)
 
-data IRExpr = IRCast IRExpr Type Type       -- wraps an expr that should be cast from type to type
+data IRExpr = IRCast IRExpr PrimitiveType PrimitiveType       -- wraps an expr that should be cast from type to type
             | IRCall Id [IRExpr]
             | IRImmediateInt Int
             | IRImmediateReal Double
