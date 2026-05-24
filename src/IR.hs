@@ -33,7 +33,11 @@ data IRExpr = IRCast IRExpr Type Type       -- wraps an expr that should be cast
             | IRImmediateInt Int
             | IRImmediateReal Double
             | IRImmediateBool Bool
-            | IRBinary BinaryOp IRExpr IRExpr     
+            | IRBinary IRBinaryOp IRExpr IRExpr     
             | IRUnary UnaryOp IRExpr         -- E.g. sqrt(a)
             | IRTuple (NonEmpty IRExpr)      -- E.g. (a, b, c) 
+    deriving (Show, Eq)
+
+-- here we differentiate between Pow (Haskell ^, integer power) and Exp (Haskell **, rational/real power)
+data IRBinaryOp = IRAdd | IRSub | IRMult | IRDiv | IRPow | IRExp | IRMod | IREq | IRNeq | IRLess | IRGreater | IRLessEq | IRGreaterEq | IRDivides
     deriving (Show, Eq)
