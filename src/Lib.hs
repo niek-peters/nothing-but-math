@@ -3,11 +3,13 @@ module Lib
     ) where
 import Parser (parse)
 import Text.Show.Pretty (pPrint)
-import Elab (collectGlobals)
+import Elab (collectGlobals, elab)
 
 compile :: FilePath -> IO ()
 compile path = do
     text <- readFile path
 
     let parsed = parse text
-    pPrint $ parsed
+    let elaborated = elab parsed
+    
+    pPrint $ elaborated

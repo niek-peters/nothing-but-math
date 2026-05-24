@@ -1,6 +1,6 @@
 module Elab where
-    
-import Parser (ParseResult(..), Fragment (..))
+
+import Parser (ParseResult(..), ParseFragment (..))
 import qualified Data.Map as Map
 import AST (Id, Signature (..), AST(..), Declaration (..), Expr (..), Type (..), PrimitiveType (..), BinaryOp (..), UnaryOp (..), Local (..), Implementation (..), Branch (..))
 import IR (IRExpr (..), IRBinaryOp (..), IR (..), IRDeclaration (IRDeclaration), IRImplementation (IRUnconditional, IRConditional), IRBranch (IRBranch), IRLocal (..))
@@ -27,18 +27,27 @@ import qualified Data.Functor
 
 -- So, we will not be having compile-time type errors for mismatches in number types, instead inserting many type casts automatically and trusting the developer that the given type signature is correct
 
+-- TODO: generalize these parser and elab fragment types to a generic
+newtype ElabResult = ElabResult [ElabFragment]
+    deriving (Show, Eq)
+data ElabFragment = TextFragment String | CodeFragment IR
+    deriving (Show, Eq)
+
 type Scope = Map.Map Id Signature
 -- type LocalScope = Map.Map Id Type
 type Scopes = (Scope, Scope)    -- local scope, global scope
 
-elab :: ParseResult -> IR
-elab parsed = IR $ map (`elabDeclaration` globals) decls
-    where   (globals, decls) = collectGlobals parsed
+elab :: ParseResult -> ElabResult
+elab (ParseResult frags) = ElabResult $ map elabFragment frags
+    where   globals = collectGlobals frags
 
-collectGlobals :: ParseResult -> (Scope, [Declaration])
-collectGlobals (ParseResult frags) = foldl collect (Map.empty, []) frags
-    where   collect (m, decls) (TextFragment _) = (m, decls)
-            collect (m, decls) (CodeFragment ast@(AST newDecls)) = (collectGlobalsFromAST m ast, decls ++ newDecls)
+            elabFragment (Parser.TextFragment str) = Elab.TextFragment str
+            elabFragment (Parser.CodeFragment (AST decls)) = Elab.CodeFragment $ IR $ map (`elabDeclaration` globals) decls
+
+collectGlobals :: [ParseFragment] -> Scope
+collectGlobals frags = foldl collect Map.empty frags
+    where   collect m (Parser.TextFragment _) = m
+            collect m (Parser.CodeFragment ast) = collectGlobalsFromAST m ast
 
 collectGlobalsFromAST :: Scope -> AST -> Scope
 collectGlobalsFromAST m (AST decls) = foldl insertDeclaration m decls

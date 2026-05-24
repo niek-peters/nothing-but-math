@@ -1,4 +1,4 @@
-module Parser (Parser.parse, ParseResult(..), Fragment(..)) where
+module Parser (Parser.parse, ParseResult(..), ParseFragment(..)) where
 
 import Text.Megaparsec
 import Data.Void (Void)
@@ -14,9 +14,9 @@ import Control.Monad.Combinators.Expr
 
 type Parser = Parsec Void String
 
-newtype ParseResult = ParseResult [Fragment]
+newtype ParseResult = ParseResult [ParseFragment]
     deriving (Show, Eq)
-data Fragment = TextFragment String | CodeFragment AST
+data ParseFragment = TextFragment String | CodeFragment AST
     deriving (Show, Eq)
 
 newtype SplitResult = SplitResult [Section]
@@ -61,7 +61,7 @@ parseSections = SplitResult <$> manyTill (choice [codeStr, textStr]) eof
     codeStr = CodeSection <$> (try (string "<<<") *> manyTill anySingle (string ">>>"))
     textStr = TextSection <$> some (notFollowedBy (string "<<<") *> anySingle)
 
-runFragmentParser :: Section -> Fragment
+runFragmentParser :: Section -> ParseFragment
 runFragmentParser (TextSection t) = TextFragment t
 runFragmentParser (CodeSection c) = case Text.Megaparsec.parse parseCodeFragment "" c of
             Left e -> error $ show e
