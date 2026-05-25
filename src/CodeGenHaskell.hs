@@ -49,7 +49,7 @@ codeGenSignature (Signature maybeFrom (Type to)) = fromPart ++ toPart
             
 
 codeGenExpr :: IRExpr -> String
-codeGenExpr (IRCast e from to) = parens $ codeGenCast e from to
+codeGenExpr (IRCast e from to) = parens $ codeGenCast from to ++ " " ++ codeGenExpr e
 codeGenExpr (IRCall ident []) = ident
 codeGenExpr (IRCall ident es) = parens $ ident ++ " " ++ unwords (map codeGenExpr es) 
 codeGenExpr (IRImmediateInt i) = show i
@@ -59,8 +59,13 @@ codeGenExpr (IRBinary op e1 e2) = parens $ codeGenBinary op e1 e2
 codeGenExpr (IRUnary op e) = parens $ codeGenUnary op e
 codeGenExpr (IRTuple es) = tuple $ NonEmpty.map codeGenExpr es
 
-codeGenCast :: IRExpr -> PrimitiveType -> PrimitiveType -> String
-codeGenCast e from to = "cast " ++ codeGenExpr e    -- TODO: implement this
+codeGenCast :: PrimitiveType -> PrimitiveType -> String
+codeGenCast Positive _ = "fromIntegral"
+codeGenCast Natural _ = "fromIntegral"
+codeGenCast Integer _ = "fromIntegral"
+codeGenCast Real Rational = "toRational"
+codeGenCast Rational Real = "fromRational"
+codeGenCast f t = error $ "LOGIC ERROR: codeGenCast called with invalid types, namely from '" ++ show f ++ "' to '" ++ show t ++ "'"
 
 codeGenUnary :: UnaryOp -> IRExpr -> String
 codeGenUnary Floor e = "floor " ++ codeGenExpr e
