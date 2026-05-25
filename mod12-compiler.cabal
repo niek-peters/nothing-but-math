@@ -27,6 +27,7 @@ library
   exposed-modules:
       AST
       CodeGenHaskell
+      CodeGenLaTeX
       Elab
       IR
       Lib
