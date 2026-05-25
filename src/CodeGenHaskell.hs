@@ -7,15 +7,29 @@ import Types (Fragment(..))
 import IR
 import Data.List (intercalate)
 import AST (Signature (..), Type (..), PrimitiveType (..), Id, UnaryOp (..))
-import Data.List.NonEmpty (toList, NonEmpty (..))
+import Data.List.NonEmpty (toList, NonEmpty (..), fromList)
 import qualified Data.List.NonEmpty as NonEmpty
+import Data.FileEmbed (embedStringFile)
 
--- prelude :: String
--- prelude = $(embedStringFile)
+moduleName :: String
+moduleName = "MHL"
+
+prelude :: String
+prelude = intercalate "\n\n" [headers, positive]
+    where   headers = $(embedStringFile "prelude/headers.hs")
+            positive = $(embedStringFile "prelude/positive.hs")
 
 codeGenHaskell :: ElabResult -> String
-codeGenHaskell frags = concat (map codeGenFragment frags)
-    where   codeGenFragment (TextFragment _) = ""
+codeGenHaskell frags = moduleStr ++ prelude ++ "\n\n" ++ concat (map codeGenFragment frags)
+    where   moduleStr = "module " ++ moduleName ++ " " ++ exportStr ++ " where\n\n"
+
+            exportStr = case exports of
+                [] -> "()"
+                es -> tuple (fromList es)
+
+            exports = concat [[moduleName ++ "." ++ ident | (IRDeclaration ident _ _ _ _ _) <- decls] | (CodeFragment (IR decls)) <- frags]
+        
+            codeGenFragment (TextFragment _) = ""
             codeGenFragment (CodeFragment (IR decls)) = intercalate "\n\n" (map codeGenDeclaration decls)
 
 codeGenDeclaration :: IRDeclaration -> String
@@ -27,23 +41,23 @@ codeGenDeclaration (IRDeclaration ident sig params impl locals constraints) =
     codeGenLocals locals
 
 codeGenConstraint :: Id -> IRExpr -> String
-codeGenConstraint ident e = "\t| not " ++ codeGenExpr e ++ " = error \"[" ++ ident ++ "] Violated constraint `" ++ show e ++ "`\"\n" -- TODO: use a pretty printed expression here instead, so it looks like in the DSL
+codeGenConstraint ident e = tab ++ "| not " ++ codeGenExpr e ++ " = error \"[" ++ ident ++ "] Violated constraint `" ++ show e ++ "`\"\n" -- TODO: use a pretty printed expression here instead, so it looks like in the DSL
 
 codeGenImpl :: IRImplementation -> String
 codeGenImpl (IRUnconditional e) = codeGenOther e
 codeGenImpl (IRConditional branches other) = concat (map codeGenBranch branches) ++ codeGenOther other
 
 codeGenBranch :: IRBranch -> String
-codeGenBranch (IRBranch e cond) = "\t| " ++ unparens (codeGenExpr cond) ++ " = " ++ unparens (codeGenExpr e) ++ "\n"
+codeGenBranch (IRBranch e cond) = tab ++ "| " ++ unparens (codeGenExpr cond) ++ " = " ++ unparens (codeGenExpr e) ++ "\n"
 
 codeGenOther :: IRExpr -> String
-codeGenOther e = "\t| otherwise = " ++ unparens (codeGenExpr e) ++ "\n"
+codeGenOther e = tab ++ "| otherwise = " ++ unparens (codeGenExpr e) ++ "\n"
 
 codeGenLocals :: [IRLocal] -> String
 codeGenLocals [] = ""
 codeGenLocals locals =
-    "\twhere\n" ++
-    "\t\t" ++ (intercalate "\n\t\t" (map codeGenAssign locals))
+    tab ++ "where\n" ++
+    tab ++ tab ++ (intercalate ("\n" ++ tab ++ tab) (map codeGenAssign locals))
     where   codeGenAssign (IRLocal idents e) = maybeTuple idents ++ " = " ++ unparens (codeGenExpr e)
 
 codeGenSignature :: Signature -> String
@@ -56,14 +70,18 @@ codeGenSignature (Signature maybeFrom (Type to)) = fromPart ++ toPart
 
 codeGenExpr :: IRExpr -> String
 codeGenExpr (IRCast e from to) = parens $ codeGenCast from to ++ " " ++ codeGenExpr e
-codeGenExpr (IRCall ident []) = ident
-codeGenExpr (IRCall ident es) = parens $ ident ++ " " ++ unwords (map codeGenExpr es) 
+codeGenExpr (IRCall ident isGlobal []) = maybeGlobalIdent ident isGlobal
+codeGenExpr (IRCall ident isGlobal es) = parens $ (maybeGlobalIdent ident isGlobal) ++ " " ++ unwords (map codeGenExpr es) 
 codeGenExpr (IRImmediateInt i) = show i
 codeGenExpr (IRImmediateReal r) = show r
 codeGenExpr (IRImmediateBool b) = show b
 codeGenExpr (IRBinary op e1 e2) = parens $ codeGenBinary op e1 e2
 codeGenExpr (IRUnary op e) = parens $ codeGenUnary op e
 codeGenExpr (IRTuple es) = tuple $ NonEmpty.map codeGenExpr es
+
+maybeGlobalIdent :: Id -> Bool -> Id
+maybeGlobalIdent ident False = ident
+maybeGlobalIdent ident True = moduleName ++ "." ++ ident
 
 codeGenCast :: PrimitiveType -> PrimitiveType -> String
 codeGenCast Positive _ = "fromIntegral"
@@ -126,3 +144,6 @@ codeGenPrimitiveType Integer = "Integer"
 codeGenPrimitiveType Rational = "Rational"
 codeGenPrimitiveType Real = "Double"
 codeGenPrimitiveType Boolean = "Bool"
+
+tab :: String
+tab = "  "

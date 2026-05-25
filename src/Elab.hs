@@ -58,11 +58,12 @@ insertIdent m ident sig
     | Map.member ident m = error $ "ERROR: Duplicate declaration of '" ++ ident ++ "'"
     | otherwise = Map.insert ident sig m
 
-resolveIdent :: Id -> (Scope, Scope) -> Signature
+-- boolean in returned tuple indicates whether the reference is to a global identifier
+resolveIdent :: Id -> (Scope, Scope) -> (Signature, Bool)
 resolveIdent ident (locals, globals) = case Map.lookup ident locals of
-    Just sig -> sig
+    Just sig -> (sig, False)
     Nothing -> case Map.lookup ident globals of
-        Just sig -> sig
+        Just sig -> (sig, True)
         Nothing -> error $ "ERROR: Reference to undefined value '" ++ ident ++  "'"
 
 elabDeclaration :: Declaration -> Scope -> IRDeclaration
@@ -130,13 +131,13 @@ elabBranch (Branch e1 e2) mt scopes = IRBranch resE1 resE2
 elabExpr :: Expr -> Maybe Type -> Scopes -> (IRExpr, Type)
 elabExpr (Call ident []) mt scopes = case maybeFrom of
     Just from -> error $ "TYPE ERROR: Call to function '" ++ ident ++ "' missing args '" ++ show from ++ "'"
-    Nothing -> maybeCastExpr (IRCall ident []) to mt
-    where   (Signature maybeFrom to) = resolveIdent ident scopes
+    Nothing -> maybeCastExpr (IRCall ident isGlobal []) to mt
+    where   (Signature maybeFrom to, isGlobal) = resolveIdent ident scopes
 elabExpr (Call ident es) mt scopes = case maybeFrom of
     Nothing -> error $ "TYPE ERROR: Reference to constant '" ++ ident ++ "' incorrectly called like a function with args: " ++ show es
-    Just _ -> maybeCastExpr (IRCall ident (toList resArgs)) to mt
+    Just _ -> maybeCastExpr (IRCall ident isGlobal (toList resArgs)) to mt
     where   (resArgs, _) = elabExprs (fromList es) maybeFrom scopes
-            (Signature maybeFrom to) = resolveIdent ident scopes
+            (Signature maybeFrom to, isGlobal) = resolveIdent ident scopes
 elabExpr (ImmediateInt i) mt _ = maybeCastExpr (IRImmediateInt i) (Type $ pure pt) mt
     where   pt  | i < 0 = Integer
                 | i > 0 = Positive
