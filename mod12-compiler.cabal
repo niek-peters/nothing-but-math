@@ -31,6 +31,7 @@ library
       Lib
       Parser
       Types
+      CodeGenHaskell
   other-modules:
       Paths_mod12_compiler
   autogen-modules:

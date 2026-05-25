@@ -1,4 +1,4 @@
-module Elab (elab) where
+module Elab (elab, ElabResult) where
 
 import qualified Data.Map as Map
 import AST (Id, Signature (..), AST(..), Declaration (..), Expr (..), Type (..), PrimitiveType (..), BinaryOp (..), UnaryOp (..), Local (..), Implementation (..), Branch (..))
@@ -26,7 +26,9 @@ import Parser (ParseResult)
 -- The problem here is that we mostly lose type checking on numbers, instead doing runtime implicit narrowing of types whenever there is a mismatch between the synthesized and required type
 -- You could also make casts explicit, but that makes the DSL significantly harder to use
 
--- So, we will not be having compile-time type errors for mismatches in number types, instead inserting many type casts automatically and trusting the developer that the given type signature is correct
+-- So, we will not (always) be having compile-time type errors for mismatches in number types, instead inserting many type casts automatically and trusting the developer that the given type signature is correct
+
+-- Another important thing to mention is that constraints are evaluated in order, from how they were written in the DSL, from left to right
 
 -- TODO: make error messages always show the part of the AST where it went wrong
 
