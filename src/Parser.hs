@@ -12,6 +12,7 @@ import Control.Monad.Combinators.Expr
 import Types
 
 -- TODO: consider enforcing newlines in many places
+-- TODO: add unary minus?
 
 type Parser = Parsec Void String
 
