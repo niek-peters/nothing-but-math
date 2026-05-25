@@ -83,13 +83,33 @@ maybeGlobalIdent :: Id -> Bool -> Id
 maybeGlobalIdent ident False = ident
 maybeGlobalIdent ident True = moduleName ++ "." ++ ident
 
+-- TODO: consider making non-generic functions for all legal casts and putting them in the prelude (E.g. positiveToInteger, realToRational, etc.)
 codeGenCast :: PrimitiveType -> PrimitiveType -> String
-codeGenCast Positive _ = "fromIntegral"
-codeGenCast Natural _ = "fromIntegral"
-codeGenCast Integer _ = "fromIntegral"
-codeGenCast Real Rational = "toRational"
-codeGenCast Rational Real = "fromRational"
+codeGenCast from to 
+    | isIntegerPrimitiveType from && to /= Boolean 
+    = parens $ "fromIntegral :: " ++ codeGenPrimitiveType from ++ " -> " ++ codeGenPrimitiveType to 
+-- codeGenCast Positive Integer = "toInteger"
+-- codeGenCast Natural Integer = "toInteger"
+-- codeGenCast Positive Natural = parens "fromIntegral :: Positive -> Natural"
+-- codeGenCast Integer Natural = parens "fromIntegral :: Integer -> Natural"
+-- codeGenCast Natural Positive = parens "fromIntegral :: Natural -> Positive"
+-- codeGenCast Integer Positive = parens "fromIntegral :: Integer -> Positive"
+codeGenCast from Rational 
+    | from /= Boolean 
+    = parens $ "toRational :: " ++ codeGenPrimitiveType from ++ " -> Rational"
+codeGenCast Rational Real = parens "fromRational :: Rational -> Double"
+-- codeGenCast Positive _ = "fromIntegral"
+-- codeGenCast Natural _ = "fromIntegral"
+-- codeGenCast Integer _ = "fromIntegral"
+-- codeGenCast Real Rational = "toRational"
+-- codeGenCast Rational Real = parens "fromRational :: Rational -> Double"
 codeGenCast f t = error $ "LOGIC ERROR: codeGenCast called with invalid types, namely from '" ++ show f ++ "' to '" ++ show t ++ "'"
+
+isIntegerPrimitiveType :: PrimitiveType -> Bool
+isIntegerPrimitiveType Positive = True
+isIntegerPrimitiveType Natural = True
+isIntegerPrimitiveType Integer = True
+isIntegerPrimitiveType _ = False
 
 codeGenUnary :: UnaryOp -> IRExpr -> String
 codeGenUnary Floor e = "floor " ++ codeGenExpr e
@@ -99,7 +119,9 @@ codeGenBinary :: IRBinaryOp -> IRExpr -> IRExpr -> String
 codeGenBinary IRAdd = infixOp "+"
 codeGenBinary IRSub = infixOp "-"
 codeGenBinary IRMult = infixOp "*"
-codeGenBinary IRDiv = (\e1 e2 -> (parens $ codeGenExpr e1 ++ " / " ++ codeGenExpr e2) ++ " :: Rational")
+codeGenBinary IRFrac = infixOp "%"
+codeGenBinary IRDiv = infixOp "/"
+-- codeGenBinary IRDiv = (\e1 e2 -> (parens $ codeGenExpr e1 ++ " / " ++ codeGenExpr e2) ++ " :: Rational")
 codeGenBinary IRPow = infixOp "^"
 codeGenBinary IRExp = infixOp "**"
 codeGenBinary IRMod = infixOp "`mod`"

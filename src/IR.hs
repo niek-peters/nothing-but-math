@@ -38,6 +38,8 @@ data IRExpr = IRCast IRExpr PrimitiveType PrimitiveType       -- wraps an expr t
             | IRTuple (NonEmpty IRExpr)      -- E.g. (a, b, c) 
     deriving (Show, Eq)
 
--- here we differentiate between Pow (Haskell ^, integer power) and Exp (Haskell **, rational/real power)
-data IRBinaryOp = IRAdd | IRSub | IRMult | IRDiv | IRPow | IRExp | IRMod | IREq | IRNeq | IRLess | IRGreater | IRLessEq | IRGreaterEq | IRDivides
+-- here we differentiate between:
+-- 1. Frac (Haskell %, creates a fraction) and Div (Haskell /, performs a division)
+-- 2. Pow (Haskell ^, integer power) and Exp (Haskell **, rational/real power)
+data IRBinaryOp = IRAdd | IRSub | IRMult | IRFrac | IRDiv | IRPow | IRExp | IRMod | IREq | IRNeq | IRLess | IRGreater | IRLessEq | IRGreaterEq | IRDivides
     deriving (Show, Eq)

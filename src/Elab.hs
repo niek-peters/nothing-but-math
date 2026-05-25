@@ -224,27 +224,35 @@ toAtMostInteger Rational = Integer  -- I opted to have it throw there so we get 
 toAtMostInteger t = t
 
 sameOperandTypesBinary :: BinaryOp -> (IRExpr, Type) -> (IRExpr, Type) -> PrimitiveType -> IRExpr
-sameOperandTypesBinary op (e1, t1) (e2, t2) pt = IRBinary (toIRBinaryOp op) operand1 operand2
+sameOperandTypesBinary op (e1, t1) (e2, t2) pt = IRBinary (toIRBinaryOp op t1 t2) operand1 operand2
     where   operand1 = fst $ maybeCastExpr e1 t1 justResType
             operand2 = fst $ maybeCastExpr e2 t2 justResType
             justResType = Just resType
             resType = Type $ pure pt
 
 -- assume the special integer power case is already handled
-toIRBinaryOp :: BinaryOp -> IRBinaryOp
-toIRBinaryOp Add = IRAdd
-toIRBinaryOp Sub = IRSub
-toIRBinaryOp Mult = IRMult
-toIRBinaryOp Div = IRDiv
-toIRBinaryOp Pow = IRExp
-toIRBinaryOp Mod = IRMod
-toIRBinaryOp Eq = IREq
-toIRBinaryOp Neq = IRNeq
-toIRBinaryOp Less = IRLess
-toIRBinaryOp Greater = IRGreater
-toIRBinaryOp LessEq = IRLessEq
-toIRBinaryOp GreaterEq = IRGreaterEq
-toIRBinaryOp Divides = IRDivides
+toIRBinaryOp :: BinaryOp -> Type -> Type -> IRBinaryOp
+toIRBinaryOp Add _ _ = IRAdd
+toIRBinaryOp Sub _ _ = IRSub
+toIRBinaryOp Mult _ _ = IRMult
+toIRBinaryOp Div t1 t2
+    | isIntegerType t1 && isIntegerType t2 = IRFrac -- construct a fraction whenever neither operand of a division is at least a fraction yet
+toIRBinaryOp Div _ _ = IRDiv
+toIRBinaryOp Pow _ _ = IRExp
+toIRBinaryOp Mod _ _ = IRMod
+toIRBinaryOp Eq _ _ = IREq
+toIRBinaryOp Neq _ _ = IRNeq
+toIRBinaryOp Less _ _ = IRLess
+toIRBinaryOp Greater _ _ = IRGreater
+toIRBinaryOp LessEq _ _ = IRLessEq
+toIRBinaryOp GreaterEq _ _ = IRGreaterEq
+toIRBinaryOp Divides _ _ = IRDivides
+
+isIntegerType :: Type -> Bool
+isIntegerType (Type (Positive :| [])) = True
+isIntegerType (Type (Natural :| [])) = True
+isIntegerType (Type (Integer :| [])) = True
+isIntegerType _ = False
 
 -- assumes types are number types
 getGreaterNumberType :: PrimitiveType -> PrimitiveType -> PrimitiveType
