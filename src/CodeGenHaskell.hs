@@ -1,4 +1,7 @@
+{-# LANGUAGE TemplateHaskell #-}
+
 module CodeGenHaskell (codeGenHaskell) where
+
 import Elab (ElabResult)
 import Types (Fragment(..))
 import IR
@@ -6,6 +9,9 @@ import Data.List (intercalate)
 import AST (Signature (..), Type (..), PrimitiveType (..), Id, UnaryOp (..))
 import Data.List.NonEmpty (toList, NonEmpty (..))
 import qualified Data.List.NonEmpty as NonEmpty
+
+-- prelude :: String
+-- prelude = $(embedStringFile)
 
 codeGenHaskell :: ElabResult -> String
 codeGenHaskell frags = concat (map codeGenFragment frags)

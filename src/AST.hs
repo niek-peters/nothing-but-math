@@ -1,4 +1,4 @@
-module AST where -- export everything
+module AST (module AST) where -- export everything
 
 import Data.List.NonEmpty (NonEmpty)
 
