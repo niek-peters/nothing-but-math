@@ -2,7 +2,7 @@ module CodeGenLaTeX (codeGenLaTeX) where
 
 import Elab (ElabResult)
 import Types (Fragment(..))
-import IR (IR(..), IRDeclaration (IRDeclaration), IRImplementation, IRLocal, IRExpr)
+import IR (IR(..), IRDeclaration (IRDeclaration), IRImplementation, IRLocal, IRExpr, IRWhereTerm)
 import Data.List (intercalate)
 import Data.List.NonEmpty (NonEmpty, toList)
 import AST (Signature)
@@ -29,10 +29,10 @@ wrapStatement Text str = "&" ++ str ++ "&"
 wrapStatement Table str = "$" ++ str ++ "$"
 
 codeGenDeclaration :: IRDeclaration -> (String -> String) -> String
-codeGenDeclaration (IRDeclaration ident sig params impl locals constraints) wrap = 
+codeGenDeclaration (IRDeclaration ident sig params impl whereTerms) wrap = 
     wrap (text "Define" ++ textSep ++ ident ++ " : " ++ codeGenSignature sig ++ textSep ++ text "by") ++ newline ++
     wrap (ident ++ codeGenParams params ++ " = " ++ codeGenImpl impl) ++ newline ++
-    codeGenWhere locals constraints wrap
+    codeGenWhere whereTerms wrap
 
 codeGenSignature :: Signature -> String
 codeGenSignature _ = error "GG"
@@ -41,9 +41,9 @@ codeGenImpl :: IRImplementation -> String
 codeGenImpl _ = error "GG"
 
 -- NOTE: the original order of locals and decls is lost in the AST/IR. It might be a good idea to save those somehow
-codeGenWhere :: [IRLocal] -> [IRExpr] -> (String -> String) -> String
-codeGenWhere [] [] _ = ""
-codeGenWhere locals es wrap = wrap ("GG") ++ error "GG" 
+codeGenWhere :: [IRWhereTerm] -> (String -> String) -> String
+codeGenWhere [] _ = ""
+codeGenWhere whereTerms wrap = wrap ("GG") ++ error "GG" 
 
 
 codeGenParams :: [String] -> String

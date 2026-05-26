@@ -1,8 +1,8 @@
 module Elab (elab, ElabResult) where
 
 import qualified Data.Map as Map
-import AST (Id, Signature (..), AST(..), Declaration (..), Expr (..), Type (..), PrimitiveType (..), BinaryOp (..), UnaryOp (..), Local (..), Implementation (..), Branch (..))
-import IR (IRExpr (..), IRBinaryOp (..), IR (..), IRDeclaration (IRDeclaration), IRImplementation (IRUnconditional, IRConditional), IRBranch (IRBranch), IRLocal (..))
+import AST (Id, Signature (..), AST(..), Declaration (..), Expr (..), Type (..), PrimitiveType (..), BinaryOp (..), UnaryOp (..), Local (..), Implementation (..), Branch (..), WhereTerm (..))
+import IR (IRExpr (..), IRBinaryOp (..), IR (..), IRDeclaration (IRDeclaration), IRImplementation (IRUnconditional, IRConditional), IRBranch (IRBranch), IRLocal (..), IRWhereTerm (IRLocalDecl, IRConstraint))
 import Data.List.NonEmpty (NonEmpty(..), toList, fromList)
 import qualified Data.List.NonEmpty as NonEmpty
 import qualified Data.Functor
@@ -51,7 +51,7 @@ collectGlobals frags = foldl collect Map.empty frags
 
 collectGlobalsFromAST :: Scope -> AST -> Scope
 collectGlobalsFromAST m (AST decls) = foldl insertDeclaration m decls
-    where   insertDeclaration scope (Declaration ident sig _ _ _ _) = insertIdent scope ident sig
+    where   insertDeclaration scope (Declaration ident sig _ _ _) = insertIdent scope ident sig
 
 insertIdent :: Scope -> Id -> Signature -> Scope
 insertIdent m ident sig 
@@ -67,11 +67,19 @@ resolveIdent ident (locals, globals) = case Map.lookup ident locals of
         Nothing -> error $ "ERROR: Reference to undefined value '" ++ ident ++  "'"
 
 elabDeclaration :: Declaration -> Scope -> IRDeclaration
-elabDeclaration (Declaration ident sig@(Signature from to) params impl locals constraints) globals 
-    = IRDeclaration ident sig params resImpl resLocals resConstraints
+elabDeclaration (Declaration ident sig@(Signature from to) params impl whereTerms) globals 
+    = IRDeclaration ident sig params resImpl merged
     where   resImpl = elabImplementation impl (Just to) scopes
 
-            resConstraints = map elabCondition constraints
+            -- and finally we merge the locals and constraints again in their original order
+            merged = mergeOrdered resLocals resConstraints
+            mergeOrdered ls [] = map (IRLocalDecl . snd) ls
+            mergeOrdered [] rs = map (IRConstraint . snd) rs
+            mergeOrdered ls@((il, l):lss) rs@((ir, r):rss)  | il < ir = (IRLocalDecl l) : mergeOrdered lss rs
+                                                            | otherwise = (IRConstraint r) : mergeOrdered ls rss
+
+            resConstraints = map (elabCondition `applySnd`) constraintTuples
+            applySnd f (a, b) = (a, f b)
             elabCondition e = fst $ elabExpr e (Just $ Type $ pure Boolean) scopes
 
             scopes = (localScope, globals)
@@ -79,8 +87,19 @@ elabDeclaration (Declaration ident sig@(Signature from to) params impl locals co
             -- we then add the local declarations to the local scope
             localScope = collectLocals localDecls tmpScopes
 
-            (localDecls, resLocals) = unzip $ map (`elabLocal` tmpScopes) locals
+            -- we elaborate the locals, retaining the indices in the resLocals
+            (localDecls, resLocals) = unzip $ map ((`elabLocal` tmpScopes) `handleIndex`) localTuples
+            handleIndex f (i, x) = (l, (i, r))
+                where   (l, r) = f x
             tmpScopes = (tmpLocalScope, globals)
+
+            -- we partition the whereTerms into locals and constraints, retaining the indices we got before
+            (localTuples, constraintTuples) = foldr partitionTerms ([], []) whereTermTuples
+            partitionTerms (i, LocalDecl local) (acc1, acc2) = ((i, local) : acc1, acc2)
+            partitionTerms (i, Constraint cons) (acc1, acc2) = (acc1, (i, cons) : acc2)
+
+            -- now we enumerate the whereTerms to allow use to merge them back together in the original order at the end
+            whereTermTuples = zip [(0 :: Int)..] whereTerms
 
             -- we initialize the local scope with the function parameters
             tmpLocalScope = collectLocals (elabParams from params) (Map.empty, globals)

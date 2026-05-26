@@ -12,8 +12,9 @@ data Declaration = Declaration
     Signature       -- type signature
     [Id]            -- arguments
     Implementation  
-    [Local]         -- local declarations
-    [Expr]          -- constraints
+    [WhereTerm]
+    -- [Local]         -- local declarations
+    -- [Expr]          -- constraints
     deriving (Show, Eq)
 
 data Signature = Signature 
@@ -32,6 +33,9 @@ data Implementation = Unconditional Expr
     deriving (Show, Eq)
 
 data Branch = Branch Expr Expr  -- Expr if Expr
+    deriving (Show, Eq)
+
+data WhereTerm = LocalDecl Local | Constraint Expr
     deriving (Show, Eq)
 
 data Local = Local 

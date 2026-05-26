@@ -11,8 +11,9 @@ data IRDeclaration = IRDeclaration
     Signature       -- type signature
     [Id]            -- arguments
     IRImplementation  
-    [IRLocal]         -- local declarations
-    [IRExpr]          -- constraints (evaluated in-order)
+    [IRWhereTerm]
+    -- [IRLocal]         -- local declarations
+    -- [IRExpr]          -- constraints (evaluated in-order)
     deriving (Show, Eq)
 
 
@@ -21,6 +22,9 @@ data IRImplementation   = IRUnconditional IRExpr
     deriving (Show, Eq)
 
 data IRBranch = IRBranch IRExpr IRExpr  -- Expr if Expr
+    deriving (Show, Eq)
+
+data IRWhereTerm = IRLocalDecl IRLocal | IRConstraint IRExpr
     deriving (Show, Eq)
 
 data IRLocal = IRLocal 

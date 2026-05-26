@@ -27,18 +27,20 @@ codeGenHaskell frags = moduleStr ++ prelude ++ "\n\n" ++ concat (map codeGenFrag
                 [] -> "()"
                 es -> tuple (fromList es)
 
-            exports = concat [[moduleName ++ "." ++ ident | (IRDeclaration ident _ _ _ _ _) <- decls] | (CodeFragment (IR decls)) <- frags]
+            exports = concat [[moduleName ++ "." ++ ident | (IRDeclaration ident _ _ _ _) <- decls] | (CodeFragment (IR decls)) <- frags]
         
             codeGenFragment (TextFragment _) = ""
             codeGenFragment (CodeFragment (IR decls)) = intercalate "\n\n" (map codeGenDeclaration decls)
 
 codeGenDeclaration :: IRDeclaration -> String
-codeGenDeclaration (IRDeclaration ident sig params impl locals constraints) = 
+codeGenDeclaration (IRDeclaration ident sig params impl whereTerms) = 
     ident ++ " :: " ++ codeGenSignature sig ++ "\n" ++
     ident ++ " " ++ unwords params ++ "\n" ++
     concat (map (codeGenConstraint ident) constraints) ++
     codeGenImpl impl ++
     codeGenLocals locals
+    where   constraints = [e | (IRConstraint e) <- whereTerms]
+            locals      = [l | (IRLocalDecl l) <- whereTerms]
 
 codeGenConstraint :: Id -> IRExpr -> String
 codeGenConstraint ident e = tab ++ "| not " ++ codeGenExpr e ++ " = error \"[" ++ ident ++ "] Violated constraint `" ++ show e ++ "`\"\n" -- TODO: use a pretty printed expression here instead, so it looks like in the DSL

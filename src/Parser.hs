@@ -69,16 +69,18 @@ parseDeclaration :: Parser Declaration
 parseDeclaration = do
     name <- identifier  -- we parse the name and later ensure it comes up again for the implementation
 
-    base <- Declaration name 
+    Declaration name 
         <$> (symbol ":" *> parseSignature) 
         <*> (symbol name *> (option [] (parens (sepBy identifier (symbol ",")))))
         <*> (symbol ":=" *> parseImplementation)
+        <*> option [] (try $ symbol "where" *> (parseWherePart))
         
-    (locals, constraints) <- option ([], []) (try $ symbol "where" *> (parseWherePart))
+    -- (locals, constraints) <- option ([], []) (try $ symbol "where" *> (parseWherePart))
 
-    return $ base locals constraints
+    -- return $ base locals constraints
     where
-        parseWherePart = partitionEithers <$> sepBy1 (Left <$> try parseLocal <|> Right <$> parseExpr) (symbol ",")
+        parseWherePart = sepBy1 (LocalDecl <$> try parseLocal <|> Constraint <$> parseExpr) (symbol ",")
+        -- parseWherePart = partitionEithers <$> sepBy1 (Left <$> try parseLocal <|> Right <$> parseExpr) (symbol ",")
 
 parseSignature :: Parser Signature
 parseSignature = toSignature <$> parseType <*> optional (symbol "->" *> parseType)
