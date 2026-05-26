@@ -15,18 +15,24 @@ codeGenLaTeX frags = concat (map codeGenFragment frags)
             codeGenFragment (TextFragment str) = str
             codeGenFragment (CodeFragment (IR decls)) = concat (map (`codeGenBlock` Text) decls)    -- TODO: remove hardcoded Text and get it from DSL annotation 
 
+-- here we handle different LaTeX block types
+-- we wrap the result in a certain block type and pass a statement wrapper function
 codeGenBlock :: IRDeclaration -> BlockType -> String
-codeGenBlock decl Text = "\\begin{flalign*}\n" ++ codeGenDeclaration decl Text ++ "\\end{flalign*}\n"
-codeGenBlock decl Table = "\\makecell{\n" ++ codeGenDeclaration decl Table ++ "}\n"
+codeGenBlock decl bt = wrapBlock bt $ codeGenDeclaration decl (wrapStatement bt)
 
-codeGenDeclaration :: IRDeclaration -> BlockType -> String
-codeGenDeclaration (IRDeclaration ident sig params impl locals constraints) bt = 
+wrapBlock :: BlockType -> String -> String
+wrapBlock Text = flalign
+wrapBlock Table = makecell
+
+wrapStatement :: BlockType -> String -> String
+wrapStatement Text str = "&" ++ str ++ "&"
+wrapStatement Table str = "$" ++ str ++ "$"
+
+codeGenDeclaration :: IRDeclaration -> (String -> String) -> String
+codeGenDeclaration (IRDeclaration ident sig params impl locals constraints) wrap = 
     wrap (text "Define" ++ textSep ++ ident ++ " : " ++ codeGenSignature sig ++ textSep ++ text "by") ++ newline ++
     wrap (ident ++ codeGenParams params ++ " = " ++ codeGenImpl impl) ++ newline ++
-    codeGenWhere locals constraints wrap ++
-    error "GG"
-
-    where   wrap = wrapStatement bt
+    codeGenWhere locals constraints wrap
 
 codeGenSignature :: Signature -> String
 codeGenSignature _ = error "GG"
@@ -39,9 +45,6 @@ codeGenWhere :: [IRLocal] -> [IRExpr] -> (String -> String) -> String
 codeGenWhere [] [] _ = ""
 codeGenWhere locals es wrap = wrap ("GG") ++ error "GG" 
 
-wrapStatement :: BlockType -> String -> String
-wrapStatement Text str = "&" ++ str ++ "&"
-wrapStatement Table str = "$" ++ str ++ "$"
 
 codeGenParams :: [String] -> String
 codeGenParams [] = ""
@@ -67,8 +70,15 @@ leq = macro "leq"
 mathbb = macro1 "mathbb"
 text = macro1 "text"
 
+flalign = block "flalign*"
+makecell = macro1 "makecell"
+
+
 macro :: String -> String
 macro name = "\\" ++ name
 
 macro1 :: String -> String -> String
 macro1 name contents = "\\" ++ name ++ "{" ++ contents ++ "}"
+
+block :: String -> String -> String
+block name contents = macro1 "begin" name ++ "\n" ++ contents ++ "\n" ++ macro1 "end" name
