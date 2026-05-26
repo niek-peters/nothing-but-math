@@ -12,8 +12,6 @@ data IRDeclaration = IRDeclaration
     [Id]            -- arguments
     IRImplementation  
     [IRWhereTerm]
-    -- [IRLocal]         -- local declarations
-    -- [IRExpr]          -- constraints (evaluated in-order)
     deriving (Show, Eq)
 
 

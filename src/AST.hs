@@ -13,8 +13,6 @@ data Declaration = Declaration
     [Id]            -- arguments
     Implementation  
     [WhereTerm]
-    -- [Local]         -- local declarations
-    -- [Expr]          -- constraints
     deriving (Show, Eq)
 
 data Signature = Signature 
@@ -43,6 +41,7 @@ data Local = Local
     Expr  
     deriving (Show, Eq)
 
+-- TODO: consider adding a parens expr for use in LaTeX codeGen, to decide whether to parenthesize an expression or not. We could also choose to make a generic thing for both targets that adds parens only when necessary
 data Expr   = Call Id [Expr]
             | ImmediateInt Int
             | ImmediateReal Double

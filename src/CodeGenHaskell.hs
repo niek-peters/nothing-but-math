@@ -7,9 +7,10 @@ import Types (Fragment(..))
 import IR
 import Data.List (intercalate)
 import AST (Signature (..), Type (..), PrimitiveType (..), Id, UnaryOp (..))
-import Data.List.NonEmpty (toList, NonEmpty (..), fromList)
+import Data.List.NonEmpty (toList)
 import qualified Data.List.NonEmpty as NonEmpty
 import Data.FileEmbed (embedStringFile)
+import CodeGen
 
 moduleName :: String
 moduleName = "MHL"
@@ -25,7 +26,7 @@ codeGenHaskell frags = moduleStr ++ prelude ++ "\n\n" ++ concat (map codeGenFrag
 
             exportStr = case exports of
                 [] -> "()"
-                es -> tuple (fromList es)
+                es -> tuple es
 
             exports = concat [[moduleName ++ "." ++ ident | (IRDeclaration ident _ _ _ _) <- decls] | (CodeFragment (IR decls)) <- frags]
         
@@ -63,11 +64,11 @@ codeGenLocals locals =
     where   codeGenAssign (IRLocal idents e) = maybeTuple idents ++ " = " ++ unparens (codeGenExpr e)
 
 codeGenSignature :: Signature -> String
-codeGenSignature (Signature maybeFrom (Type to)) = fromPart ++ toPart
+codeGenSignature (Signature maybeFrom (Type tos)) = fromPart ++ toPart
     where   fromPart = case maybeFrom of
                 Nothing -> ""
-                Just (Type from) -> intercalate " -> " (map codeGenPrimitiveType (toList from)) ++ " -> "
-            toPart = maybeTuple (NonEmpty.map codeGenPrimitiveType to)
+                Just (Type from) -> intercalate arrow (map codeGenPrimitiveType (toList from)) ++ arrow
+            toPart = maybeTuple (NonEmpty.map codeGenPrimitiveType tos)
             
 
 codeGenExpr :: IRExpr -> String
@@ -79,7 +80,7 @@ codeGenExpr (IRImmediateReal r) = show r
 codeGenExpr (IRImmediateBool b) = show b
 codeGenExpr (IRBinary op e1 e2) = parens $ codeGenBinary op e1 e2
 codeGenExpr (IRUnary op e) = parens $ codeGenUnary op e
-codeGenExpr (IRTuple es) = tuple $ NonEmpty.map codeGenExpr es
+codeGenExpr (IRTuple es) = tuple $ map codeGenExpr (toList es)
 
 maybeGlobalIdent :: Id -> Bool -> Id
 maybeGlobalIdent ident False = ident
@@ -133,33 +134,33 @@ codeGenBinary IRLess = infixOp "<"
 codeGenBinary IRGreater = infixOp ">"
 codeGenBinary IRLessEq = infixOp "<="
 codeGenBinary IRGreaterEq = infixOp ">="
-codeGenBinary IRDivides = (\e1 e2 -> codeGenExpr e2 ++ " `mod` " ++ codeGenExpr e1 ++ " == 0")
+codeGenBinary IRDivides = (\e1 e2 -> codeGenExpr e2 ++ symbol "`mod`" ++ codeGenExpr e1 ++ " == 0")
 
 infixOp :: String -> IRExpr -> IRExpr -> String
-infixOp opStr e1 e2 = codeGenExpr e1 ++ " " ++ opStr ++ " " ++ codeGenExpr e2
+infixOp opStr e1 e2 = codeGenExpr e1 ++ symbol opStr ++ codeGenExpr e2
 
 -- codeGenParensExpr :: IRExpr -> String
 -- codeGenParensExpr = codeGenParens . codeGenExpr
 
-maybeTuple :: NonEmpty String -> String
-maybeTuple (el :| []) = el
-maybeTuple els = tuple els
+-- maybeTuple :: NonEmpty String -> String
+-- maybeTuple (el :| []) = el
+-- maybeTuple els = tuple els
 
-tuple :: NonEmpty String -> String
-tuple els = parens $ intercalate ", " (toList els)
+-- tuple :: NonEmpty String -> String
+-- tuple els = parens $ intercalate ", " (toList els)
 
-parens :: String -> String
-parens str = "(" ++ str ++ ")"
+-- parens :: String -> String
+-- parens str = "(" ++ str ++ ")"
 
--- removes outer parentheses if present
--- intended for use around codeGenExpr
-unparens :: String -> String
-unparens str    | length str < 2 = str
-                | ',' `elem` str = str  -- don't remove parens from tuples
-                | hasOpenParen && hasCloseParen = (init . tail) str
-                | otherwise = str
-    where   hasOpenParen = head str == '('
-            hasCloseParen = last str == ')'
+-- -- removes outer parentheses if present
+-- -- intended for use around codeGenExpr
+-- unparens :: String -> String
+-- unparens str    | length str < 2 = str
+--                 | ',' `elem` str = str  -- don't remove parens from tuples
+--                 | hasOpenParen && hasCloseParen = (init . tail) str
+--                 | otherwise = str
+--     where   hasOpenParen = head str == '('
+--             hasCloseParen = last str == ')'
 
 codeGenPrimitiveType :: PrimitiveType -> String
 codeGenPrimitiveType Positive = "Positive"
@@ -169,5 +170,4 @@ codeGenPrimitiveType Rational = "Rational"
 codeGenPrimitiveType Real = "Double"
 codeGenPrimitiveType Boolean = "Bool"
 
-tab :: String
-tab = "  "
+arrow = symbol " -> "
