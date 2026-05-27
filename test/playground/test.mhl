@@ -15,13 +15,16 @@ egcd(a, b) := {
 modInv : N x Z+ -> Z+
 modInv(a, m) := x mod m
 where (g, x, y) := egcd(a, m), g = 1
+>>>
 
+ok so hello again
 
-
-
+<<<
 newtIter : Z+ x Z+ -> Z+
 newtIter(n, x) := {
     newtIter(n, y)  if y < x
     x               otherwise
 } where y := floor((x + floor(n / x)) / 2)
 >>>
+
+goodbye!

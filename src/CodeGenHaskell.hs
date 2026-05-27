@@ -31,7 +31,7 @@ codeGenHaskell frags = moduleStr ++ prelude ++ "\n\n" ++ concat (map codeGenFrag
             exports = concat [[moduleName ++ "." ++ ident | (IRDeclaration ident _ _ _ _) <- decls] | (CodeFragment (IR decls)) <- frags]
         
             codeGenFragment (TextFragment _) = ""
-            codeGenFragment (CodeFragment (IR decls)) = intercalate "\n\n" (map codeGenDeclaration decls)
+            codeGenFragment (CodeFragment (IR decls)) = (intercalate "\n\n" (map codeGenDeclaration decls)) ++ "\n\n"
 
 codeGenDeclaration :: IRDeclaration -> String
 codeGenDeclaration (IRDeclaration ident sig params impl whereTerms) = 
@@ -54,11 +54,11 @@ codeGenBranch :: IRBranch -> String
 codeGenBranch (IRBranch e cond) = tab ++ "| " ++ unparens (codeGenExpr cond) ++ " = " ++ unparens (codeGenExpr e) ++ "\n"
 
 codeGenOther :: IRExpr -> String
-codeGenOther e = tab ++ "| otherwise = " ++ unparens (codeGenExpr e) ++ "\n"
+codeGenOther e = tab ++ "| otherwise = " ++ unparens (codeGenExpr e)
 
 codeGenLocals :: [IRLocal] -> String
 codeGenLocals [] = ""
-codeGenLocals locals =
+codeGenLocals locals = "\n" ++
     tab ++ "where\n" ++
     tab ++ tab ++ (intercalate ("\n" ++ tab ++ tab) (map codeGenAssign locals))
     where   codeGenAssign (IRLocal idents e) = maybeParenTuple idents ++ " = " ++ unparens (codeGenExpr e)
