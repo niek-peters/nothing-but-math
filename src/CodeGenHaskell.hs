@@ -26,7 +26,7 @@ codeGenHaskell frags = moduleStr ++ prelude ++ "\n\n" ++ concat (map codeGenFrag
 
             exportStr = case exports of
                 [] -> "()"
-                es -> tuple es
+                es -> parenTuple es
 
             exports = concat [[moduleName ++ "." ++ ident | (IRDeclaration ident _ _ _ _) <- decls] | (CodeFragment (IR decls)) <- frags]
         
@@ -61,14 +61,14 @@ codeGenLocals [] = ""
 codeGenLocals locals =
     tab ++ "where\n" ++
     tab ++ tab ++ (intercalate ("\n" ++ tab ++ tab) (map codeGenAssign locals))
-    where   codeGenAssign (IRLocal idents e) = maybeTuple idents ++ " = " ++ unparens (codeGenExpr e)
+    where   codeGenAssign (IRLocal idents e) = maybeParenTuple idents ++ " = " ++ unparens (codeGenExpr e)
 
 codeGenSignature :: Signature -> String
 codeGenSignature (Signature maybeFrom (Type tos)) = fromPart ++ toPart
     where   fromPart = case maybeFrom of
                 Nothing -> ""
                 Just (Type from) -> intercalate arrow (map codeGenPrimitiveType (toList from)) ++ arrow
-            toPart = maybeTuple (NonEmpty.map codeGenPrimitiveType tos)
+            toPart = maybeParenTuple (NonEmpty.map codeGenPrimitiveType tos)
             
 
 codeGenExpr :: IRExpr -> String
@@ -80,7 +80,7 @@ codeGenExpr (IRImmediateReal r) = show r
 codeGenExpr (IRImmediateBool b) = show b
 codeGenExpr (IRBinary op e1 e2) = parens $ codeGenBinary op e1 e2
 codeGenExpr (IRUnary op e) = parens $ codeGenUnary op e
-codeGenExpr (IRTuple es) = tuple $ map codeGenExpr (toList es)
+codeGenExpr (IRTuple es) = parenTuple $ map codeGenExpr (toList es)
 
 maybeGlobalIdent :: Id -> Bool -> Id
 maybeGlobalIdent ident False = ident
@@ -124,7 +124,6 @@ codeGenBinary IRSub = infixOp "-"
 codeGenBinary IRMult = infixOp "*"
 codeGenBinary IRFrac = infixOp "%"
 codeGenBinary IRDiv = infixOp "/"
--- codeGenBinary IRDiv = (\e1 e2 -> (parens $ codeGenExpr e1 ++ " / " ++ codeGenExpr e2) ++ " :: Rational")
 codeGenBinary IRPow = infixOp "^"
 codeGenBinary IRExp = infixOp "**"
 codeGenBinary IRMod = infixOp "`mod`"
@@ -135,9 +134,6 @@ codeGenBinary IRGreater = infixOp ">"
 codeGenBinary IRLessEq = infixOp "<="
 codeGenBinary IRGreaterEq = infixOp ">="
 codeGenBinary IRDivides = (\e1 e2 -> codeGenExpr e2 ++ symbol "`mod`" ++ codeGenExpr e1 ++ " == 0")
-
-infixOp :: String -> IRExpr -> IRExpr -> String
-infixOp opStr e1 e2 = codeGenExpr e1 ++ symbol opStr ++ codeGenExpr e2
 
 -- codeGenParensExpr :: IRExpr -> String
 -- codeGenParensExpr = codeGenParens . codeGenExpr
@@ -169,5 +165,11 @@ codeGenPrimitiveType Integer = "Integer"
 codeGenPrimitiveType Rational = "Rational"
 codeGenPrimitiveType Real = "Double"
 codeGenPrimitiveType Boolean = "Bool"
+
+infixOp = infixBinaryOp codeGenExpr
+maybeParenTuple = maybeTuple "(" ")"
+parenTuple = tuple "(" ")"
+parens = wrap "(" ")"
+unparens = unwrap "(" ")"
 
 arrow = symbol " -> "
