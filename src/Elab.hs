@@ -157,7 +157,7 @@ elabExpr (Call ident es) mt scopes = case maybeFrom of
     Just _ -> maybeCastExpr (IRCall ident isGlobal (toList resArgs)) to mt
     where   (resArgs, _) = elabExprs (fromList es) maybeFrom scopes
             (Signature maybeFrom to, isGlobal) = resolveIdent ident scopes
-elabExpr (ImmediateInt i) mt _ = maybeCastExpr (IRImmediateInt i) (Type $ pure pt) mt
+elabExpr (ImmediateInt i) mt _ = maybeCastExpr (IRImmediateInt i pt) (Type $ pure pt) mt
     where   pt  | i < 0 = Integer
                 | i > 0 = Positive
                 | otherwise = Natural
@@ -212,10 +212,10 @@ elabBinary Pow (e1, t1@(Type (pt1 :| []))) (e2, (Type (pt2 :| [])))
 elabBinary op o1@(_, (Type (pt1 :| []))) o2@(_, (Type (pt2 :| []))) = (resExpr, resType)
     where   resExpr = sameOperandTypesBinary op o1 o2 operandType
             resType = Type $ pure $ binaryResType op operandType
-            operandType | op == Sub || op == Div        = toAtLeastInteger greaterType  -- prevents underflow and forces fractions to be Ratio Integer
-                        | op == Mod || op == Divides    = toAtMostInteger greaterType
+            operandType | op == Sub || op == Div        = max greaterType Integer   -- prevents underflow and forces fractions to be Ratio Integer
+                        | op == Mod || op == Divides    = min greaterType Integer   -- these operations are only legal for whole numbers
                         | otherwise = greaterType
-            greaterType = getGreaterNumberType pt1 pt2      -- crashes on Boolean
+            greaterType = max pt1 pt2      -- crashes on Boolean
 
 -- any remaining undefined operations
 elabBinary op (_, t1) (_, t2) = error $ "TYPE ERROR: Binary operation '" ++ show op ++ "' not defined for types '" ++ show t1 ++ "' and '" ++ show t2 ++ "'"
@@ -232,15 +232,15 @@ binaryResType GreaterEq _ = Boolean
 binaryResType Divides _ = Boolean
 binaryResType _ t = t  -- generic case where resulting type is the same as the operands
 
-toAtLeastInteger :: PrimitiveType -> PrimitiveType
-toAtLeastInteger Positive = Integer
-toAtLeastInteger Natural = Integer
-toAtLeastInteger t = t
+-- toAtLeastInteger :: PrimitiveType -> PrimitiveType
+-- toAtLeastInteger Positive = Integer
+-- toAtLeastInteger Natural = Integer
+-- toAtLeastInteger t = t
 
-toAtMostInteger :: PrimitiveType -> PrimitiveType
-toAtMostInteger Real = Integer      -- these two will throw a type error in castExpr
-toAtMostInteger Rational = Integer  -- I opted to have it throw there so we get the full nice error message
-toAtMostInteger t = t
+-- toAtMostInteger :: PrimitiveType -> PrimitiveType
+-- toAtMostInteger Real = Integer      -- these two will throw a type error in castExpr
+-- toAtMostInteger Rational = Integer  -- I opted to have it throw there so we get the full nice error message
+-- toAtMostInteger t = t
 
 sameOperandTypesBinary :: BinaryOp -> (IRExpr, Type) -> (IRExpr, Type) -> PrimitiveType -> IRExpr
 sameOperandTypesBinary op (e1, t1) (e2, t2) pt = IRBinary (toIRBinaryOp op t1 t2) operand1 operand2
@@ -273,20 +273,20 @@ isIntegerType (Type (Natural :| [])) = True
 isIntegerType (Type (Integer :| [])) = True
 isIntegerType _ = False
 
--- assumes types are number types
-getGreaterNumberType :: PrimitiveType -> PrimitiveType -> PrimitiveType
-getGreaterNumberType Boolean _ = error "LOGIC ERROR: getGreaterNumberType called with Boolean type"
-getGreaterNumberType _ Boolean = error "LOGIC ERROR: getGreaterNumberType called with Boolean type"
-getGreaterNumberType Real _ = Real 
-getGreaterNumberType _ Real = Real 
-getGreaterNumberType Rational _ = Rational
-getGreaterNumberType _ Rational = Rational
-getGreaterNumberType Integer _ = Integer
-getGreaterNumberType _ Integer = Integer
-getGreaterNumberType Natural _ = Natural
-getGreaterNumberType _ Natural = Natural
-getGreaterNumberType Positive _ = Positive
--- getGreaterNumberType _ Positive = Positive
+-- -- assumes types are number types
+-- getGreaterNumberType :: PrimitiveType -> PrimitiveType -> PrimitiveType
+-- getGreaterNumberType Boolean _ = error "LOGIC ERROR: getGreaterNumberType called with Boolean type"
+-- getGreaterNumberType _ Boolean = error "LOGIC ERROR: getGreaterNumberType called with Boolean type"
+-- getGreaterNumberType Real _ = Real 
+-- getGreaterNumberType _ Real = Real 
+-- getGreaterNumberType Rational _ = Rational
+-- getGreaterNumberType _ Rational = Rational
+-- getGreaterNumberType Integer _ = Integer
+-- getGreaterNumberType _ Integer = Integer
+-- getGreaterNumberType Natural _ = Natural
+-- getGreaterNumberType _ Natural = Natural
+-- getGreaterNumberType Positive _ = Positive
+-- -- getGreaterNumberType _ Positive = Positive
 
 maybeCastExpr :: IRExpr -> Type -> Maybe Type -> (IRExpr, Type)
 maybeCastExpr e f Nothing = (e, f)
@@ -308,10 +308,10 @@ castPrimitiveExpr e f t | isPrimitiveCastLegal f t = (IRCast e f t, t)
 
 -- assumes types are not equal
 isPrimitiveCastLegal :: PrimitiveType -> PrimitiveType -> Bool
-isPrimitiveCastLegal Boolean _      = False 
+isPrimitiveCastLegal Boolean _      = False -- casting to/from Booleans is illegal
 isPrimitiveCastLegal _ Boolean      = False
-isPrimitiveCastLegal Real Rational  = True      -- down-casting from Reals/Rationals to Integers requires an explicit floor
-isPrimitiveCastLegal Real _         = False
-isPrimitiveCastLegal Rational Real  = True
-isPrimitiveCastLegal Rational _     = False
-isPrimitiveCastLegal _ _            = True
+-- isPrimitiveCastLegal Real Rational  = True      -- down-casting from Reals/Rationals to Integers requires an explicit floor
+-- isPrimitiveCastLegal Real _         = False
+-- isPrimitiveCastLegal Rational Real  = True
+-- isPrimitiveCastLegal Rational _     = False
+isPrimitiveCastLegal _ _            = True  -- all casting between number types is legal

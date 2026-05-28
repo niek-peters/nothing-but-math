@@ -68,7 +68,7 @@ codeGenWhereTerm (IRConstraint e) = unparens $ codeGenExpr e
 codeGenExpr :: IRExpr -> String
 codeGenExpr (IRCast e _ _) = codeGenExpr e
 codeGenExpr (IRCall ident _ es) = ident ++ maybeParenTuple' (map (unparens . codeGenExpr) es)
-codeGenExpr (IRImmediateInt i) = show i
+codeGenExpr (IRImmediateInt i _) = show i
 codeGenExpr (IRImmediateReal r) = show r
 codeGenExpr (IRImmediateBool b) = show b
 codeGenExpr (IRBinary op e1 e2) = maybeParens $ codeGenBinary op e1 e2

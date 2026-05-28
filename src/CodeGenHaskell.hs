@@ -12,17 +12,25 @@ import qualified Data.List.NonEmpty as NonEmpty
 import Data.FileEmbed (embedStringFile)
 import CodeGen
 
+
+
+extensions :: String
+extensions = $(embedStringFile "prelude/extensions.hs")
+
 moduleName :: String
 moduleName = "MHL"
 
+imports :: String
+imports = $(embedStringFile "prelude/imports.hs")
+
 prelude :: String
-prelude = intercalate "\n\n" [headers, positive]
-    where   headers = $(embedStringFile "prelude/headers.hs")
-            positive = $(embedStringFile "prelude/positive.hs")
+prelude = "-- PRELUDE --\n\n" ++ intercalate "\n\n" [positive, casting]
+    where   positive = $(embedStringFile "prelude/positive.hs")
+            casting = $(embedStringFile "prelude/casting.hs")
 
 codeGenHaskell :: ElabResult -> String
-codeGenHaskell frags = moduleStr ++ prelude ++ "\n\n" ++ concat (map codeGenFragment frags)
-    where   moduleStr = "module " ++ moduleName ++ " " ++ exportStr ++ " where\n\n"
+codeGenHaskell frags = intercalate "\n\n" [extensions, moduleStr, imports, code, prelude]
+    where   moduleStr = "module " ++ moduleName ++ " " ++ exportStr ++ " where"
 
             exportStr = case exports of
                 [] -> "()"
@@ -30,6 +38,8 @@ codeGenHaskell frags = moduleStr ++ prelude ++ "\n\n" ++ concat (map codeGenFrag
 
             exports = concat [[moduleName ++ "." ++ ident | (IRDeclaration ident _ _ _ _) <- decls] | (CodeFragment (IR decls)) <- frags]
         
+            code = concat (map codeGenFragment frags)
+
             codeGenFragment (TextFragment _) = ""
             codeGenFragment (CodeFragment (IR decls)) = (intercalate "\n\n" (map codeGenDeclaration decls)) ++ "\n\n"
 
@@ -75,12 +85,12 @@ codeGenExpr :: IRExpr -> String
 codeGenExpr (IRCast e from to) = parens $ codeGenCast from to ++ " " ++ codeGenExpr e
 codeGenExpr (IRCall ident isGlobal []) = maybeGlobalIdent ident isGlobal
 codeGenExpr (IRCall ident isGlobal es) = parens $ (maybeGlobalIdent ident isGlobal) ++ " " ++ unwords (map codeGenExpr es) 
-codeGenExpr (IRImmediateInt i) = show i
+codeGenExpr (IRImmediateInt i pt) = parens $ show i ++ " :: " ++ codeGenPrimitiveType pt
 codeGenExpr (IRImmediateReal r) = show r
 codeGenExpr (IRImmediateBool b) = show b
 codeGenExpr (IRBinary op e1 e2) = parens $ codeGenBinary op e1 e2
 codeGenExpr (IRUnary op e) = parens $ codeGenUnary op e
-codeGenExpr (IRTuple es) = parenTuple $ map codeGenExpr (toList es)
+codeGenExpr (IRTuple es) = parenTuple $ map (unparens . codeGenExpr) (toList es)
 
 maybeGlobalIdent :: Id -> Bool -> Id
 maybeGlobalIdent ident False = ident
@@ -89,30 +99,38 @@ maybeGlobalIdent ident True = moduleName ++ "." ++ ident
 -- TODO: consider making non-generic functions for all legal casts and putting them in the prelude (E.g. positiveToInteger, realToRational, etc.)
 codeGenCast :: PrimitiveType -> PrimitiveType -> String
 codeGenCast from to 
-    | isIntegerPrimitiveType from && to /= Boolean 
-    = parens $ "fromIntegral :: " ++ codeGenPrimitiveType from ++ " -> " ++ codeGenPrimitiveType to 
--- codeGenCast Positive Integer = "toInteger"
--- codeGenCast Natural Integer = "toInteger"
--- codeGenCast Positive Natural = parens "fromIntegral :: Positive -> Natural"
--- codeGenCast Integer Natural = parens "fromIntegral :: Integer -> Natural"
--- codeGenCast Natural Positive = parens "fromIntegral :: Natural -> Positive"
--- codeGenCast Integer Positive = parens "fromIntegral :: Integer -> Positive"
-codeGenCast from Rational 
-    | from /= Boolean 
-    = parens $ "toRational :: " ++ codeGenPrimitiveType from ++ " -> Rational"
-codeGenCast Rational Real = parens "fromRational :: Rational -> Double"
--- codeGenCast Positive _ = "fromIntegral"
--- codeGenCast Natural _ = "fromIntegral"
--- codeGenCast Integer _ = "fromIntegral"
--- codeGenCast Real Rational = "toRational"
+    | from == Boolean || to == Boolean = error $ "LOGIC ERROR: codeGenCast called with Boolean type(s)"
+    | from == to = error $ "LOGIC ERROR: codeGenCast called with two of the same types"
+    | from < to = "widen @" ++ codeGenPrimitiveType to
+    | otherwise = "narrow @" ++ codeGenPrimitiveType to
+-- codeGenCast from to 
+--     | isIntegerPrimitiveType from && to /= Boolean 
+--     = parens $ "fromIntegral :: " ++ codeGenPrimitiveType from ++ " -> " ++ codeGenPrimitiveType to 
+-- -- codeGenCast Positive Integer = "toInteger"
+-- -- codeGenCast Natural Integer = "toInteger"
+-- -- codeGenCast Positive Natural = parens "fromIntegral :: Positive -> Natural"
+-- -- codeGenCast Integer Natural = parens "fromIntegral :: Integer -> Natural"
+-- -- codeGenCast Natural Positive = parens "fromIntegral :: Natural -> Positive"
+-- -- codeGenCast Integer Positive = parens "fromIntegral :: Integer -> Positive"
+-- codeGenCast from Rational 
+--     | from /= Boolean 
+--     = parens $ "toRational :: " ++ codeGenPrimitiveType from ++ " -> Rational"
 -- codeGenCast Rational Real = parens "fromRational :: Rational -> Double"
-codeGenCast f t = error $ "LOGIC ERROR: codeGenCast called with invalid types, namely from '" ++ show f ++ "' to '" ++ show t ++ "'"
+-- -- codeGenCast Positive _ = "fromIntegral"
+-- -- codeGenCast Natural _ = "fromIntegral"
+-- -- codeGenCast Integer _ = "fromIntegral"
+-- -- codeGenCast Real Rational = "toRational"
+-- -- codeGenCast Rational Real = parens "fromRational :: Rational -> Double"
+-- codeGenCast f t = error $ "LOGIC ERROR: codeGenCast called with invalid types, namely from '" ++ show f ++ "' to '" ++ show t ++ "'"
 
-isIntegerPrimitiveType :: PrimitiveType -> Bool
-isIntegerPrimitiveType Positive = True
-isIntegerPrimitiveType Natural = True
-isIntegerPrimitiveType Integer = True
-isIntegerPrimitiveType _ = False
+-- isSubType :: PrimitiveType -> PrimitiveType -> Bool
+-- isSubType Positive 
+
+-- isIntegerPrimitiveType :: PrimitiveType -> Bool
+-- isIntegerPrimitiveType Positive = True
+-- isIntegerPrimitiveType Natural = True
+-- isIntegerPrimitiveType Integer = True
+-- isIntegerPrimitiveType _ = False
 
 codeGenUnary :: UnaryOp -> IRExpr -> String
 codeGenUnary Floor e = "floor " ++ codeGenExpr e
@@ -172,4 +190,4 @@ parenTuple = tuple "(" ")"
 parens = wrap "(" ")"
 unparens = unwrap "(" ")"
 
-arrow = symbol " -> "
+arrow = symbol "->"

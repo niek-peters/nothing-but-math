@@ -56,3 +56,17 @@ data BinaryOp = Add | Sub | Mult | Div | Pow | Mod | Eq | Neq | Less | Greater |
 
 data UnaryOp = Sqrt | Floor
     deriving (Show, Eq)
+
+
+-- we implement Ord for PrimitiveType to easily be able to see whether a number type is a subtype of another number type
+instance Ord PrimitiveType where
+    -- we order types by a simple ranking
+    pt1 <= pt2 = rank pt1 <= rank pt2
+      where
+        rank :: PrimitiveType -> Int
+        rank Positive = 1
+        rank Natural  = 2
+        rank Integer  = 3
+        rank Rational = 4
+        rank Real     = 5
+        rank Boolean  = error $ "LOGIC ERROR: Attempt at comparing Boolean to other type"

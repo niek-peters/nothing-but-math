@@ -1,3 +1,26 @@
+import Data.Ratio ((%), denominator, numerator)
+import GHC.Natural (Natural)
+
+a :: Rational
+a  = (5 % 2)
+
+b :: Integer
+b   | denom == 1 = num
+    | otherwise = error "GG"
+    where   num = numerator a
+            denom = denominator a
+
+
+c = fromIntegral :: Integer -> Rational
+
+d :: Integer
+d = 1
+
+e :: Rational
+e = fromIntegral d
+
+
+
 -- POSITIVE NUMBER TYPE --
 newtype Positive = Positive Integer
     deriving (Eq, Ord)

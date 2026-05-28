@@ -32,7 +32,7 @@ data IRLocal = IRLocal
 
 data IRExpr = IRCast IRExpr PrimitiveType PrimitiveType       -- wraps an expr that should be cast from type to type
             | IRCall Id Bool [IRExpr]       -- boolean indicates whether the reference is to a global identifier
-            | IRImmediateInt Int
+            | IRImmediateInt Int PrimitiveType  -- the PrimitiveType indicates whether this immediate value should be interpreted as Positive, Natural or Integer
             | IRImmediateReal Double
             | IRImmediateBool Bool
             | IRBinary IRBinaryOp IRExpr IRExpr     
