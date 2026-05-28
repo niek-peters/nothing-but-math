@@ -5,7 +5,11 @@ class Narrow to from where
 
 -- first we implement the individual narrowing steps
 -- Real -> Rational
-instance Narrow Rational Double where narrow = toRational
+instance Narrow Rational Double where 
+    narrow r
+        | abs (r - fromIntegral rounded) < 1e-8 = toRational rounded    -- round floating point to nearest integer if close enough (to alleviate floating-point errors)
+        | otherwise = toRational r
+        where   rounded = round r :: Integer
 
 -- Rational -> Integer
 instance Narrow Integer Rational where

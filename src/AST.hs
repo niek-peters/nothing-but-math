@@ -59,6 +59,7 @@ data UnaryOp = Sqrt | Floor
 
 
 -- we implement Ord for PrimitiveType to easily be able to see whether a number type is a subtype of another number type
+-- this also gives us access to the min and max functions
 instance Ord PrimitiveType where
     -- we order types by a simple ranking
     pt1 <= pt2 = rank pt1 <= rank pt2

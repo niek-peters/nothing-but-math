@@ -23,10 +23,11 @@ import Parser (ParseResult)
 
 -- An alternative would be to rely solely on a bottom-up type synthesis approach, with knowledge of the types of any references
 -- This would also use widening of types if we know an operation could throw a runtime error (e.g. ((a :: Natural) - (b :: Natural)) would instead become ((a :: Integer) - (b :: Integer)))
--- The problem here is that we mostly lose type checking on numbers, instead doing runtime implicit narrowing of types whenever there is a mismatch between the synthesized and required type
+-- The problem here is that we mostly lose type checking on numbers, instead doing runtime implicit narrowing/widening of types whenever there is a mismatch between the synthesized and required type
 -- You could also make casts explicit, but that makes the DSL significantly harder to use
 
--- So, we will not (always) be having compile-time type errors for mismatches in number types, instead inserting many type casts automatically and trusting the developer that the given type signature is correct
+-- So, we will (almost) never have compile-time type errors for mismatches in number types, instead inserting many type casts automatically and trusting the developer that the given type signature is correct
+-- We implement runtime type casting functions in the prelude/casting.hs file. One interesting thing to note is we try getting around floating-point errors by allowing a tiny offset to the nearest Integer
 
 -- Another important thing to mention is that constraints are evaluated in order, from how they were written in the DSL, from left to right
 
@@ -190,8 +191,8 @@ zipMaybeTypes a (Just (Type b))
             expectedLength = length b
 
 elabUnary :: UnaryOp -> (IRExpr, Type) -> (IRExpr, Type)
-elabUnary Sqrt (e, (Type (t :| [])))
-    | t /= Boolean = (IRUnary Sqrt e, Type $ pure Real) -- we use a pattern guard to fall through to the other cases if false
+elabUnary Sqrt (e, t@(Type (pt :| [])))
+    | pt /= Boolean = (IRUnary Sqrt (fst $ maybeCastExpr e t (Just $ Type $ pure Real)), Type $ pure Real) -- we use a pattern guard to fall through to the other cases if false
 
 -- floor operation is not defined for integer types
 elabUnary Floor (e, (Type (Real :| []))) = (IRUnary Floor e, Type $ pure Integer)
