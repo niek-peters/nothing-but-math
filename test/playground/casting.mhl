@@ -7,4 +7,7 @@ g(x) := {
     0 if x < 0
     x otherwise
 }
+
+h : R
+h := 1.25 - 1 / 2
 >>>

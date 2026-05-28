@@ -13,7 +13,6 @@ import Data.FileEmbed (embedStringFile)
 import CodeGen
 
 
-
 extensions :: String
 extensions = $(embedStringFile "prelude/extensions.hs")
 
@@ -80,13 +79,12 @@ codeGenSignature (Signature maybeFrom (Type tos)) = fromPart ++ toPart
                 Just (Type from) -> intercalate arrow (map codeGenPrimitiveType (toList from)) ++ arrow
             toPart = maybeParenTuple (NonEmpty.map codeGenPrimitiveType tos)
             
-
 codeGenExpr :: IRExpr -> String
-codeGenExpr (IRCast e from to) = parens $ codeGenCast from to ++ " " ++ codeGenExpr e
+codeGenExpr (IRCast e from to) = parens $ codeGenCast from to ++ " " ++ codeGenExpr e   -- TODO: consider implementing special cases for simplifying literal casting
 codeGenExpr (IRCall ident isGlobal []) = maybeGlobalIdent ident isGlobal
 codeGenExpr (IRCall ident isGlobal es) = parens $ (maybeGlobalIdent ident isGlobal) ++ " " ++ unwords (map codeGenExpr es) 
 codeGenExpr (IRImmediateInt i pt) = parens $ show i ++ " :: " ++ codeGenPrimitiveType pt
-codeGenExpr (IRImmediateReal r) = show r
+codeGenExpr (IRImmediateReal r) = parens $ show r ++ " :: Double"
 codeGenExpr (IRImmediateBool b) = show b
 codeGenExpr (IRBinary op e1 e2) = parens $ codeGenBinary op e1 e2
 codeGenExpr (IRUnary op e) = parens $ codeGenUnary op e
@@ -96,41 +94,12 @@ maybeGlobalIdent :: Id -> Bool -> Id
 maybeGlobalIdent ident False = ident
 maybeGlobalIdent ident True = moduleName ++ "." ++ ident
 
--- TODO: consider making non-generic functions for all legal casts and putting them in the prelude (E.g. positiveToInteger, realToRational, etc.)
 codeGenCast :: PrimitiveType -> PrimitiveType -> String
 codeGenCast from to 
     | from == Boolean || to == Boolean = error $ "LOGIC ERROR: codeGenCast called with Boolean type(s)"
     | from == to = error $ "LOGIC ERROR: codeGenCast called with two of the same types"
     | from < to = "widen @" ++ codeGenPrimitiveType to
     | otherwise = "narrow @" ++ codeGenPrimitiveType to
--- codeGenCast from to 
---     | isIntegerPrimitiveType from && to /= Boolean 
---     = parens $ "fromIntegral :: " ++ codeGenPrimitiveType from ++ " -> " ++ codeGenPrimitiveType to 
--- -- codeGenCast Positive Integer = "toInteger"
--- -- codeGenCast Natural Integer = "toInteger"
--- -- codeGenCast Positive Natural = parens "fromIntegral :: Positive -> Natural"
--- -- codeGenCast Integer Natural = parens "fromIntegral :: Integer -> Natural"
--- -- codeGenCast Natural Positive = parens "fromIntegral :: Natural -> Positive"
--- -- codeGenCast Integer Positive = parens "fromIntegral :: Integer -> Positive"
--- codeGenCast from Rational 
---     | from /= Boolean 
---     = parens $ "toRational :: " ++ codeGenPrimitiveType from ++ " -> Rational"
--- codeGenCast Rational Real = parens "fromRational :: Rational -> Double"
--- -- codeGenCast Positive _ = "fromIntegral"
--- -- codeGenCast Natural _ = "fromIntegral"
--- -- codeGenCast Integer _ = "fromIntegral"
--- -- codeGenCast Real Rational = "toRational"
--- -- codeGenCast Rational Real = parens "fromRational :: Rational -> Double"
--- codeGenCast f t = error $ "LOGIC ERROR: codeGenCast called with invalid types, namely from '" ++ show f ++ "' to '" ++ show t ++ "'"
-
--- isSubType :: PrimitiveType -> PrimitiveType -> Bool
--- isSubType Positive 
-
--- isIntegerPrimitiveType :: PrimitiveType -> Bool
--- isIntegerPrimitiveType Positive = True
--- isIntegerPrimitiveType Natural = True
--- isIntegerPrimitiveType Integer = True
--- isIntegerPrimitiveType _ = False
 
 codeGenUnary :: UnaryOp -> IRExpr -> String
 codeGenUnary Floor e = "floor " ++ codeGenExpr e
@@ -152,29 +121,6 @@ codeGenBinary IRGreater = infixOp ">"
 codeGenBinary IRLessEq = infixOp "<="
 codeGenBinary IRGreaterEq = infixOp ">="
 codeGenBinary IRDivides = (\e1 e2 -> codeGenExpr e2 ++ symbol "`mod`" ++ codeGenExpr e1 ++ " == 0")
-
--- codeGenParensExpr :: IRExpr -> String
--- codeGenParensExpr = codeGenParens . codeGenExpr
-
--- maybeTuple :: NonEmpty String -> String
--- maybeTuple (el :| []) = el
--- maybeTuple els = tuple els
-
--- tuple :: NonEmpty String -> String
--- tuple els = parens $ intercalate ", " (toList els)
-
--- parens :: String -> String
--- parens str = "(" ++ str ++ ")"
-
--- -- removes outer parentheses if present
--- -- intended for use around codeGenExpr
--- unparens :: String -> String
--- unparens str    | length str < 2 = str
---                 | ',' `elem` str = str  -- don't remove parens from tuples
---                 | hasOpenParen && hasCloseParen = (init . tail) str
---                 | otherwise = str
---     where   hasOpenParen = head str == '('
---             hasCloseParen = last str == ')'
 
 codeGenPrimitiveType :: PrimitiveType -> String
 codeGenPrimitiveType Positive = "Positive"

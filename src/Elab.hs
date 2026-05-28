@@ -112,8 +112,6 @@ elabParams (Just (Type pts)) params
     | otherwise = zip (map pure params) (map (Type . pure) (toList pts))
     where   paramTypeCount = length pts
             paramCount = length params
--- elabParams (Signature (Just t) _) [] = error $ "TYPE ERROR: Function signature specifies parameter types '" ++ show t ++ "' but no parameters are present"
-
 
 collectLocals :: [(NonEmpty Id, Type)] -> Scopes -> Scope
 collectLocals decls (locals, globals) = foldl collect locals decls
@@ -232,16 +230,6 @@ binaryResType GreaterEq _ = Boolean
 binaryResType Divides _ = Boolean
 binaryResType _ t = t  -- generic case where resulting type is the same as the operands
 
--- toAtLeastInteger :: PrimitiveType -> PrimitiveType
--- toAtLeastInteger Positive = Integer
--- toAtLeastInteger Natural = Integer
--- toAtLeastInteger t = t
-
--- toAtMostInteger :: PrimitiveType -> PrimitiveType
--- toAtMostInteger Real = Integer      -- these two will throw a type error in castExpr
--- toAtMostInteger Rational = Integer  -- I opted to have it throw there so we get the full nice error message
--- toAtMostInteger t = t
-
 sameOperandTypesBinary :: BinaryOp -> (IRExpr, Type) -> (IRExpr, Type) -> PrimitiveType -> IRExpr
 sameOperandTypesBinary op (e1, t1) (e2, t2) pt = IRBinary (toIRBinaryOp op t1 t2) operand1 operand2
     where   operand1 = fst $ maybeCastExpr e1 t1 justResType
@@ -273,21 +261,6 @@ isIntegerType (Type (Natural :| [])) = True
 isIntegerType (Type (Integer :| [])) = True
 isIntegerType _ = False
 
--- -- assumes types are number types
--- getGreaterNumberType :: PrimitiveType -> PrimitiveType -> PrimitiveType
--- getGreaterNumberType Boolean _ = error "LOGIC ERROR: getGreaterNumberType called with Boolean type"
--- getGreaterNumberType _ Boolean = error "LOGIC ERROR: getGreaterNumberType called with Boolean type"
--- getGreaterNumberType Real _ = Real 
--- getGreaterNumberType _ Real = Real 
--- getGreaterNumberType Rational _ = Rational
--- getGreaterNumberType _ Rational = Rational
--- getGreaterNumberType Integer _ = Integer
--- getGreaterNumberType _ Integer = Integer
--- getGreaterNumberType Natural _ = Natural
--- getGreaterNumberType _ Natural = Natural
--- getGreaterNumberType Positive _ = Positive
--- -- getGreaterNumberType _ Positive = Positive
-
 maybeCastExpr :: IRExpr -> Type -> Maybe Type -> (IRExpr, Type)
 maybeCastExpr e f Nothing = (e, f)
 maybeCastExpr e f (Just t)  | f == t = (e, f)
@@ -310,8 +283,4 @@ castPrimitiveExpr e f t | isPrimitiveCastLegal f t = (IRCast e f t, t)
 isPrimitiveCastLegal :: PrimitiveType -> PrimitiveType -> Bool
 isPrimitiveCastLegal Boolean _      = False -- casting to/from Booleans is illegal
 isPrimitiveCastLegal _ Boolean      = False
--- isPrimitiveCastLegal Real Rational  = True      -- down-casting from Reals/Rationals to Integers requires an explicit floor
--- isPrimitiveCastLegal Real _         = False
--- isPrimitiveCastLegal Rational Real  = True
--- isPrimitiveCastLegal Rational _     = False
 isPrimitiveCastLegal _ _            = True  -- all casting between number types is legal
