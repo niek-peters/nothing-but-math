@@ -22,9 +22,10 @@ maybeTuple' symLeft symRight els = tuple symLeft symRight els
 tuple :: String -> String -> [String] -> String
 tuple symLeft symRight els = wrap symLeft symRight $ intercalate ", " els
 
-intercalateSpecialLast :: String -> String -> NonEmpty String -> String
-intercalateSpecialLast _ _ (str :| []) = str
-intercalateSpecialLast sep lastSep strs = (intercalate sep $ NonEmpty.init (strs)) ++ lastSep ++ NonEmpty.last strs
+intercalateSpecialLast :: String -> String -> [String] -> String
+intercalateSpecialLast _ _ [] = ""
+intercalateSpecialLast _ _ [str] = str
+intercalateSpecialLast sep lastSep strs = (intercalate sep $ init (strs)) ++ lastSep ++ last strs
 
 wrap :: String -> String -> String -> String
 wrap symLeft symRight str = symLeft ++ str ++ symRight

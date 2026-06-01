@@ -1,6 +1,6 @@
 This brings us to two new formulae. <<<
 % here we use a block-level annotation to set the display mode to "inline", which renders all formulae in the block in a single line
-#[inline, default]
+#[inline]
 
 f : N x N -> Z
 f(a, b) := c

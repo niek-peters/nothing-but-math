@@ -17,7 +17,7 @@ extensions :: String
 extensions = $(embedStringFile "prelude/extensions.hs")
 
 moduleName :: String
-moduleName = "MHL"
+moduleName = "NBM"
 
 imports :: String
 imports = $(embedStringFile "prelude/imports.hs")

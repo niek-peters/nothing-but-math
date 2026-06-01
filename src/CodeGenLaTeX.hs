@@ -2,50 +2,80 @@ module CodeGenLaTeX (codeGenLaTeX) where
 
 import Elab (ElabResult)
 import Types (Fragment(..))
-import IR (IR(..), IRDeclaration (IRDeclaration), IRImplementation (..), IRLocal (..), IRExpr (..), IRWhereTerm (IRLocalDecl, IRConstraint), IRBranch (..), IRBinaryOp (..))
+import IR (IR(..), IRDeclaration (IRDeclaration), IRImplementation (..), IRLocal (..), IRExpr (..), IRWhereTerm (IRLocalDecl, IRConstraint), IRBranch (..), IRBinaryOp (..), IRDeclAnnotations (..), IRBlockAnnotations (blockDisplayMode))
 import Data.List (intercalate)
-import Data.List.NonEmpty (toList, fromList, NonEmpty)
-import AST (Signature (Signature), PrimitiveType (..), Type (..), UnaryOp (..))
+import Data.List.NonEmpty (toList)
+import AST (Signature (Signature), PrimitiveType (..), Type (..), UnaryOp (..), DeclDisplayMode (..), BlockDisplayMode (..))
 import CodeGen
-import qualified Data.List.NonEmpty as NonEmpty
 
 -- NOTE: these 'blocks' should probably have the same boundaries as the DSL '<<<' '>>>' blocks
 -- the annotations should probably be on the block level too
 
-data BlockType  = Default   -- outputs block in \begin{flalign*}...\end{flalign*} block
-                | InText    -- outputs block as in-text lines wrapped with $
+-- data BlockType  = Default   -- outputs block in \begin{flalign*}...\end{flalign*} block
+--                 | InText    -- outputs block as in-text lines wrapped with $
 
 -- TODO: remove hardcoded Text and get it from DSL annotation 
-hardCodedBlockType :: BlockType
-hardCodedBlockType = Default
+-- hardCodedBlockType :: BlockType
+-- hardCodedBlockType = Default
 
 codeGenLaTeX :: ElabResult -> String
 codeGenLaTeX frags = concat (map codeGenFragment frags)
     where   codeGenFragment (TextFragment str) = str
-            -- TODO: use annotations
-            codeGenFragment (CodeFragment (IR blockAns decls)) = wrapBlock hardCodedBlockType $ intercalate newline $ map (`codeGenBlock` hardCodedBlockType) decls  
+            codeGenFragment (CodeFragment ir) = codeGenBlock ir
+            -- -- TODO: use annotations
+            -- codeGenFragment (CodeFragment (IR blockAns decls)) = wrapBlock hardCodedBlockType $ intercalate newline $ map (`codeGenBlock` hardCodedBlockType) decls  
 
-            -- here we handle different LaTeX block types
-            wrapBlock Default = flalign
-            wrapBlock InText = id
+            -- -- here we handle different LaTeX block display modes
+            -- wrapBlock Default = flalign
+            -- wrapBlock _ = id
 
+codeGenBlock :: IR -> String
+codeGenBlock (IR ans decls) = case displayMode of 
+        HiddenBlock -> ""   -- omit blocks annotated with 'hidden'
+        _ -> wrapBlock displayMode $ intercalate dnl $ map (`codeGenDeclaration` displayMode) $ filter declVisible decls  
+    where   dnl = doubleNewlineOrSpace displayMode  
+            displayMode = blockDisplayMode ans
+
+            -- here we create a function to wrap a block, based on the display mode
+            wrapBlock DefaultBlock = flalign
+            wrapBlock _ = id
+
+            declVisible (IRDeclaration declAns _ _ _ _ _) = declDisplayMode declAns /= HiddenDecl
 -- we pass a statement wrapper function based on the block type
-codeGenBlock :: IRDeclaration -> BlockType -> String
-codeGenBlock decl bt = codeGenDeclaration decl (wrapStatement bt)
+-- codeGenBlock :: IRDeclaration -> BlockType -> String
+-- codeGenBlock decl bt = codeGenDeclaration decl (wrapStatement bt)
     -- where   wrapBlock Default = flalign
     --         wrapBlock InText = id
 
-wrapStatement :: BlockType -> String -> String
-wrapStatement Default str = "&" ++ str ++ "&"
-wrapStatement InText str = "$" ++ str ++ "$"
 
--- TODO: use annotations
-codeGenDeclaration :: IRDeclaration -> (String -> String) -> String
-codeGenDeclaration (IRDeclaration declAns ident sig params impl whereTerms) wrap = 
-    wrap (text "Define" ++ textSep ++ ident ++ symbol ":" ++ codeGenSignature sig ++ textSep ++ text "by") ++ newline ++
-    wrap (ident ++ maybeParenTuple' params ++ symbol "=" ++ codeGenImpl impl ++ "." `insertIf` noWherePart) ++ newline ++
-    (wrap (codeGenWhere (fromList whereTerms) ++ ".") ++ newline) `insertIf` not noWherePart
-    where   noWherePart = null whereTerms
+wrapStatement :: BlockDisplayMode -> String -> String
+wrapStatement DefaultBlock str = "&" ++ str ++ "&"
+wrapStatement _ str = "$" ++ str ++ "$"
+
+-- TODO: improve this
+codeGenDeclaration :: IRDeclaration -> BlockDisplayMode -> String
+codeGenDeclaration (IRDeclaration _ ident sig params impl whereTerms) blockDisplay
+    | blockDisplay == DefaultBlock = 
+        wrap (text "Define" ++ textSep ++ ident ++ symbol ":" ++ codeGenSignature sig ++ textSep ++ text "by") ++ newline ++
+        wrap (ident ++ maybeParenTuple' params ++ symbol "=" ++ codeGenImpl impl ++ "." `insertIf` noWherePart) ++
+        (newline ++ wrap (codeGenWhere whereTerms blockDisplay ++ ".")) `insertIf` not noWherePart
+    | otherwise = 
+        "Define " ++ wrap (ident ++ symbol ":" ++ codeGenSignature sig) ++ " by" ++ nl ++
+        wrap (ident ++ maybeParenTuple' params ++ symbol "=" ++ codeGenImpl impl) ++
+        codeGenWhere whereTerms blockDisplay
+        ++ "."
+    where   nl = newlineOrSpace blockDisplay
+            wrap = wrapStatement blockDisplay
+
+            noWherePart = null whereTerms
+
+newlineOrSpace :: BlockDisplayMode -> String
+newlineOrSpace InLineBlock = " "
+newlineOrSpace _ = newline
+
+doubleNewlineOrSpace :: BlockDisplayMode -> String
+doubleNewlineOrSpace InLineBlock = " "
+doubleNewlineOrSpace _ = newline ++ newline
 
 codeGenSignature :: Signature -> String
 codeGenSignature (Signature maybeFromT (Type tos)) = fromPart ++ toPart
@@ -66,8 +96,16 @@ codeGenBranch (IRBranch e cond) = tab ++ unparens (codeGenExpr e) ++ ", & " ++ t
 codeGenOther :: IRExpr -> String
 codeGenOther e = tab ++ unparens (codeGenExpr e) ++ ", & " ++ text "otherwise"
 
-codeGenWhere :: NonEmpty IRWhereTerm -> String
-codeGenWhere whereTerms = text "where" ++ textSep ++ intercalateSpecialLast ", " (textSep ++ text "and" ++ textSep) (NonEmpty.map codeGenWhereTerm whereTerms)
+codeGenWhere :: [IRWhereTerm] -> BlockDisplayMode -> String
+codeGenWhere [] _ = ""
+codeGenWhere whereTerms blockDisplay
+    | blockDisplay == DefaultBlock = text "where" ++ textSep ++ intercalateSpecialLast ", " (textSep ++ text "and" ++ textSep) (map codeGenWhereTerm whereTerms)
+    | otherwise = maybeComma ++ nl ++ "where " ++ intercalateSpecialLast ", " " and " (map (wrap . codeGenWhereTerm) whereTerms)
+    where   nl = newlineOrSpace blockDisplay
+            wrap = wrapStatement blockDisplay
+            maybeComma  | blockDisplay == InLineBlock = ","
+                        | otherwise = ""
+-- codeGenWhere whereTerms _ = text "where" ++ textSep ++ intercalateSpecialLast ", " (textSep ++ text "and" ++ textSep) (NonEmpty.map codeGenWhereTerm whereTerms)
 
 codeGenWhereTerm :: IRWhereTerm -> String
 codeGenWhereTerm (IRLocalDecl (IRLocal idents e)) = maybeParenTuple idents ++ symbol "=" ++ (unparens $ codeGenExpr e)
@@ -150,4 +188,4 @@ macro2 :: String -> String -> String -> String
 macro2 name arg1 arg2 = macro name ++ "{" ++ arg1 ++ "}{" ++ arg2 ++ "}"
 
 block :: String -> String -> String
-block name contents = macro1 "begin" name ++ "\n" ++ contents ++ macro1 "end" name
+block name contents = macro1 "begin" name ++ "\n" ++ contents ++ "\n" ++ macro1 "end" name

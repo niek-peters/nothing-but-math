@@ -7,7 +7,7 @@ class Narrow to from where
 -- Real -> Rational
 instance Narrow Rational Double where 
     narrow r
-        | abs (r - fromIntegral rounded) < 1e-8 = toRational rounded    -- round floating point to nearest integer if close enough (to alleviate floating-point errors)
+        | Prelude.abs (r - fromIntegral rounded) < 1e-8 = toRational rounded    -- round floating point to nearest integer if close enough (to alleviate floating-point errors)
         | otherwise = toRational r
         where   rounded = round r :: Integer
 
