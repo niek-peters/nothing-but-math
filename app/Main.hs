@@ -1,13 +1,29 @@
 module Main (main) where
 
 import Lib (compile)
+import Options.Applicative
 
-import System.Environment (getArgs)
+data Options = Options { filePath :: FilePath, outDir :: FilePath }
+  deriving (Show, Eq)
 
 main :: IO ()
-main = do
-    args <- getArgs
-    case args of
-        [] -> error "No source file provided!\nTo compile a program, make sure to provide a path as an argument. E.g.:\nstack run -- my_program.mhl"
-        [path] -> compile path
-        _ -> error "Only one argument should be provided. E.g.:\nstack run -- my_program.mhl"
+main = runCompiler =<< execParser opts
+  where
+    opts = info (cliParser <**> helper)
+        ( fullDesc
+        <> progDesc "Compile an NBM source file to Haskell and LaTeX"
+        <> header "nbm - Nothing But Math compiler" )
+
+cliParser :: Parser Options
+cliParser = Options
+    <$> argument str (metavar "PATHNAME" <> help "The path to your .nbm file")
+    <*> strOption 
+        ( long "out-dir" 
+        <> short 'o' 
+        <> metavar "DIR" 
+        <> value "." -- default to the current directory
+        <> showDefault 
+        <> help "Output directory for generated files" )
+
+runCompiler :: Options -> IO ()
+runCompiler (Options file dir) = compile file dir

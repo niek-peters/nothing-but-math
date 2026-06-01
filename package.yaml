@@ -45,7 +45,7 @@ library:
   source-dirs: src
 
 executables:
-  nothing-but-math-exe:
+  nbm:
     main: Main.hs
     source-dirs: app
     ghc-options:
@@ -56,7 +56,7 @@ executables:
       - nothing-but-math
 
 tests:
-  nothing-but-math-test:
+  nbm-test:
     main: Spec.hs
     source-dirs: test
     ghc-options:
