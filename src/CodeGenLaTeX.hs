@@ -9,31 +9,39 @@ import AST (Signature (Signature), PrimitiveType (..), Type (..), UnaryOp (..))
 import CodeGen
 import qualified Data.List.NonEmpty as NonEmpty
 
-data BlockType = Text | Table
+-- NOTE: these 'blocks' should probably have the same boundaries as the DSL '<<<' '>>>' blocks
+-- the annotations should probably be on the block level too
+
+data BlockType  = Default   -- outputs block in \begin{flalign*}...\end{flalign*} block
+                | InText    -- outputs block as in-text lines wrapped with $
 
 -- TODO: remove hardcoded Text and get it from DSL annotation 
 hardCodedBlockType :: BlockType
-hardCodedBlockType = Text
+hardCodedBlockType = Default
 
 codeGenLaTeX :: ElabResult -> String
 codeGenLaTeX frags = concat (map codeGenFragment frags)
     where   codeGenFragment (TextFragment str) = str
-            codeGenFragment (CodeFragment (IR decls)) = wrapBlock hardCodedBlockType $ intercalate newline $ (map (`codeGenBlock` hardCodedBlockType) decls)    
+            -- TODO: use annotations
+            codeGenFragment (CodeFragment (IR blockAns decls)) = wrapBlock hardCodedBlockType $ intercalate newline $ map (`codeGenBlock` hardCodedBlockType) decls  
 
-            wrapBlock Text = flalign
-            wrapBlock Table = makecell
+            -- here we handle different LaTeX block types
+            wrapBlock Default = flalign
+            wrapBlock InText = id
 
--- here we handle different LaTeX block types
--- we wrap the result in a certain block type and pass a statement wrapper function
+-- we pass a statement wrapper function based on the block type
 codeGenBlock :: IRDeclaration -> BlockType -> String
 codeGenBlock decl bt = codeGenDeclaration decl (wrapStatement bt)
+    -- where   wrapBlock Default = flalign
+    --         wrapBlock InText = id
 
 wrapStatement :: BlockType -> String -> String
-wrapStatement Text str = "&" ++ str ++ "&"
-wrapStatement Table str = "$" ++ str ++ "$"
+wrapStatement Default str = "&" ++ str ++ "&"
+wrapStatement InText str = "$" ++ str ++ "$"
 
+-- TODO: use annotations
 codeGenDeclaration :: IRDeclaration -> (String -> String) -> String
-codeGenDeclaration (IRDeclaration ident sig params impl whereTerms) wrap = 
+codeGenDeclaration (IRDeclaration declAns ident sig params impl whereTerms) wrap = 
     wrap (text "Define" ++ textSep ++ ident ++ symbol ":" ++ codeGenSignature sig ++ textSep ++ text "by") ++ newline ++
     wrap (ident ++ maybeParenTuple' params ++ symbol "=" ++ codeGenImpl impl ++ "." `insertIf` noWherePart) ++ newline ++
     (wrap (codeGenWhere (fromList whereTerms) ++ ".") ++ newline) `insertIf` not noWherePart
@@ -123,7 +131,7 @@ mathbb = macro1 "mathbb"
 text = macro1 "text"
 
 flalign = block "flalign*"
-makecell contents = macro "makecell" ++ "{\n" ++ contents ++ "}"
+-- makecell contents = macro "makecell" ++ "{\n" ++ contents ++ "}"
 
 infixOp = infixBinaryOp codeGenExpr
 maybeParenTuple = maybeTuple (macro "left(") (macro "right)")

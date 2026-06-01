@@ -35,15 +35,15 @@ codeGenHaskell frags = intercalate "\n\n" [extensions, moduleStr, imports, code,
                 [] -> "()"
                 es -> parenTuple es
 
-            exports = concat [[moduleName ++ "." ++ ident | (IRDeclaration ident _ _ _ _) <- decls] | (CodeFragment (IR decls)) <- frags]
+            exports = concat [[moduleName ++ "." ++ ident | (IRDeclaration _ ident _ _ _ _) <- decls] | (CodeFragment (IR _ decls)) <- frags]
         
             code = concat (map codeGenFragment frags)
 
             codeGenFragment (TextFragment _) = ""
-            codeGenFragment (CodeFragment (IR decls)) = (intercalate "\n\n" (map codeGenDeclaration decls)) ++ "\n\n"
+            codeGenFragment (CodeFragment (IR _ decls)) = (intercalate "\n\n" (map codeGenDeclaration decls)) ++ "\n\n"
 
 codeGenDeclaration :: IRDeclaration -> String
-codeGenDeclaration (IRDeclaration ident sig params impl whereTerms) = 
+codeGenDeclaration (IRDeclaration _ ident sig params impl whereTerms) = 
     ident ++ " :: " ++ codeGenSignature sig ++ "\n" ++
     ident ++ " " ++ unwords params ++ "\n" ++
     concat (map (codeGenConstraint ident) constraints) ++

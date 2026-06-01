@@ -1,19 +1,19 @@
 module IR (module IR) where -- export everything
 
-import AST (Id, Signature, UnaryOp, PrimitiveType)
+import AST (Id, Signature, UnaryOp, PrimitiveType, BlockDisplayMode (DefaultBlock), DeclDisplayMode (DefaultDecl))
 import Data.List.NonEmpty (NonEmpty)
 
-newtype IR = IR [IRDeclaration]
+data IR = IR IRBlockAnnotations [IRDeclaration]
     deriving (Show, Eq)
 
 data IRDeclaration = IRDeclaration 
+    IRDeclAnnotations
     Id              -- name
     Signature       -- type signature
     [Id]            -- arguments
     IRImplementation  
     [IRWhereTerm]
     deriving (Show, Eq)
-
 
 data IRImplementation   = IRUnconditional IRExpr 
                         | IRConditional [IRBranch] IRExpr -- piecewise function. Expr is otherwise branch
@@ -45,3 +45,19 @@ data IRExpr = IRCast IRExpr PrimitiveType PrimitiveType       -- wraps an expr t
 -- 2. Pow (Haskell ^, integer power) and Exp (Haskell **, rational/real power)
 data IRBinaryOp = IRAdd | IRSub | IRMult | IRFrac | IRDiv | IRPow | IRExp | IRMod | IREq | IRNeq | IRLess | IRGreater | IRLessEq | IRGreaterEq | IRDivides
     deriving (Show, Eq)
+
+
+-- in the IR we explicitly have one value for each possible annotation setting
+data IRBlockAnnotations = IRBlockAnnotations 
+    {blockDisplayMode :: BlockDisplayMode}
+    deriving (Show, Eq)
+
+defaultBlockAnnotations :: IRBlockAnnotations
+defaultBlockAnnotations = IRBlockAnnotations {blockDisplayMode = DefaultBlock}
+
+data IRDeclAnnotations = IRDeclAnnotations 
+    {declDisplayMode :: DeclDisplayMode}
+    deriving (Show, Eq)
+
+defaultDeclAnnotations :: IRDeclAnnotations
+defaultDeclAnnotations = IRDeclAnnotations {declDisplayMode = DefaultDecl}

@@ -2,7 +2,7 @@ module Lib
     ( compile
     ) where
 import Parser (parse)
--- import Text.Show.Pretty (pPrint)
+import Text.Show.Pretty (pPrint)
 import Elab (elab)
 import CodeGenHaskell (codeGenHaskell)
 import System.FilePath (takeFileName, (</>), splitExtension)

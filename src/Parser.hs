@@ -6,7 +6,6 @@ import Text.Megaparsec.Char
 import qualified Text.Megaparsec.Char.Lexer as Lexer
 import qualified Data.Set as Set
 import AST
-import Data.Either (partitionEithers)
 import Data.List.NonEmpty (fromList, NonEmpty ((:|)))
 import Control.Monad.Combinators.Expr
 import Types
@@ -30,6 +29,9 @@ symbol = Lexer.symbol whitespace
 
 parens :: Parser a -> Parser a
 parens = between (symbol "(") (symbol ")")
+
+brackets :: Parser a -> Parser a
+brackets = between (symbol "[") (symbol "]")
 
 keywords :: Set.Set String
 keywords = Set.fromList ["if", "otherwise", "where", "True", "False", "Z+", "Z", "N", "Q", "R", "B"]    -- TODO: make it impossible to declare floor/sqrt/mod, but still allow the first two in function calls
@@ -63,14 +65,17 @@ runFragmentParser (CodeFragment c) = case Text.Megaparsec.parse parseCodeFragmen
             Right r -> CodeFragment r
 
 parseCodeFragment :: Parser AST
-parseCodeFragment = AST <$> (whitespace *> (lexeme $ many (lexeme parseDeclaration)) <* eof)
+parseCodeFragment = AST <$> (whitespace *> (lexeme $ option [] (try $ symbol "#" *> brackets (sepBy parseBlockAnnotation (symbol ","))))) <*> (whitespace *> (lexeme $ many (lexeme parseDeclaration)) <* eof)
 
 parseDeclaration :: Parser Declaration
 parseDeclaration = do
+    declAns <- option [] (try $ symbol "@" *> brackets (sepBy parseDeclAnnotation (symbol ",")))
     name <- identifier  -- we parse the name and later ensure it comes up again for the implementation
 
-    Declaration name 
-        <$> (symbol ":" *> parseSignature) 
+    Declaration 
+        <$> pure declAns
+        <*> pure name 
+        <*> (symbol ":" *> parseSignature) 
         <*> (symbol name *> (option [] (parens (sepBy identifier (symbol ",")))))
         <*> (symbol ":=" *> parseImplementation)
         <*> option [] (try $ symbol "where" *> (parseWherePart))
@@ -163,3 +168,19 @@ parseCall = do
     ("floor", Just [e]) -> Unary Floor e  -- handle special built-in operations that are written like function calls in the DSL
     ("sqrt",  Just [e])  -> Unary Sqrt e
     (n, Just args)   -> Call n args       -- function call
+
+parseBlockAnnotation :: Parser BlockAnnotation
+parseBlockAnnotation = try (BlockDisplay <$> parseBlockDisplay)
+
+parseBlockDisplay :: Parser BlockDisplayMode
+parseBlockDisplay = try (DefaultBlock <$ symbol "default")
+                    <|> try (InTextBlock <$ symbol "intext")
+                    <|> try (InLineBlock <$ symbol "inline")
+                    <|> HiddenBlock <$ symbol "hidden"
+
+parseDeclAnnotation :: Parser DeclAnnotation
+parseDeclAnnotation = try (DeclDisplay <$> parseDeclDisplay)
+
+parseDeclDisplay :: Parser DeclDisplayMode
+parseDeclDisplay = try (DefaultDecl <$ symbol "default")
+                    <|> HiddenDecl <$ symbol "hidden"

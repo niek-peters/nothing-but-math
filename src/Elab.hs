@@ -1,8 +1,8 @@
 module Elab (elab, ElabResult) where
 
 import qualified Data.Map as Map
-import AST (Id, Signature (..), AST(..), Declaration (..), Expr (..), Type (..), PrimitiveType (..), BinaryOp (..), UnaryOp (..), Local (..), Implementation (..), Branch (..), WhereTerm (..))
-import IR (IRExpr (..), IRBinaryOp (..), IR (..), IRDeclaration (IRDeclaration), IRImplementation (IRUnconditional, IRConditional), IRBranch (IRBranch), IRLocal (..), IRWhereTerm (IRLocalDecl, IRConstraint))
+import AST (Id, Signature (..), AST(..), Declaration (..), Expr (..), Type (..), PrimitiveType (..), BinaryOp (..), UnaryOp (..), Local (..), Implementation (..), Branch (..), WhereTerm (..), BlockAnnotation (..), DeclAnnotation (DeclDisplay))
+import IR (IRExpr (..), IRBinaryOp (..), IR (..), IRDeclaration (IRDeclaration), IRImplementation (IRUnconditional, IRConditional), IRBranch (IRBranch), IRLocal (..), IRWhereTerm (IRLocalDecl, IRConstraint), IRBlockAnnotations (blockDisplayMode), defaultBlockAnnotations, IRDeclAnnotations (declDisplayMode), defaultDeclAnnotations)
 import Data.List.NonEmpty (NonEmpty(..), toList, fromList)
 import qualified Data.List.NonEmpty as NonEmpty
 import qualified Data.Functor
@@ -43,7 +43,8 @@ elab frags = map elabFragment frags
     where   globals = collectGlobals frags
 
             elabFragment (TextFragment str) = TextFragment str
-            elabFragment (CodeFragment (AST decls)) = CodeFragment $ IR $ map (`elabDeclaration` globals) decls
+            -- TODO: check for duplicates in annotations
+            elabFragment (CodeFragment (AST blockAns decls)) = CodeFragment $ IR (elabBlockAnnotations blockAns) $ map (`elabDeclaration` globals) decls
 
 collectGlobals :: ParseResult -> Scope
 collectGlobals frags = foldl collect Map.empty frags
@@ -51,8 +52,8 @@ collectGlobals frags = foldl collect Map.empty frags
             collect m (CodeFragment ast) = collectGlobalsFromAST m ast
 
 collectGlobalsFromAST :: Scope -> AST -> Scope
-collectGlobalsFromAST m (AST decls) = foldl insertDeclaration m decls
-    where   insertDeclaration scope (Declaration ident sig _ _ _) = insertIdent scope ident sig
+collectGlobalsFromAST m (AST _ decls) = foldl insertDeclaration m decls
+    where   insertDeclaration scope (Declaration _ ident sig _ _ _) = insertIdent scope ident sig
 
 insertIdent :: Scope -> Id -> Signature -> Scope
 insertIdent m ident sig 
@@ -67,9 +68,10 @@ resolveIdent ident (locals, globals) = case Map.lookup ident locals of
         Just sig -> (sig, True)
         Nothing -> error $ "ERROR: Reference to undefined value '" ++ ident ++  "'"
 
+-- TODO: check for duplicates in annotations
 elabDeclaration :: Declaration -> Scope -> IRDeclaration
-elabDeclaration (Declaration ident sig@(Signature from to) params impl whereTerms) globals 
-    = IRDeclaration ident sig params resImpl merged
+elabDeclaration (Declaration declAns ident sig@(Signature from to) params impl whereTerms) globals 
+    = IRDeclaration (elabDeclAnnotations declAns) ident sig params resImpl merged
     where   resImpl = elabImplementation impl (Just to) scopes
 
             -- and finally we merge the locals and constraints again in their original order
@@ -285,3 +287,24 @@ isPrimitiveCastLegal :: PrimitiveType -> PrimitiveType -> Bool
 isPrimitiveCastLegal Boolean _      = False -- casting to/from Booleans is illegal
 isPrimitiveCastLegal _ Boolean      = False
 isPrimitiveCastLegal _ _            = True  -- all casting between number types is legal
+
+
+-- elaborating block annotations
+elabBlockAnnotations :: [BlockAnnotation] -> IRBlockAnnotations
+elabBlockAnnotations ans = fst $ foldl elabBlockAnnotation (defaultBlockAnnotations, SeenBlockAnnotations False) ans 
+
+elabBlockAnnotation :: (IRBlockAnnotations, SeenBlockAnnotations) -> BlockAnnotation -> (IRBlockAnnotations, SeenBlockAnnotations)
+elabBlockAnnotation (acc, seen) (BlockDisplay mode) | seenBlockDisplayMode seen = error $ "SEMANTIC ERROR: Duplicate block display mode annotation"
+                                                    | otherwise = (acc {blockDisplayMode = mode}, seen {seenBlockDisplayMode = True})
+
+data SeenBlockAnnotations = SeenBlockAnnotations {seenBlockDisplayMode :: Bool}
+
+-- elaborating declaration annotations
+elabDeclAnnotations :: [DeclAnnotation] -> IRDeclAnnotations
+elabDeclAnnotations ans = fst $ foldl elabDeclAnnotation (defaultDeclAnnotations, SeenDeclAnnotations False) ans 
+
+elabDeclAnnotation :: (IRDeclAnnotations, SeenDeclAnnotations) -> DeclAnnotation -> (IRDeclAnnotations, SeenDeclAnnotations)
+elabDeclAnnotation (acc, seen) (DeclDisplay mode)   | seenDeclDisplayMode seen = error $ "SEMANTIC ERROR: Duplicate declaration display mode annotation"
+                                                    | otherwise = (acc {declDisplayMode = mode}, seen {seenDeclDisplayMode = True})
+
+data SeenDeclAnnotations = SeenDeclAnnotations {seenDeclDisplayMode :: Bool}

@@ -1,0 +1,26 @@
+This brings us to two new formulae. <<<
+% here we use a block-level annotation to set the display mode to "inline", which renders all formulae in the block in a single line
+#[inline, default]
+
+f : N x N -> Z
+f(a, b) := c
+where c := a - b
+
+g : N x N -> Z
+g(a, b) := d
+where d := a + b
+>>> With these, we can define another one:
+<<<
+% a hidden formula is not shown in the LaTeX output, but is still available for use in other formulae
+@[hidden]
+abs : Z -> N
+abs(x) := {
+    0 - x if x < 0
+    x otherwise
+}
+
+% now this formula can use the hidden one
+h : N x N -> N
+h(a, b) := e * 2
+where e := abs(f(a, b) * g(a, b))
+>>>

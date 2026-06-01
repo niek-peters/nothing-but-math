@@ -4,10 +4,11 @@ import Data.List.NonEmpty (NonEmpty)
 
 type Id = String
 
-newtype AST = AST [Declaration]
+data AST = AST [BlockAnnotation] [Declaration]
     deriving (Show, Eq)
 
 data Declaration = Declaration 
+    [DeclAnnotation]
     Id              -- name
     Signature       -- type signature
     [Id]            -- arguments
@@ -56,6 +57,29 @@ data BinaryOp = Add | Sub | Mult | Div | Pow | Mod | Eq | Neq | Less | Greater |
 
 data UnaryOp = Sqrt | Floor
     deriving (Show, Eq)
+
+-- block annotation for LaTeX output
+-- could support multiple different annotations in the future
+-- the elaboration phase ensures there are no duplicate annotations
+data BlockAnnotation = BlockDisplay BlockDisplayMode
+    deriving (Show, Eq)
+
+data BlockDisplayMode   = DefaultBlock  -- outputs block in \begin{flalign*}...\end{flalign*} block
+                        | InTextBlock   -- outputs block as in-text lines wrapped with $
+                        | InLineBlock   -- outputs block as a single line wrapped with $
+                        | HiddenBlock   -- omits the block from LaTeX output
+    deriving (Show, Eq)
+
+-- declaration annotation for LaTeX output
+-- could support multiple different annotations in the future
+-- the elaboration phase ensures there are no duplicate annotations
+data DeclAnnotation = DeclDisplay DeclDisplayMode
+    deriving (Show, Eq)
+
+data DeclDisplayMode    = DefaultDecl   -- declaration is emitted as usual
+                        | HiddenDecl    -- omits the declaration from LaTeX output
+    deriving (Show, Eq)
+
 
 
 -- we implement Ord for PrimitiveType to easily be able to see whether a number type is a subtype of another number type
