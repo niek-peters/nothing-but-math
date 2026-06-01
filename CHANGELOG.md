@@ -1,4 +1,4 @@
-# Changelog for `mod12-compiler`
+# Changelog for `nothing-but-math`
 
 All notable changes to this project will be documented in this file.
 
