@@ -16,7 +16,9 @@ codeGenLaTeX frags = concat (map codeGenFragment frags)
 codeGenBlock :: IR -> String
 codeGenBlock (IR ans decls) = case displayMode of 
         HiddenBlock -> ""   -- omit blocks annotated with 'hidden'
-        _ -> wrapBlock displayMode $ intercalate dnl $ map (`codeGenDeclaration` displayMode) $ filter declVisible decls  
+        _ -> case intercalate dnl $ map (`codeGenDeclaration` displayMode) $ filter declVisible decls of 
+                "" -> ""    -- don't wrap empty blocks
+                res -> wrapBlock displayMode res
     where   dnl = doubleNewlineOrSpace displayMode  
             displayMode = blockDisplayMode ans
 

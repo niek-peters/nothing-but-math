@@ -24,3 +24,5 @@ h : N x N -> N
 h(a, b) := e * 2
 where e := abs(f(a, b) * g(a, b))
 >>>
+
+Now, we can finally use this to...
