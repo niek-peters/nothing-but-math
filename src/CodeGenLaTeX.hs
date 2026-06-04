@@ -8,6 +8,7 @@ import Data.List.NonEmpty (toList)
 import AST (Signature (Signature), PrimitiveType (..), Type (..), UnaryOp (..), DeclDisplayMode (..), BlockDisplayMode (..))
 import CodeGen
 
+-- TODO: probably make a counter per "class" defined in the source .nbm
 refCounterName :: String
 refCounterName = "nbmBlockCounter"
 
@@ -163,9 +164,6 @@ codeGenPrimitiveType Boolean = mathbb "B"
 
 codeGenBox :: String -> IRBlockAnnotations -> String
 codeGenBox contents ans = 
-    -- block "center" (
-    --     vspace ++ "\n" ++
-
     macro1 "refstepcounter" refCounterName ++ "\n" ++
     (\l -> macro1 "label" l) `insertIfJust` (blockLabel ans) ++ "\n" ++
     "{\n" ++
@@ -174,7 +172,8 @@ codeGenBox contents ans =
             macro1 "fbox" ("\n" ++
                 block1 "minipage" (Just "t") (macro "linewidth") (
                    vspace ++ "\n" ++
-                   macro1 "textbf" (blockClass ans ++ " " ++ macro ("the" ++ refCounterName) ++ (\n -> ": " ++ n) `insertIfJust` (blockName ans)) ++ "\n" ++
+                   macro1 "textbf" (blockClass ans ++ " " ++ macro ("the" ++ refCounterName) ++ (\n -> ": " ++ n) `insertIfJust` blockName ans) ++ "\n" ++
+                   (\d -> newline ++ "{" ++ macro "small" ++ " " ++ d ++ "}") `insertIfJust` blockDescription ans ++
                    vspace ++ "\n" ++
                    macro "hrule" ++ "\n" ++
                    macro1 "vspace" ("-" ++ macro "abovedisplayskip") ++ "\n" ++
@@ -184,7 +183,6 @@ codeGenBox contents ans =
         vspace ++ "\n" ++
         macro "par" ++
     "\n}"
-    -- )
     where   vspace = macro1 "vspace" "0.5em"
 
 -- LATEX HELPERS --

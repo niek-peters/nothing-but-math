@@ -179,6 +179,7 @@ parseBlockAnnotation = try (BlockDisplay <$> parseBlockDisplay)
             "class" -> BlockClass
             "name" -> BlockName
             "label" -> BlockLabel
+            "description" -> BlockDescription
             _ -> error $ "SYNTAX ERROR: Invalid attribute name '" ++ key ++ "'"
       return $ attr value
 

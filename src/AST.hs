@@ -61,7 +61,7 @@ data UnaryOp = Sqrt | Floor
 -- block annotation for LaTeX output
 -- could support multiple different annotations in the future
 -- the elaboration phase ensures there are no duplicate annotations
-data BlockAnnotation = BlockDisplay BlockDisplayMode | BlockClass String | BlockName String | BlockLabel String
+data BlockAnnotation = BlockDisplay BlockDisplayMode | BlockClass String | BlockName String | BlockLabel String | BlockDescription String
     deriving (Show, Eq)
 
 data BlockDisplayMode   = DefaultBlock  -- outputs block in \begin{flalign*}...\end{flalign*} block

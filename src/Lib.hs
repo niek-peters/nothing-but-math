@@ -95,10 +95,11 @@ compileToPDF texFile dir = do
 cleanUpPDFArtifacts :: FilePath -> IO ()
 cleanUpPDFArtifacts texFile = do
     let replace = replaceExtension texFile
-    let (auxFile, logFile) = (replace "aux", replace "log")
+    let (auxFile, logFile, outFile) = (replace "aux", replace "log", replace "out")
 
     removeIfExists auxFile
     removeIfExists logFile
+    removeIfExists outFile
 
 removeIfExists :: FilePath -> IO ()
 removeIfExists file = do

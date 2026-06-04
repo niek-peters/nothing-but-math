@@ -291,7 +291,7 @@ isPrimitiveCastLegal _ _            = True  -- all casting between number types 
 
 -- elaborating block annotations
 elabBlockAnnotations :: [BlockAnnotation] -> IRBlockAnnotations
-elabBlockAnnotations ans = fst $ foldl elabBlockAnnotation (defaultBlockAnnotations, SeenBlockAnnotations False False False False) ans 
+elabBlockAnnotations ans = fst $ foldl elabBlockAnnotation (defaultBlockAnnotations, SeenBlockAnnotations False False False False False) ans 
 
 elabBlockAnnotation :: (IRBlockAnnotations, SeenBlockAnnotations) -> BlockAnnotation -> (IRBlockAnnotations, SeenBlockAnnotations)
 elabBlockAnnotation (acc, seen) (BlockDisplay mode) | seenBlockDisplayMode seen = error $ "SEMANTIC ERROR: Duplicate block display mode annotation"
@@ -302,8 +302,11 @@ elabBlockAnnotation (acc, seen) (BlockLabel label)  | seenBlockLabel seen = erro
                                                     | otherwise = (acc {blockLabel = Just label}, seen {seenBlockLabel = True})
 elabBlockAnnotation (acc, seen) (BlockClass c)      | seenBlockClass seen = error $ "SEMANTIC ERROR: Duplicate block class annotation"
                                                     | otherwise = (acc {blockClass = c}, seen {seenBlockClass = True})
+elabBlockAnnotation (acc, seen) (BlockDescription d)| seenBlockDescription seen = error $ "SEMANTIC ERROR: Duplicate block description annotation"
+                                                    | otherwise = (acc {blockDescription = Just d}, seen {seenBlockDescription = True})
 
-data SeenBlockAnnotations = SeenBlockAnnotations {seenBlockDisplayMode :: Bool, seenBlockName :: Bool, seenBlockLabel :: Bool, seenBlockClass :: Bool}
+
+data SeenBlockAnnotations = SeenBlockAnnotations {seenBlockDisplayMode :: Bool, seenBlockName :: Bool, seenBlockLabel :: Bool, seenBlockClass :: Bool, seenBlockDescription :: Bool}
 
 -- elaborating declaration annotations
 elabDeclAnnotations :: [DeclAnnotation] -> IRDeclAnnotations
