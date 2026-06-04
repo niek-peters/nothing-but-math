@@ -34,7 +34,7 @@ compile options = do
     -- let targetDir = takeDirectory pathHaskell
     -- createDirectoryIfMissing False targetDir
     
-    writeFile pathHaskell haskell
+    writeFile pathHaskell $ haskell $ moduleName options
     writeFile pathLaTeX latex
 
     putStrLn "NBM Compiled successfully!"

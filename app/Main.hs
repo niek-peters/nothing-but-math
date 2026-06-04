@@ -30,6 +30,13 @@ cliParser = CLIOptions
         ( long "wrapdoc"
         <> short 'w'
         <> help "Wraps the LaTeX output for basic PDF document output" )
+    <*> strOption 
+        ( long "module-name" 
+        <> short 'm' 
+        <> metavar "MODULE_NAME" 
+        <> value "NBM" -- the default Haskell module name will be "NBM"
+        <> showDefault 
+        <> help "Module name of the generated Haskell library" )
 
 -- runCompiler :: Options -> IO ()
 -- runCompiler (Options file dir toPDF wrapDoc) = compile file dir toPDF wrapDoc
