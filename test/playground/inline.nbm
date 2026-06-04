@@ -9,8 +9,10 @@ where c := a - b
 g : N x N -> Z
 g(a, b) := d
 where d := a + b
->>> With these, we can define another one:
+>>> With these, we can define:
 <<<
+#[box, class=Algorithm, name=My Algorithm Name, label=my_algorithm_name]
+
 % a hidden formula is not shown in the LaTeX output, but is still available for use in other formulae
 @[hidden]
 abs : Z -> N
@@ -25,4 +27,4 @@ h(a, b) := e * 2
 where e := abs(f(a, b) * g(a, b))
 >>>
 
-Now, we can finally use this to...
+Now, we can finally use Algorithm~\ref{my_algorithm_name} to...

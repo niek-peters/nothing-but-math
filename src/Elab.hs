@@ -2,7 +2,7 @@ module Elab (elab, ElabResult) where
 
 import qualified Data.Map as Map
 import AST (Id, Signature (..), AST(..), Declaration (..), Expr (..), Type (..), PrimitiveType (..), BinaryOp (..), UnaryOp (..), Local (..), Implementation (..), Branch (..), WhereTerm (..), BlockAnnotation (..), DeclAnnotation (DeclDisplay))
-import IR (IRExpr (..), IRBinaryOp (..), IR (..), IRDeclaration (IRDeclaration), IRImplementation (IRUnconditional, IRConditional), IRBranch (IRBranch), IRLocal (..), IRWhereTerm (IRLocalDecl, IRConstraint), IRBlockAnnotations (blockDisplayMode), defaultBlockAnnotations, IRDeclAnnotations (declDisplayMode), defaultDeclAnnotations)
+import IR (IRExpr (..), IRBinaryOp (..), IR (..), IRDeclaration (IRDeclaration), IRImplementation (IRUnconditional, IRConditional), IRBranch (IRBranch), IRLocal (..), IRWhereTerm (IRLocalDecl, IRConstraint), IRBlockAnnotations (..), defaultBlockAnnotations, IRDeclAnnotations (declDisplayMode), defaultDeclAnnotations)
 import Data.List.NonEmpty (NonEmpty(..), toList, fromList)
 import qualified Data.List.NonEmpty as NonEmpty
 import qualified Data.Functor
@@ -291,13 +291,19 @@ isPrimitiveCastLegal _ _            = True  -- all casting between number types 
 
 -- elaborating block annotations
 elabBlockAnnotations :: [BlockAnnotation] -> IRBlockAnnotations
-elabBlockAnnotations ans = fst $ foldl elabBlockAnnotation (defaultBlockAnnotations, SeenBlockAnnotations False) ans 
+elabBlockAnnotations ans = fst $ foldl elabBlockAnnotation (defaultBlockAnnotations, SeenBlockAnnotations False False False False) ans 
 
 elabBlockAnnotation :: (IRBlockAnnotations, SeenBlockAnnotations) -> BlockAnnotation -> (IRBlockAnnotations, SeenBlockAnnotations)
 elabBlockAnnotation (acc, seen) (BlockDisplay mode) | seenBlockDisplayMode seen = error $ "SEMANTIC ERROR: Duplicate block display mode annotation"
                                                     | otherwise = (acc {blockDisplayMode = mode}, seen {seenBlockDisplayMode = True})
+elabBlockAnnotation (acc, seen) (BlockName name)    | seenBlockName seen = error $ "SEMANTIC ERROR: Duplicate block name annotation"
+                                                    | otherwise = (acc {blockName = Just name}, seen {seenBlockName = True})
+elabBlockAnnotation (acc, seen) (BlockLabel label)  | seenBlockLabel seen = error $ "SEMANTIC ERROR: Duplicate block label annotation"
+                                                    | otherwise = (acc {blockLabel = Just label}, seen {seenBlockLabel = True})
+elabBlockAnnotation (acc, seen) (BlockClass c)      | seenBlockClass seen = error $ "SEMANTIC ERROR: Duplicate block class annotation"
+                                                    | otherwise = (acc {blockClass = c}, seen {seenBlockClass = True})
 
-data SeenBlockAnnotations = SeenBlockAnnotations {seenBlockDisplayMode :: Bool}
+data SeenBlockAnnotations = SeenBlockAnnotations {seenBlockDisplayMode :: Bool, seenBlockName :: Bool, seenBlockLabel :: Bool, seenBlockClass :: Bool}
 
 -- elaborating declaration annotations
 elabDeclAnnotations :: [DeclAnnotation] -> IRDeclAnnotations

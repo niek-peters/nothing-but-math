@@ -171,12 +171,32 @@ parseCall = do
 
 parseBlockAnnotation :: Parser BlockAnnotation
 parseBlockAnnotation = try (BlockDisplay <$> parseBlockDisplay)
+                      <|> parseKeyValue
+  where 
+    parseKeyValue = do
+      (key, value) <- (,) <$> identifier <* symbol "=" <*> lexeme (manyTill anySingle (lookAhead (symbol "," <|> symbol "]")))
+      let attr = case key of
+            "class" -> BlockClass
+            "name" -> BlockName
+            "label" -> BlockLabel
+            _ -> error $ "SYNTAX ERROR: Invalid attribute name '" ++ key ++ "'"
+      return $ attr value
 
 parseBlockDisplay :: Parser BlockDisplayMode
-parseBlockDisplay = try (DefaultBlock <$ symbol "default")
+parseBlockDisplay = DefaultBlock <$ symbol "default"
+                    <|> BoxBlock <$ symbol "box"
                     <|> try (InTextBlock <$ symbol "intext")
                     <|> try (InLineBlock <$ symbol "inline")
                     <|> HiddenBlock <$ symbol "hidden"
+
+-- parseKeyValue :: Parser (String, String)
+-- parseKeyValue = (,) <$> identifier <* symbol "=" <*> lexeme (manyTill anySingle (lookAhead (symbol "," <|> symbol "]")))
+
+-- parseAttributeValue :: Parser String
+-- parseAttributeValue = lexeme $ manyTill anySingle (lookAhead (symbol "," <|> symbol "]"))
+
+-- parseBlockName :: Parser String
+-- parseBlockName = error "GG"
 
 parseDeclAnnotation :: Parser DeclAnnotation
 parseDeclAnnotation = try (DeclDisplay <$> parseDeclDisplay)

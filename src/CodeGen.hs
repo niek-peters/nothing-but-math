@@ -61,4 +61,8 @@ insertIf :: String -> Bool -> String
 insertIf str True = str
 insertIf _ False = ""
 
+insertIfJust :: (String -> String) -> Maybe String -> String
+insertIfJust f (Just str) = f str
+insertIfJust _ Nothing = ""
+
 tab = "  "

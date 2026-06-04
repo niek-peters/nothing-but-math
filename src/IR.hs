@@ -49,11 +49,11 @@ data IRBinaryOp = IRAdd | IRSub | IRMult | IRFrac | IRDiv | IRPow | IRExp | IRMo
 
 -- in the IR we explicitly have one value for each possible annotation setting
 data IRBlockAnnotations = IRBlockAnnotations 
-    {blockDisplayMode :: BlockDisplayMode}
+    {blockDisplayMode :: BlockDisplayMode, blockName :: Maybe String, blockLabel :: Maybe String, blockClass :: String}
     deriving (Show, Eq)
 
 defaultBlockAnnotations :: IRBlockAnnotations
-defaultBlockAnnotations = IRBlockAnnotations {blockDisplayMode = DefaultBlock}
+defaultBlockAnnotations = IRBlockAnnotations {blockDisplayMode = DefaultBlock, blockName = Nothing, blockLabel = Nothing, blockClass = "Definition"}
 
 data IRDeclAnnotations = IRDeclAnnotations 
     {declDisplayMode :: DeclDisplayMode}

@@ -25,7 +25,7 @@ compile options = do
     let haskell = codeGenHaskell elaborated
     let tmpLatex = codeGenLaTeX elaborated
     let latex = case wrapDoc options of
-            True -> "\\documentclass{article}\n\\usepackage{amsmath, amssymb}\n\n\\begin{document}\n\n" ++ tmpLatex ++ "\n\n\\end{document}"
+            True -> "\\documentclass{article}\n\\usepackage{amsmath, amssymb, hyperref}\n\n\\begin{document}\n\n" ++ tmpLatex ++ "\n\n\\end{document}"
             False -> tmpLatex
 
     let (fileName, _) = splitExtension $ takeFileName resFile
@@ -78,7 +78,11 @@ outPaths name out = do
 
 compileToPDF :: FilePath -> FilePath -> IO ()
 compileToPDF texFile dir = do
-    (exitCode, stdout, _) <- readProcessWithExitCode "pdflatex" ["-interaction=nonstopmode", "-output-directory=" ++ dir, texFile] ""
+    let options = ["-interaction=nonstopmode", "-output-directory=" ++ dir, texFile]
+    
+    -- we run pdflatex twice to resolve references
+    _ <- readProcessWithExitCode "pdflatex" options ""
+    (exitCode, stdout, _) <- readProcessWithExitCode "pdflatex" options ""
 
     case exitCode of
         ExitSuccess -> do

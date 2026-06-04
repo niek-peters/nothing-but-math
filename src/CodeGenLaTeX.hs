@@ -2,28 +2,36 @@ module CodeGenLaTeX (codeGenLaTeX) where
 
 import Elab (ElabResult)
 import Types (Fragment(..))
-import IR (IR(..), IRDeclaration (IRDeclaration), IRImplementation (..), IRLocal (..), IRExpr (..), IRWhereTerm (IRLocalDecl, IRConstraint), IRBranch (..), IRBinaryOp (..), IRDeclAnnotations (..), IRBlockAnnotations (blockDisplayMode))
+import IR (IR(..), IRDeclaration (IRDeclaration), IRImplementation (..), IRLocal (..), IRExpr (..), IRWhereTerm (IRLocalDecl, IRConstraint), IRBranch (..), IRBinaryOp (..), IRDeclAnnotations (..), IRBlockAnnotations (..))
 import Data.List (intercalate)
 import Data.List.NonEmpty (toList)
 import AST (Signature (Signature), PrimitiveType (..), Type (..), UnaryOp (..), DeclDisplayMode (..), BlockDisplayMode (..))
 import CodeGen
 
+refCounterName :: String
+refCounterName = "nbmBlockCounter"
+
 codeGenLaTeX :: ElabResult -> String
-codeGenLaTeX frags = concat (map codeGenFragment frags)
-    where   codeGenFragment (TextFragment str) = str
+codeGenLaTeX frags = initCounter ++ concat (map codeGenFragment frags)
+    where   initCounter = macro1 "newcounter" refCounterName ++ "\n"
+        
+            codeGenFragment (TextFragment str) = str
             codeGenFragment (CodeFragment ir) = codeGenBlock ir
 
 codeGenBlock :: IR -> String
 codeGenBlock (IR ans decls) = case displayMode of 
         HiddenBlock -> ""   -- omit blocks annotated with 'hidden'
-        _ -> case intercalate dnl $ map (`codeGenDeclaration` displayMode) $ filter declVisible decls of 
+        _ -> case intercalate dnl $ map (`codeGenDeclaration` innerDisplayMode) $ filter declVisible decls of 
                 "" -> ""    -- don't wrap empty blocks
                 res -> wrapBlock displayMode res
     where   dnl = doubleNewlineOrSpace displayMode  
+            innerDisplayMode    | displayMode == BoxBlock = DefaultBlock    -- for simplicity, inner logic treats BoxBlock just like a DefaultBlock
+                                | otherwise = displayMode
             displayMode = blockDisplayMode ans
 
             -- here we create a function to wrap a block, based on the display mode
             wrapBlock DefaultBlock = flalign
+            wrapBlock BoxBlock = (`codeGenBox` ans) . flalign   -- wrap the block in a fancy box
             wrapBlock _ = id
 
             declVisible (IRDeclaration declAns _ _ _ _ _) = declDisplayMode declAns /= HiddenDecl
@@ -153,6 +161,32 @@ codeGenPrimitiveType Rational = mathbb "Q"
 codeGenPrimitiveType Real = mathbb "R"
 codeGenPrimitiveType Boolean = mathbb "B"
 
+codeGenBox :: String -> IRBlockAnnotations -> String
+codeGenBox contents ans = 
+    -- block "center" (
+    --     vspace ++ "\n" ++
+
+    macro1 "refstepcounter" refCounterName ++ "\n" ++
+    (\l -> macro1 "label" l) `insertIfJust` (blockLabel ans) ++ "\n" ++
+    "{\n" ++
+        macro "par" ++ "\n" ++
+        macro "centering" ++ "\n" ++
+            macro1 "fbox" ("\n" ++
+                block1 "minipage" (Just "t") (macro "linewidth") (
+                   vspace ++ "\n" ++
+                   macro1 "textbf" (blockClass ans ++ " " ++ macro ("the" ++ refCounterName) ++ (\n -> ": " ++ n) `insertIfJust` (blockName ans)) ++ "\n" ++
+                   vspace ++ "\n" ++
+                   macro "hrule" ++ "\n" ++
+                   macro1 "vspace" ("-" ++ macro "abovedisplayskip") ++ "\n" ++
+                   contents
+                )
+            ++ "\n") ++ "\n" ++
+        vspace ++ "\n" ++
+        macro "par" ++
+    "\n}"
+    -- )
+    where   vspace = macro1 "vspace" "0.5em"
+
 -- LATEX HELPERS --
 textSep = "~"
 newline = "\\\\\n"
@@ -184,3 +218,6 @@ macro2 name arg1 arg2 = macro name ++ "{" ++ arg1 ++ "}{" ++ arg2 ++ "}"
 
 block :: String -> String -> String
 block name contents = macro1 "begin" name ++ "\n" ++ contents ++ "\n" ++ macro1 "end" name
+
+block1 :: String -> Maybe String -> String -> String -> String
+block1 name option arg contents = macro1 "begin" name ++ (\o -> "[" ++ o ++ "]") `insertIfJust` option ++ "{" ++ arg ++ "}" ++ "\n" ++ contents ++ "\n" ++ macro1 "end" name
