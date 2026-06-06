@@ -1,6 +1,6 @@
 {-# LANGUAGE TemplateHaskell #-}
 
-module CodeGenHaskell (codeGenHaskell) where
+module CodeGenHaskell (codeGenHaskell, codeGenExpr) where
 
 import Elab (ElabResult)
 import Types (Fragment(..))
@@ -28,7 +28,7 @@ prelude = "-- PRELUDE --\n\n" ++ intercalate "\n\n" [positive, casting]
             casting = $(embedStringFile "prelude/casting.hs")
 
 codeGenHaskell :: ElabResult -> String -> String
-codeGenHaskell frags moduleName = intercalate "\n\n" [extensions, moduleStr, imports, code, prelude]
+codeGenHaskell (frags, _) moduleName = intercalate "\n\n" [extensions, moduleStr, imports, code, prelude]
     where   moduleStr = "module " ++ moduleName ++ " " ++ exportStr ++ " where"
 
             exportStr = case exports of

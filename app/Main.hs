@@ -3,6 +3,10 @@ module Main (main) where
 import Lib (compile)
 import Options.Applicative
 import Types (CLIOptions (..))
+import Language.Haskell.Interpreter (loadModules, setTopLevelModules, as, interpret, runInterpreter)
+import CodeGenHaskell (codeGenExpr)
+import Parser (runExprParser)
+import Elab (Scope, elabTopLevelExpr)
 
 main :: IO ()
 main = compile =<< execParser opts

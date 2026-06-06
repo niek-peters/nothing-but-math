@@ -1,4 +1,4 @@
-module Parser (Parser.parse, ParseResult) where
+module Parser (Parser.parse, ParseResult, runExprParser) where
 
 import Text.Megaparsec
 import Data.Void (Void)
@@ -47,10 +47,16 @@ parse :: String -> ParseResult
 parse str = map runFragmentParser sections
     where sections = runSectionsParser str
 
-runSectionsParser :: String -> SplitResult
-runSectionsParser str = case Text.Megaparsec.parse parseSections "" str of
+useParser :: Parser a -> String -> a
+useParser parser str = case Text.Megaparsec.parse parser "" str of
     Left e -> error $ show e
     Right r -> r
+
+runSectionsParser :: String -> SplitResult
+runSectionsParser = useParser parseSections
+
+runExprParser :: String -> Expr
+runExprParser = useParser parseExpr
 
 parseSections :: Parser SplitResult
 parseSections = manyTill (choice [codeStr, textStr]) eof

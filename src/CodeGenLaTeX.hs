@@ -1,4 +1,4 @@
-module CodeGenLaTeX (codeGenLaTeX) where
+module CodeGenLaTeX (codeGenLaTeX, codeGenExpr) where
 
 import Elab (ElabResult)
 import Types (Fragment(..))
@@ -13,7 +13,7 @@ makeCounterName :: String -> String
 makeCounterName className = "nbm" ++ className ++ "Counter"
 
 codeGenLaTeX :: ElabResult -> String
-codeGenLaTeX frags = concatMap initCounter blockClasses ++ concat (map codeGenFragment frags)
+codeGenLaTeX (frags, _) = concatMap initCounter blockClasses ++ concat (map codeGenFragment frags)
     where   initCounter className = macro1 "newcounter" (makeCounterName className) ++ "\n"
         
             blockClasses = collectClasses [ans | (CodeFragment (IR ans _)) <- frags]

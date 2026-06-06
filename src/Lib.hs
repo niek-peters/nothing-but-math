@@ -1,17 +1,21 @@
 module Lib
     ( compile
     ) where
-import Parser (parse)
+import Parser (parse, runExprParser)
 import Text.Show.Pretty (pPrint)
-import Elab (elab)
+import Elab (elab, Scope, elabTopLevelExpr)
+import qualified CodeGenHaskell as CodeGenHaskell
 import CodeGenHaskell (codeGenHaskell)
 import System.FilePath (takeFileName, (</>), splitExtension, replaceExtension)
 import System.Directory (canonicalizePath, createDirectoryIfMissing, doesFileExist, removeFile)
+import qualified CodeGenLaTeX as CodeGenLaTeX
 import CodeGenLaTeX (codeGenLaTeX)
 import System.Process (readProcessWithExitCode)
 import System.Exit (ExitCode(..))
 import Control.Monad (when)
 import Types (CLIOptions (..))
+import Language.Haskell.Interpreter (runInterpreter, loadModules, setTopLevelModules, interpret, as)
+import qualified Data.Map as Map
 
 compile :: CLIOptions -> IO ()
 compile options = do
@@ -20,33 +24,30 @@ compile options = do
 
     putStrLn $ "Compiling file: " ++ resFile
 
+    let (fileName, _) = splitExtension $ takeFileName resFile
+    (pathHaskell, pathLaTeX, dir) <- outPaths fileName $ outDir options
+
     let parsed = parse text
     let elaborated = elab parsed
     let haskell = codeGenHaskell elaborated
+
+    writeFile pathHaskell $ haskell $ moduleName options
+    
+    -- haskellEvalRes <- eval pathHaskell (moduleName options) "(g(1, 2), 3 / g(2,3))" (snd elaborated)
+    -- let latexEvalRes = haskellToLaTeX haskellEvalRes
+
+    -- putStrLn latexEvalRes
+
     let tmpLatex = codeGenLaTeX elaborated
     let latex = case wrapDoc options of
             True -> "\\documentclass{article}\n\\usepackage{amsmath, amssymb, hyperref}\n\n\\begin{document}\n\n" ++ tmpLatex ++ "\n\n\\end{document}"
             False -> tmpLatex
-
-    let (fileName, _) = splitExtension $ takeFileName resFile
-    (pathHaskell, pathLaTeX, dir) <- outPaths fileName $ outDir options
-
-    -- let targetDir = takeDirectory pathHaskell
-    -- createDirectoryIfMissing False targetDir
     
-    writeFile pathHaskell $ haskell $ moduleName options
     writeFile pathLaTeX latex
 
     putStrLn "NBM Compiled successfully!"
 
     when (toPDF options) (compileToPDF pathLaTeX dir)
-
-    -- if toPDF then do compileToPDF pathLaTeX dir
-    -- else return () 
-
-    -- let 
-    -- pPrint $ elaborated
-    -- putStr haskell
 
 
 processFile :: FilePath -> IO FilePath
@@ -75,6 +76,33 @@ outPaths :: FilePath -> FilePath -> IO (FilePath, FilePath, FilePath)
 outPaths name out = do
     dir <- processOutDir out
     return $ (dir </> (name ++ ".hs"), dir </> (name ++ ".tex"), dir)
+
+eval :: FilePath -> String -> String -> Scope -> IO String
+eval file modName expr scope = do
+    let parsed = runExprParser expr
+    let elaborated = elabTopLevelExpr parsed scope
+    let code = CodeGenHaskell.codeGenExpr elaborated modName
+    
+    result <- runInterpreter $ do
+        loadModules [file]
+        setTopLevelModules [modName]
+        let showExpr = "show $ " ++ code
+        interpret showExpr (as :: String)
+
+    case result of
+        Right val -> return val
+        Left err -> error $ show err
+
+haskellToLaTeX :: String -> String
+haskellToLaTeX haskell = CodeGenLaTeX.codeGenExpr elaborated
+    where   nbm = haskellToNBM haskell
+            parsed = runExprParser nbm
+            elaborated = elabTopLevelExpr parsed Map.empty  -- there should be no identifiers left
+
+haskellToNBM :: String -> String
+haskellToNBM [] = []
+haskellToNBM ('%':cs) = '/' : haskellToNBM cs
+haskellToNBM (c:cs) = c : haskellToNBM cs
 
 compileToPDF :: FilePath -> FilePath -> IO ()
 compileToPDF texFile dir = do

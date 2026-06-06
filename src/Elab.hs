@@ -1,4 +1,4 @@
-module Elab (elab, ElabResult) where
+module Elab (elab, ElabResult, Scope, elabTopLevelExpr) where
 
 import qualified Data.Map as Map
 import AST (Id, Signature (..), AST(..), Declaration (..), Expr (..), Type (..), PrimitiveType (..), BinaryOp (..), UnaryOp (..), Local (..), Implementation (..), Branch (..), WhereTerm (..), BlockAnnotation (..), DeclAnnotation (DeclDisplay))
@@ -33,17 +33,20 @@ import Parser (ParseResult)
 
 -- TODO: make error messages always show the part of the AST where it went wrong
 
-type ElabResult = [Fragment String IR]
+type ElabResult = ([Fragment String IR], Scope)
 
 type Scope = Map.Map Id Signature
 type Scopes = (Scope, Scope)    -- local scope, global scope
 
 elab :: ParseResult -> ElabResult
-elab frags = map elabFragment frags
+elab frags = (map elabFragment frags, globals)
     where   globals = collectGlobals frags
 
             elabFragment (TextFragment str) = TextFragment str
             elabFragment (CodeFragment (AST blockAns decls)) = CodeFragment $ IR (elabBlockAnnotations blockAns) $ map (`elabDeclaration` globals) decls
+
+elabTopLevelExpr :: Expr -> Scope -> IRExpr
+elabTopLevelExpr e s = fst $ elabExpr e Nothing (Map.empty, s)
 
 collectGlobals :: ParseResult -> Scope
 collectGlobals frags = foldl collect Map.empty frags
