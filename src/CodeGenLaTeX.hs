@@ -7,17 +7,24 @@ import Data.List (intercalate)
 import Data.List.NonEmpty (toList)
 import AST (Signature (Signature), PrimitiveType (..), Type (..), UnaryOp (..), DeclDisplayMode (..), BlockDisplayMode (..))
 import CodeGen
+import qualified Data.Set as Set
 
--- TODO: probably make a counter per "class" defined in the source .nbm
-refCounterName :: String
-refCounterName = "nbmBlockCounter"
+makeCounterName :: String -> String
+makeCounterName className = "nbm" ++ className ++ "Counter"
 
 codeGenLaTeX :: ElabResult -> String
-codeGenLaTeX frags = initCounter ++ concat (map codeGenFragment frags)
-    where   initCounter = macro1 "newcounter" refCounterName ++ "\n"
+codeGenLaTeX frags = concatMap initCounter blockClasses ++ concat (map codeGenFragment frags)
+    where   initCounter className = macro1 "newcounter" (makeCounterName className) ++ "\n"
         
+            blockClasses = collectClasses [ans | (CodeFragment (IR ans _)) <- frags]
+
             codeGenFragment (TextFragment str) = str
             codeGenFragment (CodeFragment ir) = codeGenBlock ir
+
+collectClasses :: [IRBlockAnnotations] -> Set.Set String
+collectClasses anss = foldl insertClass Set.empty anss
+    where   insertClass acc ans = Set.insert (blockClass ans) acc
+
 
 codeGenBlock :: IR -> String
 codeGenBlock (IR ans decls) = case displayMode of 
@@ -183,7 +190,8 @@ codeGenBox contents ans =
         vspace ++ "\n" ++
         macro "par" ++
     "\n}"
-    where   vspace = macro1 "vspace" "0.5em"
+    where   refCounterName = makeCounterName (blockClass ans)
+            vspace = macro1 "vspace" "0.5em"
 
 -- LATEX HELPERS --
 textSep = "~"

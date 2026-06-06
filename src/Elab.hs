@@ -43,7 +43,6 @@ elab frags = map elabFragment frags
     where   globals = collectGlobals frags
 
             elabFragment (TextFragment str) = TextFragment str
-            -- TODO: check for duplicates in annotations
             elabFragment (CodeFragment (AST blockAns decls)) = CodeFragment $ IR (elabBlockAnnotations blockAns) $ map (`elabDeclaration` globals) decls
 
 collectGlobals :: ParseResult -> Scope
