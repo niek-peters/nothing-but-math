@@ -96,34 +96,36 @@ codeGenSignature (Signature maybeFromT (Type tos)) = fromPart ++ toPart
             typeTuple pts = intercalate cross (map codeGenPrimitiveType (toList pts)) 
 
 codeGenImpl :: IRImplementation -> String
-codeGenImpl (IRUnconditional e) = unparens $ codeGenExpr e
+codeGenImpl (IRUnconditional e) = codeGenExpr e
 codeGenImpl (IRConditional branches other) = block "cases" $ intercalate newline (map codeGenBranch branches ++ [codeGenOther other])-- concat (map codeGenBranch branches) ++ codeGenOther other
 
 codeGenBranch :: IRBranch -> String
-codeGenBranch (IRBranch e cond) = tab ++ unparens (codeGenExpr e) ++ ", & " ++ text "if" ++ textSep ++ unparens (codeGenExpr cond)
+codeGenBranch (IRBranch e cond) = tab ++ codeGenExpr e ++ ", & " ++ text "if" ++ textSep ++ codeGenExpr cond
 
 codeGenOther :: IRExpr -> String
-codeGenOther e = tab ++ unparens (codeGenExpr e) ++ ", & " ++ text "otherwise"
+codeGenOther e = tab ++ codeGenExpr e ++ ", & " ++ text "otherwise"
 
 codeGenWhereTerm :: IRWhereTerm -> String
-codeGenWhereTerm (IRLocalDecl (IRLocal idents e)) = maybeParenTuple idents ++ symbol "=" ++ (unparens $ codeGenExpr e)
-codeGenWhereTerm (IRConstraint e) = unparens $ codeGenExpr e
+codeGenWhereTerm (IRLocalDecl (IRLocal idents e)) = maybeParenTuple idents ++ symbol "=" ++ codeGenExpr e
+codeGenWhereTerm (IRConstraint e) = codeGenExpr e
 
 codeGenEvalRes :: IREvalResult -> String
-codeGenEvalRes (IREvalResult e1 e2) = wrapStatement InLineBlock $ unparens (codeGenExpr e1) ++ symbol "=" ++ unparens (codeGenExpr e2)
+codeGenEvalRes (IREvalResult e1 e2) = wrapStatement InLineBlock $ codeGenExpr e1 ++ symbol "=" ++ codeGenExpr e2
 
 codeGenExpr :: IRExpr -> String
 codeGenExpr (IRCast e _ _) = codeGenExpr e
-codeGenExpr (IRCall ident _ es) = ident ++ maybeParenTuple' (map (unparens . codeGenExpr) es)
+codeGenExpr (IRCall ident _ es) = ident ++ maybeParenTuple' (map codeGenExpr es)
 codeGenExpr (IRImmediateInt i _) = show i
 codeGenExpr (IRImmediateReal r) = show r
 codeGenExpr (IRImmediateBool b) = show b
-codeGenExpr (IRBinary op e1 e2) = codeGenBinary op e1 e2
+codeGenExpr (IRBinary op e1 e2) = codeGenBinary op (unwrapCast e1) (unwrapCast e2)
+    where   unwrapCast (IRCast e _ _) = e
+            unwrapCast e = e
     -- maybeParens $ codeGenBinary op e1 e2
     -- where   maybeParens | op == IRDiv || op == IRFrac = id
     --                     | otherwise = parens
 codeGenExpr (IRUnary op e) = codeGenUnary op e
-codeGenExpr (IRTuple es) = parenTuple $ map (unparens . codeGenExpr) (toList es)
+codeGenExpr (IRTuple es) = parenTuple $ map codeGenExpr (toList es)
 
 maybeParens :: IRExpr -> IRBinaryOp -> Bool -> String -> String
 maybeParens (IRBinary op _ _) parentOp isRight   
@@ -139,8 +141,8 @@ maybeParens _ _ _ = id
 
 codeGenUnary :: UnaryOp -> IRExpr -> String
 codeGenUnary Neg e = "-" ++ codeGenExpr e
-codeGenUnary Floor e = wrap (macro "lfloor") (macro "rfloor") $ unparens $ codeGenExpr e
-codeGenUnary Sqrt e = macro1 "sqrt" $ unparens $ codeGenExpr e
+codeGenUnary Floor e = wrap (macro "lfloor") (macro "rfloor")  $ codeGenExpr e
+codeGenUnary Sqrt e = macro1 "sqrt"  $ codeGenExpr e
 
 codeGenBinary :: IRBinaryOp -> IRExpr -> IRExpr -> String
 codeGenBinary op@IRAdd = infixOp "+" op
@@ -210,13 +212,14 @@ text = macro1 "text"
 flalign = block "flalign*"
 -- makecell contents = macro "makecell" ++ "{\n" ++ contents ++ "}"
 
-infixOp :: String -> IRBinaryOp -> IRExpr -> IRExpr -> String
-infixOp s op e1 e2 = infixBinaryOp (\e isRight -> maybeParens e op isRight $ codeGenExpr e) s e1 e2
+infixOp s op e1 e2 = (maybeParens e1 op False $ codeGenExpr e1) ++ symbol s ++ (maybeParens e2 op True $ codeGenExpr e2)
+-- infixOp :: String -> IRBinaryOp -> IRExpr -> IRExpr -> String
+-- infixOp s op e1 e2 = infixBinaryOp (\e isRight -> maybeParens e op isRight $ codeGenExpr e) s e1 e2
 maybeParenTuple = maybeTuple (macro "left(") (macro "right)")
 maybeParenTuple' = maybeTuple' (macro "left(") (macro "right)")
 parenTuple = tuple (macro "left(") (macro "right)")
 parens = wrap (macro "left(") (macro "right)")
-unparens = unwrap (macro "left(") (macro "right)")
+-- unparens = unwrap (macro "left(") (macro "right)")
 
 macro :: String -> String
 macro name = "\\" ++ name

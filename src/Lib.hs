@@ -13,6 +13,7 @@ import System.Process (readProcessWithExitCode)
 import System.Exit (ExitCode(..))
 import Control.Monad (when)
 import Types (CLIOptions (..))
+import Text.Show.Pretty (pPrint)
 
 compile :: CLIOptions -> IO ()
 compile options = do
@@ -28,6 +29,7 @@ compile options = do
 
     let parsed = parse text
     let elaborated = elab parsed
+    -- pPrint elaborated
     let (lib, evalFrags) = codeGenHaskell elaborated modName
 
     writeFile pathHaskell lib
