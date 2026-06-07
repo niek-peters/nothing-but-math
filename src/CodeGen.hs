@@ -1,4 +1,5 @@
 module CodeGen (module CodeGen) where
+        
 import Data.List.NonEmpty (NonEmpty ((:|)), toList)
 import Data.List (intercalate)
 
@@ -42,16 +43,6 @@ unwrap symLeft symRight str | length str < combinedLength = str
             combinedLength = symbolLeftLength + symbolRightLength
             symbolLeftLength = length symLeft
             symbolRightLength = length symRight
-
--- -- removes outer parentheses if present
--- -- intended for use around codeGenExpr
--- unparens :: String -> String
--- unparens str    | length str < 2 = str
---                 | ',' `elem` str = str  -- don't remove parens from tuples
---                 | hasOpenParen && hasCloseParen = (init . tail) str
---                 | otherwise = str
---     where   hasOpenParen = head str == '('
---             hasCloseParen = last str == ')'
 
 infixBinaryOp :: (a -> String) -> String -> a -> a -> String
 infixBinaryOp gen opStr e1 e2 = gen e1 ++ symbol opStr ++ gen e2

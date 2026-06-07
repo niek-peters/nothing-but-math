@@ -11,7 +11,6 @@ import Control.Monad.Combinators.Expr
 import Types
 
 -- TODO: consider enforcing newlines in many places
--- TODO: add unary minus?
 
 type Parser = Parsec Void String
 
@@ -68,16 +67,11 @@ parseSections = manyTill (choice [codeStr, evalStr, textStr]) eof
         *> notFollowedBy (string "{{{") 
         *> anySingle
       )
-    -- codeStr = DefinitionFragment <$> (try (string "<<<") *> manyTill anySingle (string ">>>"))
-    -- textStr = TextFragment <$> some (notFollowedBy (string "<<<") *> anySingle)
 
 runFragmentParser :: Fragment String String String -> Fragment String AST Expr
 runFragmentParser (TextFragment t) = TextFragment t
 runFragmentParser (DefinitionFragment c) = DefinitionFragment $ useParser parseCodeFragment c
 runFragmentParser (EvalFragment e) = EvalFragment $ useParser (whitespace *> lexeme parseExpr <* eof) e
-  -- case Text.Megaparsec.parse parseCodeFragment "" c of
-  --           Left e -> error $ show e
-  --           Right r -> DefinitionFragment r
 
 parseCodeFragment :: Parser AST
 parseCodeFragment = AST <$> (whitespace *> (lexeme $ option [] (try $ symbol "#" *> brackets (sepBy parseBlockAnnotation (symbol ","))))) <*> (whitespace *> (lexeme $ many (lexeme parseDeclaration)) <* eof)
@@ -94,13 +88,8 @@ parseDeclaration = do
         <*> (symbol name *> (option [] (parens (sepBy identifier (symbol ",")))))
         <*> (symbol ":=" *> parseImplementation)
         <*> option [] (try $ symbol "where" *> (parseWherePart))
-        
-    -- (locals, constraints) <- option ([], []) (try $ symbol "where" *> (parseWherePart))
-
-    -- return $ base locals constraints
     where
         parseWherePart = sepBy1 (LocalDecl <$> try parseLocal <|> Constraint <$> parseExpr) (symbol ",")
-        -- parseWherePart = partitionEithers <$> sepBy1 (Left <$> try parseLocal <|> Right <$> parseExpr) (symbol ",")
 
 parseSignature :: Parser Signature
 parseSignature = toSignature <$> parseType <*> optional (symbol "->" *> parseType)
@@ -208,15 +197,6 @@ parseBlockDisplay = DefaultBlock <$ symbol "default"
                     <|> try (InTextBlock <$ symbol "intext")
                     <|> try (InLineBlock <$ symbol "inline")
                     <|> HiddenBlock <$ symbol "hidden"
-
--- parseKeyValue :: Parser (String, String)
--- parseKeyValue = (,) <$> identifier <* symbol "=" <*> lexeme (manyTill anySingle (lookAhead (symbol "," <|> symbol "]")))
-
--- parseAttributeValue :: Parser String
--- parseAttributeValue = lexeme $ manyTill anySingle (lookAhead (symbol "," <|> symbol "]"))
-
--- parseBlockName :: Parser String
--- parseBlockName = error "GG"
 
 parseDeclAnnotation :: Parser DeclAnnotation
 parseDeclAnnotation = try (DeclDisplay <$> parseDeclDisplay)

@@ -1,6 +1,5 @@
 module CodeGenLaTeX (codeGenLaTeX, codeGenExpr) where
 
-import Elab (ElabResult)
 import Types (Fragment(..))
 import IR (IR(..), IRDeclaration (IRDeclaration), IRImplementation (..), IRLocal (..), IRExpr (..), IRWhereTerm (IRLocalDecl, IRConstraint), IRBranch (..), IRBinaryOp (..), IRDeclAnnotations (..), IRBlockAnnotations (..), IREvalResult (..))
 import Data.List (intercalate)
@@ -105,20 +104,6 @@ codeGenBranch (IRBranch e cond) = tab ++ unparens (codeGenExpr e) ++ ", & " ++ t
 
 codeGenOther :: IRExpr -> String
 codeGenOther e = tab ++ unparens (codeGenExpr e) ++ ", & " ++ text "otherwise"
-
--- codeGenWhere :: [IRWhereTerm] -> BlockDisplayMode -> String
--- codeGenWhere [] _ = ""
--- codeGenWhere whereTerms blockDisplay
---     | blockDisplay == DefaultBlock = nl ++ wrap (txt "where" ++ sep ++ intercalateSpecialLast ", " (sep ++ txt "and" ++ sep) (map codeGenWhereTerm whereTerms) ++ ".")
---     | otherwise = maybeComma ++ nl ++ txt "where" ++ sep ++ intercalateSpecialLast ", " (sep ++ txt "and" ++ sep) (map (wrap . codeGenWhereTerm) whereTerms) ++ "."
---     where   txt = textOrStr blockDisplay
---             sep = sepOrSpace blockDisplay
-        
---             nl = newlineOrSpace blockDisplay
---             wrap = wrapStatement blockDisplay
---             maybeComma  | blockDisplay == InLineBlock = ","
---                         | otherwise = ""
--- codeGenWhere whereTerms _ = text "where" ++ textSep ++ intercalateSpecialLast ", " (textSep ++ text "and" ++ textSep) (NonEmpty.map codeGenWhereTerm whereTerms)
 
 codeGenWhereTerm :: IRWhereTerm -> String
 codeGenWhereTerm (IRLocalDecl (IRLocal idents e)) = maybeParenTuple idents ++ symbol "=" ++ (unparens $ codeGenExpr e)

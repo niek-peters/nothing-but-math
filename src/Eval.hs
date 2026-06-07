@@ -14,18 +14,6 @@ eval frags lib modName exprs = do
     results <- evalExprs lib modName exprs
     let irExprs = map haskellToIR results
     return $ replaceEvalFrags frags irExprs
--- eval :: FilePath -> String -> [String] -> IO [IRExpr]
--- eval _ _ [] = pure []
--- eval lib modName frags = do
---     result <- runInterpreter $ do
---         loadModules [lib]
---         setTopLevelModules [modName]
---         let showExprs = map ("show $ " ++) frags
---         mapM (`interpret` (as :: String)) showExprs 
-
---     case result of
---         Right val -> return $ map haskellToIR val
---         Left err -> error $ show err
 
 evalExprs :: FilePath -> String -> [String] -> IO [String]
 evalExprs _ _ [] = pure []

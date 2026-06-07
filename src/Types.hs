@@ -1,4 +1,4 @@
-module Types (CLIOptions(..), Fragment(..)) where
+module Types (module Types) where   -- export everything
 
 data CLIOptions = CLIOptions { filePath :: FilePath, outDir :: FilePath, toPDF :: Bool, wrapDoc :: Bool, moduleName :: String }
   deriving (Show, Eq)
