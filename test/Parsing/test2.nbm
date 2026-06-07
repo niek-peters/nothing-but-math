@@ -1,0 +1,15 @@
+<<<
+% function with a single argument
+% more number types
+f : N -> Z+
+f(x) := y * 2
+where y := x + 1    % local variable declaration
+
+% multiple declarations in a single code block
+% function with multiple arguments
+% even more number types!
+g : Z x N -> Q
+g(x, a) := x ^ a / 2    % more operators!
+
+% and then no text/eval fragments at all
+>>>
