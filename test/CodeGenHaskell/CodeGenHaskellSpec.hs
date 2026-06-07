@@ -16,5 +16,5 @@ spec =
     where   goldenTestFiles = mapM_ shouldElabToGolden
    
 shouldElabToGolden :: String -> Spec
-shouldElabToGolden file = it ("generated correct Haskell code for example program " ++ file) $ shouldBeGolden ("test/CodeGenHaskell/" ++ file ++ ".nbm") f
+shouldElabToGolden file = it ("generates correct Haskell code for example program " ++ file) $ shouldBeGolden ("test/CodeGenHaskell/" ++ file ++ ".nbm") f
     where   f = ppShow . (`codeGenHaskell` "TestModule") . elab . parse
