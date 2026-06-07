@@ -121,9 +121,6 @@ codeGenExpr (IRImmediateBool b) = show b
 codeGenExpr (IRBinary op e1 e2) = codeGenBinary op (unwrapCast e1) (unwrapCast e2)
     where   unwrapCast (IRCast e _ _) = e
             unwrapCast e = e
-    -- maybeParens $ codeGenBinary op e1 e2
-    -- where   maybeParens | op == IRDiv || op == IRFrac = id
-    --                     | otherwise = parens
 codeGenExpr (IRUnary op e) = codeGenUnary op e
 codeGenExpr (IRTuple es) = parenTuple $ map codeGenExpr (toList es)
 
@@ -160,6 +157,10 @@ codeGenBinary op@IRGreater = infixOp ">" op
 codeGenBinary op@IRLessEq = infixOp (macro "leq") op
 codeGenBinary op@IRGreaterEq = infixOp (macro "geq") op
 codeGenBinary op@IRDivides = infixOp (macro "mid") op
+
+infixOp :: String -> IRBinaryOp -> IRExpr -> IRExpr -> String
+infixOp s op e1 e2 = (maybeParens e1 op False $ codeGenExpr e1) ++ symbol s ++ (maybeParens e2 op True $ codeGenExpr e2)
+
 
 fracOp :: IRExpr -> IRExpr -> String
 fracOp e1 e2 = macro2 "frac" (codeGenExpr e1) (codeGenExpr e2)
@@ -210,16 +211,11 @@ mathbb = macro1 "mathbb"
 text = macro1 "text"
 
 flalign = block "flalign*"
--- makecell contents = macro "makecell" ++ "{\n" ++ contents ++ "}"
 
-infixOp s op e1 e2 = (maybeParens e1 op False $ codeGenExpr e1) ++ symbol s ++ (maybeParens e2 op True $ codeGenExpr e2)
--- infixOp :: String -> IRBinaryOp -> IRExpr -> IRExpr -> String
--- infixOp s op e1 e2 = infixBinaryOp (\e isRight -> maybeParens e op isRight $ codeGenExpr e) s e1 e2
 maybeParenTuple = maybeTuple (macro "left(") (macro "right)")
 maybeParenTuple' = maybeTuple' (macro "left(") (macro "right)")
 parenTuple = tuple (macro "left(") (macro "right)")
 parens = wrap (macro "left(") (macro "right)")
--- unparens = unwrap (macro "left(") (macro "right)")
 
 macro :: String -> String
 macro name = "\\" ++ name

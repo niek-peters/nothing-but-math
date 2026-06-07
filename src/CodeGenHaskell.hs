@@ -125,6 +125,9 @@ codeGenBinary IRLessEq = infixOp "<="
 codeGenBinary IRGreaterEq = infixOp ">="
 codeGenBinary IRDivides = (\e1 e2 moduleName -> codeGenExpr e2 moduleName ++ symbol "`mod`" ++ codeGenExpr e1 moduleName ++ " == 0")
 
+infixOp :: String -> IRExpr -> IRExpr -> String -> String
+infixOp op e1 e2 moduleName = (codeGenExpr e1 moduleName) ++ symbol op ++ (codeGenExpr e2 moduleName)
+
 codeGenPrimitiveType :: PrimitiveType -> String
 codeGenPrimitiveType Positive = "Positive"
 codeGenPrimitiveType Natural = "Natural"
@@ -133,9 +136,6 @@ codeGenPrimitiveType Rational = "Rational"
 codeGenPrimitiveType Real = "Double"
 codeGenPrimitiveType Boolean = "Bool"
 
-infixOp :: String -> IRExpr -> IRExpr -> String -> String
-infixOp op e1 e2 moduleName = (codeGenExpr e1 moduleName) ++ symbol op ++ (codeGenExpr e2 moduleName)
--- infixOp op e1 e2 moduleName = infixBinaryOp (\e _ -> codeGenExpr e moduleName) op e1 e2
 maybeParenTuple = maybeTuple "(" ")"
 parenTuple = tuple "(" ")"
 parens = wrap "(" ")"

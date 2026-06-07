@@ -45,10 +45,6 @@ unwrap symLeft symRight str | length str < combinedLength = str
             symbolLeftLength = length symLeft
             symbolRightLength = length symRight
 
--- -- the gen function should take some expression and an isRight value (used for potential parentheses)
--- infixBinaryOp :: (a -> Bool -> String) -> String -> a -> a -> String
--- infixBinaryOp gen opStr e1 e2 = gen e1 False ++ symbol opStr ++ gen e2 True
-
 insertIf :: String -> Bool -> String
 insertIf str True = str
 insertIf _ False = ""
