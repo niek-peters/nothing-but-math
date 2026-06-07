@@ -1,2 +1,8 @@
 cradle:
   stack:
+    - path: "./src"
+      component: "nothing-but-math:lib"
+    - path: "./app"
+      component: "nothing-but-math:exe:nbm"
+    - path: "./test"
+      component: "nothing-but-math:test:nbm-test"

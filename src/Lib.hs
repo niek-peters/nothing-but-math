@@ -58,7 +58,7 @@ resolveFilePath file = do
                 "nbm" -> file
                 _ -> file ++ ".nbm"
 
-    return resFile
+    canonicalizePath resFile
 
 processOutDir :: FilePath -> IO FilePath
 processOutDir out = do

@@ -3,17 +3,13 @@ module Main (main) where
 import Lib (compile)
 import Options.Applicative
 import Types (CLIOptions (..))
-import Language.Haskell.Interpreter (loadModules, setTopLevelModules, as, interpret, runInterpreter)
-import CodeGenHaskell (codeGenExpr)
-import Parser (runExprParser)
-import Elab (Scope, elabTopLevelExpr)
 
 main :: IO ()
 main = compile =<< execParser opts
   where
     opts = info (cliParser <**> helper)
         ( fullDesc
-        <> progDesc "Compile an NBM source file to Haskell and LaTeX. Optionally compiles to PDF"
+        <> progDesc "Compile an NBM source file to Haskell and LaTeX. Optionally generates a PDF"
         <> header "nbm - Nothing But Math compiler" )
 
 cliParser :: Parser CLIOptions
@@ -33,7 +29,7 @@ cliParser = CLIOptions
     <*> switch
         ( long "wrapdoc"
         <> short 'w'
-        <> help "Wraps the LaTeX output for basic PDF document output" )
+        <> help "Wraps the LaTeX output for basic PDF document output. Do not use this if you are using a LaTeX template" )
     <*> strOption 
         ( long "module-name" 
         <> short 'm' 
@@ -41,6 +37,3 @@ cliParser = CLIOptions
         <> value "NBM" -- the default Haskell module name will be "NBM"
         <> showDefault 
         <> help "Module name of the generated Haskell library" )
-
--- runCompiler :: Options -> IO ()
--- runCompiler (Options file dir toPDF wrapDoc) = compile file dir toPDF wrapDoc
