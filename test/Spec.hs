@@ -1,9 +1,7 @@
-module Main (main) where
-    
 import Test.Hspec (describe, hspec)
 
-import qualified ParserSpec
+import qualified Parsing.ParsingSpec
 
 main :: IO ()
 main = hspec $ do
-    describe "Parsing" ParserSpec.spec
+    describe "Parsing" Parsing.ParsingSpec.spec

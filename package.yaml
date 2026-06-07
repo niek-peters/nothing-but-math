@@ -31,7 +31,6 @@ dependencies:
   - optparse-applicative == 0.18.1.0
   - process == 1.6.26.1
   - hint == 0.9.0.9
-  - hspec == 2.11.17
 
 ghc-options:
   - -Wall
@@ -68,3 +67,4 @@ tests:
       - -with-rtsopts=-N
     dependencies:
       - nothing-but-math
+      - hspec == 2.11.17
