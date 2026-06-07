@@ -1,9 +1,11 @@
-% This file tests comments, text/code/eval fragments and constant definitions
+% this file tests comments, text/code/eval fragments and constant definitions
 This is text
-% This is a LaTeX comment
+% this is a LaTeX comment
 <<<
-a : N
-a := 0  % and this is an NBM comment!
+% and this is an NBM comment!
+
+a : N   % constant definition
+a := 0  
 >>>
 more text
 <<<     % we can have as many code blocks as we want

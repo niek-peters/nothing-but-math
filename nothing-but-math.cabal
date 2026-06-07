@@ -80,6 +80,7 @@ test-suite nbm-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
+      Elab.ElabSpec
       Parsing.ParsingSpec
       TestUtils
       Paths_nothing_but_math
