@@ -49,7 +49,6 @@ data IRExpr = IRCast IRExpr PrimitiveType PrimitiveType       -- wraps an expr t
 data IRBinaryOp = IRAdd | IRSub | IRMult | IRFrac | IRDiv | IRPow | IRExp | IRMod | IREq | IRNeq | IRLess | IRGreater | IRLessEq | IRGreaterEq | IRDivides
     deriving (Show, Eq)
 
-
 -- in the IR we explicitly have one value for each possible annotation setting
 data IRBlockAnnotations = IRBlockAnnotations 
     {blockDisplayMode :: BlockDisplayMode, blockName :: Maybe String, blockLabel :: Maybe String, blockClass :: String, blockDescription :: Maybe String}

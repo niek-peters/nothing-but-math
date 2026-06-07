@@ -124,12 +124,12 @@ parseExpr = makeExprParser parseTerm exprTable
 
 exprTable :: [[Operator Parser Expr]]
 exprTable = [
-    [
-      unary   "-"       (Unary Neg)
-    ],
     [ 
       binaryR "^"       (Binary Pow) 
     ], 
+    [
+      unary   "-"       (Unary Neg)
+    ],
     [ 
       binary  "*"       (Binary Mult), 
       binary  "/"       (Binary Div), 

@@ -133,7 +133,7 @@ codeGenPrimitiveType Rational = "Rational"
 codeGenPrimitiveType Real = "Double"
 codeGenPrimitiveType Boolean = "Bool"
 
-infixOp op e1 e2 moduleName = infixBinaryOp (`codeGenExpr` moduleName) op e1 e2
+infixOp op e1 e2 moduleName = infixBinaryOp (\e _ -> codeGenExpr e moduleName) op e1 e2
 maybeParenTuple = maybeTuple "(" ")"
 parenTuple = tuple "(" ")"
 parens = wrap "(" ")"

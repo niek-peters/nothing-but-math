@@ -2,6 +2,7 @@ module CodeGen (module CodeGen) where
         
 import Data.List.NonEmpty (NonEmpty ((:|)), toList)
 import Data.List (intercalate)
+import IR (IRBinaryOp (..))
 
 -- Generic codeGen helpers --
 
@@ -44,8 +45,9 @@ unwrap symLeft symRight str | length str < combinedLength = str
             symbolLeftLength = length symLeft
             symbolRightLength = length symRight
 
-infixBinaryOp :: (a -> String) -> String -> a -> a -> String
-infixBinaryOp gen opStr e1 e2 = gen e1 ++ symbol opStr ++ gen e2
+-- the gen function should take some expression and an isRight value (used for potential parentheses)
+infixBinaryOp :: (a -> Bool -> String) -> String -> a -> a -> String
+infixBinaryOp gen opStr e1 e2 = gen e1 False ++ symbol opStr ++ gen e2 True
 
 insertIf :: String -> Bool -> String
 insertIf str True = str
@@ -54,5 +56,24 @@ insertIf _ False = ""
 insertIfJust :: (String -> String) -> Maybe String -> String
 insertIfJust f (Just str) = f str
 insertIfJust _ Nothing = ""
+
+binaryOpLevel :: IRBinaryOp -> Int
+binaryOpLevel IRPow = 4
+binaryOpLevel IRExp = 4
+binaryOpLevel IRFrac = 3
+binaryOpLevel IRDiv = 3
+binaryOpLevel IRMult = 2
+binaryOpLevel IRMod = 2
+binaryOpLevel IRAdd = 1
+binaryOpLevel IRSub = 1
+binaryOpLevel IREq = 0
+binaryOpLevel IRNeq = 0
+binaryOpLevel IRLess = 0
+binaryOpLevel IRGreater = 0
+binaryOpLevel IRLessEq = 0
+binaryOpLevel IRGreaterEq = 0
+binaryOpLevel IRDivides = 0
+
+
 
 tab = "  "

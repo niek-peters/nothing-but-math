@@ -118,11 +118,24 @@ codeGenExpr (IRCall ident _ es) = ident ++ maybeParenTuple' (map (unparens . cod
 codeGenExpr (IRImmediateInt i _) = show i
 codeGenExpr (IRImmediateReal r) = show r
 codeGenExpr (IRImmediateBool b) = show b
-codeGenExpr (IRBinary op e1 e2) = maybeParens $ codeGenBinary op e1 e2
-    where   maybeParens | op == IRDiv || op == IRFrac = id
-                        | otherwise = parens
+codeGenExpr (IRBinary op e1 e2) = codeGenBinary op e1 e2
+    -- maybeParens $ codeGenBinary op e1 e2
+    -- where   maybeParens | op == IRDiv || op == IRFrac = id
+    --                     | otherwise = parens
 codeGenExpr (IRUnary op e) = codeGenUnary op e
 codeGenExpr (IRTuple es) = parenTuple $ map (unparens . codeGenExpr) (toList es)
+
+maybeParens :: IRExpr -> IRBinaryOp -> Bool -> String -> String
+maybeParens (IRBinary op _ _) parentOp isRight   
+    | opLevel < parentOpLevel = parens
+    | opLevel == parentOpLevel && isRight = parens
+    | otherwise = id
+    where   opLevel = binaryOpLevel op
+            parentOpLevel = binaryOpLevel parentOp
+maybeParens (IRUnary Neg _) parentOp False
+    | parentOp == IRPow || parentOp == IRExp = parens
+    | otherwise = id
+maybeParens _ _ _ = id
 
 codeGenUnary :: UnaryOp -> IRExpr -> String
 codeGenUnary Neg e = "-" ++ codeGenExpr e
@@ -130,27 +143,27 @@ codeGenUnary Floor e = wrap (macro "lfloor") (macro "rfloor") $ unparens $ codeG
 codeGenUnary Sqrt e = macro1 "sqrt" $ unparens $ codeGenExpr e
 
 codeGenBinary :: IRBinaryOp -> IRExpr -> IRExpr -> String
-codeGenBinary IRAdd = infixOp "+"
-codeGenBinary IRSub = infixOp "-"
-codeGenBinary IRMult = infixOp (macro "cdot")
+codeGenBinary op@IRAdd = infixOp "+" op
+codeGenBinary op@IRSub = infixOp "-" op
+codeGenBinary op@IRMult = infixOp (macro "cdot") op
 codeGenBinary IRFrac = fracOp
 codeGenBinary IRDiv = fracOp
 codeGenBinary IRPow = powerOp
 codeGenBinary IRExp = powerOp
-codeGenBinary IRMod = infixOp (macro "bmod")
-codeGenBinary IREq = infixOp "="
-codeGenBinary IRNeq = infixOp (macro "neq")
-codeGenBinary IRLess = infixOp "<"
-codeGenBinary IRGreater = infixOp ">"
-codeGenBinary IRLessEq = infixOp (macro "leq")
-codeGenBinary IRGreaterEq = infixOp (macro "geq")
-codeGenBinary IRDivides = infixOp (macro "mid")
+codeGenBinary op@IRMod = infixOp (macro "bmod") op
+codeGenBinary op@IREq = infixOp "=" op
+codeGenBinary op@IRNeq = infixOp (macro "neq") op
+codeGenBinary op@IRLess = infixOp "<" op
+codeGenBinary op@IRGreater = infixOp ">" op
+codeGenBinary op@IRLessEq = infixOp (macro "leq") op
+codeGenBinary op@IRGreaterEq = infixOp (macro "geq") op
+codeGenBinary op@IRDivides = infixOp (macro "mid") op
 
 fracOp :: IRExpr -> IRExpr -> String
-fracOp e1 e2 = macro2 "frac" (unparens $ codeGenExpr e1) (unparens $ codeGenExpr e2)
+fracOp e1 e2 = macro2 "frac" (codeGenExpr e1) (codeGenExpr e2)
 
 powerOp :: IRExpr -> IRExpr -> String
-powerOp e1 e2 = (codeGenExpr e1) ++ "^{" ++ (unparens $ codeGenExpr e2) ++ "}"
+powerOp e1 e2 = (maybeParens e1 IRPow False $ codeGenExpr e1) ++ "^{" ++ (codeGenExpr e2) ++ "}"
 
 codeGenPrimitiveType :: PrimitiveType -> String
 codeGenPrimitiveType Positive = mathbb "Z" ++ "^+"
@@ -197,7 +210,8 @@ text = macro1 "text"
 flalign = block "flalign*"
 -- makecell contents = macro "makecell" ++ "{\n" ++ contents ++ "}"
 
-infixOp = infixBinaryOp codeGenExpr
+infixOp :: String -> IRBinaryOp -> IRExpr -> IRExpr -> String
+infixOp s op e1 e2 = infixBinaryOp (\e isRight -> maybeParens e op isRight $ codeGenExpr e) s e1 e2
 maybeParenTuple = maybeTuple (macro "left(") (macro "right)")
 maybeParenTuple' = maybeTuple' (macro "left(") (macro "right)")
 parenTuple = tuple (macro "left(") (macro "right)")
