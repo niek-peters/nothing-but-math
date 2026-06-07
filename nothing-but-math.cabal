@@ -30,6 +30,7 @@ library
       CodeGenHaskell
       CodeGenLaTeX
       Elab
+      Eval
       IR
       Lib
       Parser

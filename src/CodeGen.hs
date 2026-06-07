@@ -1,7 +1,6 @@
 module CodeGen (module CodeGen) where
 import Data.List.NonEmpty (NonEmpty ((:|)), toList)
 import Data.List (intercalate)
-import qualified Data.List.NonEmpty as NonEmpty
 
 -- Generic codeGen helpers --
 

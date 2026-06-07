@@ -3,9 +3,10 @@ module Lib
     ) where
 import Parser (parse, runExprParser)
 import Text.Show.Pretty (pPrint)
-import Elab (elab, Scope, elabTopLevelExpr)
+import Elab (elab, Scope, elabTopLevelExpr, ElabResult)
 import qualified CodeGenHaskell as CodeGenHaskell
 import CodeGenHaskell (codeGenHaskell)
+import Eval (eval)
 import System.FilePath (takeFileName, (</>), splitExtension, replaceExtension)
 import System.Directory (canonicalizePath, createDirectoryIfMissing, doesFileExist, removeFile)
 import qualified CodeGenLaTeX as CodeGenLaTeX
@@ -13,9 +14,10 @@ import CodeGenLaTeX (codeGenLaTeX)
 import System.Process (readProcessWithExitCode)
 import System.Exit (ExitCode(..))
 import Control.Monad (when)
-import Types (CLIOptions (..))
+import Types (CLIOptions (..), Fragment (EvalFragment))
 import Language.Haskell.Interpreter (runInterpreter, loadModules, setTopLevelModules, interpret, as)
 import qualified Data.Map as Map
+import IR (IRExpr)
 
 compile :: CLIOptions -> IO ()
 compile options = do
@@ -27,18 +29,22 @@ compile options = do
     let (fileName, _) = splitExtension $ takeFileName resFile
     (pathHaskell, pathLaTeX, dir) <- outPaths fileName $ outDir options
 
+    let modName = moduleName options
+
     let parsed = parse text
     let elaborated = elab parsed
-    let haskell = codeGenHaskell elaborated
+    let (lib, evalFrags) = codeGenHaskell elaborated modName
 
-    writeFile pathHaskell $ haskell $ moduleName options
+    writeFile pathHaskell lib
     
-    -- haskellEvalRes <- eval pathHaskell (moduleName options) "(g(1, 2), 3 / g(2,3))" (snd elaborated)
-    -- let latexEvalRes = haskellToLaTeX haskellEvalRes
+    -- haskellEvalRess <- eval pathHaskell (moduleName options) ["g(1, 2)", "3 / g(2,3)"] (snd elaborated)
+    -- let latexEvalRess = map haskellToLaTeX haskellEvalRess
+    resFrags <- eval pathHaskell modName evalFrags 
+    let elaborated' = replaceEvalFrags elaborated resFrags
 
-    -- putStrLn latexEvalRes
+    -- mapM_ putStrLn latexEvalRess
 
-    let tmpLatex = codeGenLaTeX elaborated
+    let tmpLatex = codeGenLaTeX elaborated'
     let latex = case wrapDoc options of
             True -> "\\documentclass{article}\n\\usepackage{amsmath, amssymb, hyperref}\n\n\\begin{document}\n\n" ++ tmpLatex ++ "\n\n\\end{document}"
             False -> tmpLatex
@@ -49,6 +55,11 @@ compile options = do
 
     when (toPDF options) (compileToPDF pathLaTeX dir)
 
+replaceEvalFrags :: ElabResult -> [IRExpr] -> ElabResult
+replaceEvalFrags [] _ = []
+replaceEvalFrags rs [] = rs
+replaceEvalFrags ((EvalFragment _):rs) (e:es) = (EvalFragment e) : replaceEvalFrags rs es
+replaceEvalFrags (r:rs) es = r : replaceEvalFrags rs es
 
 processFile :: FilePath -> IO FilePath
 processFile file = do
@@ -77,32 +88,32 @@ outPaths name out = do
     dir <- processOutDir out
     return $ (dir </> (name ++ ".hs"), dir </> (name ++ ".tex"), dir)
 
-eval :: FilePath -> String -> String -> Scope -> IO String
-eval file modName expr scope = do
-    let parsed = runExprParser expr
-    let elaborated = elabTopLevelExpr parsed scope
-    let code = CodeGenHaskell.codeGenExpr elaborated modName
+-- eval :: FilePath -> String -> [String] -> Scope -> IO [String]
+-- eval file modName exprs scope = do
+--     let parsed = map runExprParser exprs
+--     let elaborated = map (`elabTopLevelExpr` scope) parsed
+--     let code = map (`CodeGenHaskell.codeGenExpr` modName) elaborated 
     
-    result <- runInterpreter $ do
-        loadModules [file]
-        setTopLevelModules [modName]
-        let showExpr = "show $ " ++ code
-        interpret showExpr (as :: String)
+--     result <- runInterpreter $ do
+--         loadModules [file]
+--         setTopLevelModules [modName]
+--         let showExprs = map ("show $ " ++) code
+--         mapM (`interpret` (as :: String)) showExprs 
 
-    case result of
-        Right val -> return val
-        Left err -> error $ show err
+--     case result of
+--         Right val -> return val
+--         Left err -> error $ show err
 
-haskellToLaTeX :: String -> String
-haskellToLaTeX haskell = CodeGenLaTeX.codeGenExpr elaborated
-    where   nbm = haskellToNBM haskell
-            parsed = runExprParser nbm
-            elaborated = elabTopLevelExpr parsed Map.empty  -- there should be no identifiers left
+-- haskellToLaTeX :: String -> String
+-- haskellToLaTeX haskell = CodeGenLaTeX.codeGenExpr elaborated
+--     where   nbm = haskellToNBM haskell
+--             parsed = runExprParser nbm
+--             elaborated = elabTopLevelExpr parsed Map.empty  -- there should be no identifiers left
 
-haskellToNBM :: String -> String
-haskellToNBM [] = []
-haskellToNBM ('%':cs) = '/' : haskellToNBM cs
-haskellToNBM (c:cs) = c : haskellToNBM cs
+-- haskellToNBM :: String -> String
+-- haskellToNBM [] = []
+-- haskellToNBM ('%':cs) = '/' : haskellToNBM cs
+-- haskellToNBM (c:cs) = c : haskellToNBM cs
 
 compileToPDF :: FilePath -> FilePath -> IO ()
 compileToPDF texFile dir = do

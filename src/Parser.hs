@@ -15,8 +15,8 @@ import Types
 
 type Parser = Parsec Void String
 
-type ParseResult = [Fragment String AST]
-type SplitResult = [Fragment String String]
+type ParseResult = [Fragment String AST Expr]
+type SplitResult = [Fragment String String String]
 
 whitespace :: Parser ()
 whitespace = Lexer.space space1 (Lexer.skipLineComment "%") empty
@@ -59,16 +59,25 @@ runExprParser :: String -> Expr
 runExprParser = useParser parseExpr
 
 parseSections :: Parser SplitResult
-parseSections = manyTill (choice [codeStr, textStr]) eof
+parseSections = manyTill (choice [codeStr, evalStr, textStr]) eof
   where
-    codeStr = CodeFragment <$> (try (string "<<<") *> manyTill anySingle (string ">>>"))
-    textStr = TextFragment <$> some (notFollowedBy (string "<<<") *> anySingle)
+    codeStr = DefinitionFragment <$> (try (string "<<<") *> manyTill anySingle (string ">>>"))
+    evalStr = EvalFragment <$> (try (string "{{{") *> manyTill anySingle (string "}}}"))
+    textStr = TextFragment <$> some (
+        notFollowedBy (string "<<<") 
+        *> notFollowedBy (string "{{{") 
+        *> anySingle
+      )
+    -- codeStr = DefinitionFragment <$> (try (string "<<<") *> manyTill anySingle (string ">>>"))
+    -- textStr = TextFragment <$> some (notFollowedBy (string "<<<") *> anySingle)
 
-runFragmentParser :: Fragment String String -> Fragment String AST
+runFragmentParser :: Fragment String String String -> Fragment String AST Expr
 runFragmentParser (TextFragment t) = TextFragment t
-runFragmentParser (CodeFragment c) = case Text.Megaparsec.parse parseCodeFragment "" c of
-            Left e -> error $ show e
-            Right r -> CodeFragment r
+runFragmentParser (DefinitionFragment c) = DefinitionFragment $ useParser parseCodeFragment c
+runFragmentParser (EvalFragment e) = EvalFragment $ useParser (whitespace *> lexeme parseExpr <* eof) e
+  -- case Text.Megaparsec.parse parseCodeFragment "" c of
+  --           Left e -> error $ show e
+  --           Right r -> DefinitionFragment r
 
 parseCodeFragment :: Parser AST
 parseCodeFragment = AST <$> (whitespace *> (lexeme $ option [] (try $ symbol "#" *> brackets (sepBy parseBlockAnnotation (symbol ","))))) <*> (whitespace *> (lexeme $ many (lexeme parseDeclaration)) <* eof)
@@ -126,32 +135,36 @@ parseExpr = makeExprParser parseTerm exprTable
 
 exprTable :: [[Operator Parser Expr]]
 exprTable = [
+    [
+      unary   "-"       (Unary Neg)
+    ],
     [ 
-      binaryR "^"    (Binary Pow) 
+      binaryR "^"       (Binary Pow) 
     ], 
     [ 
-      binary  "*"    (Binary Mult), 
-      binary  "/"    (Binary Div), 
-      reservedOp "mod" (Binary Mod) 
+      binary  "*"       (Binary Mult), 
+      binary  "/"       (Binary Div), 
+      reservedOp "mod"  (Binary Mod) 
     ], 
     [ 
-      binary  "+"    (Binary Add), 
-      binary  "-"    (Binary Sub) 
+      binary  "+"       (Binary Add), 
+      binary  "-"       (Binary Sub) 
     ], 
     [ 
-      binary  "="    (Binary Eq), 
-      binary  "!="   (Binary Neq), 
-      binary  "<="   (Binary LessEq), 
-      binary  ">="   (Binary GreaterEq), 
-      binary  "<"    (Binary Less), 
-      binary  ">"    (Binary Greater), 
-      binary  "|"    (Binary Divides)
+      binary  "="       (Binary Eq), 
+      binary  "!="      (Binary Neq), 
+      binary  "<="      (Binary LessEq), 
+      binary  ">="      (Binary GreaterEq), 
+      binary  "<"       (Binary Less), 
+      binary  ">"       (Binary Greater), 
+      binary  "|"       (Binary Divides)
     ]
   ]
   where
-    binary  name f = InfixL (f <$ symbol name)
-    binaryR name f = InfixR (f <$ symbol name)  -- right-associative
-    reservedOp name f = InfixL (f <$ (lexeme . try) (string name <* notFollowedBy alphaNumChar))  -- this ensures it does not eat identifiers starting with the name of some operator. E.g. a function called modInv
+    unary s cons = Prefix (cons <$ symbol s)
+    binary s cons = InfixL (cons <$ symbol s)
+    binaryR s cons = InfixR (cons <$ symbol s)  -- right-associative
+    reservedOp s cons = InfixL (cons <$ (lexeme . try) (string s <* notFollowedBy alphaNumChar))  -- this ensures it does not eat identifiers starting with the name of some operator. E.g. a function called modInv
 
 parseTerm :: Parser Expr
 parseTerm = parens (try parseTuple <|> parseExpr)

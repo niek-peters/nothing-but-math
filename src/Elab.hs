@@ -33,25 +33,26 @@ import Parser (ParseResult)
 
 -- TODO: make error messages always show the part of the AST where it went wrong
 
-type ElabResult = ([Fragment String IR], Scope)
+type ElabResult = [Fragment String IR IRExpr]
 
 type Scope = Map.Map Id Signature
 type Scopes = (Scope, Scope)    -- local scope, global scope
 
 elab :: ParseResult -> ElabResult
-elab frags = (map elabFragment frags, globals)
+elab frags = map elabFragment frags
     where   globals = collectGlobals frags
 
             elabFragment (TextFragment str) = TextFragment str
-            elabFragment (CodeFragment (AST blockAns decls)) = CodeFragment $ IR (elabBlockAnnotations blockAns) $ map (`elabDeclaration` globals) decls
+            elabFragment (DefinitionFragment (AST blockAns decls)) = DefinitionFragment $ IR (elabBlockAnnotations blockAns) $ map (`elabDeclaration` globals) decls
+            elabFragment (EvalFragment e) = EvalFragment $ elabTopLevelExpr e globals
 
 elabTopLevelExpr :: Expr -> Scope -> IRExpr
 elabTopLevelExpr e s = fst $ elabExpr e Nothing (Map.empty, s)
 
 collectGlobals :: ParseResult -> Scope
 collectGlobals frags = foldl collect Map.empty frags
-    where   collect m (TextFragment _) = m
-            collect m (CodeFragment ast) = collectGlobalsFromAST m ast
+    where   collect m (DefinitionFragment ast) = collectGlobalsFromAST m ast
+            collect m _ = m
 
 collectGlobalsFromAST :: Scope -> AST -> Scope
 collectGlobalsFromAST m (AST _ decls) = foldl insertDeclaration m decls
@@ -70,7 +71,6 @@ resolveIdent ident (locals, globals) = case Map.lookup ident locals of
         Just sig -> (sig, True)
         Nothing -> error $ "ERROR: Reference to undefined value '" ++ ident ++  "'"
 
--- TODO: check for duplicates in annotations
 elabDeclaration :: Declaration -> Scope -> IRDeclaration
 elabDeclaration (Declaration declAns ident sig@(Signature from to) params impl whereTerms) globals 
     = IRDeclaration (elabDeclAnnotations declAns) ident sig params resImpl merged
@@ -161,8 +161,7 @@ elabExpr (Call ident es) mt scopes = case maybeFrom of
     where   (resArgs, _) = elabExprs (fromList es) maybeFrom scopes
             (Signature maybeFrom to, isGlobal) = resolveIdent ident scopes
 elabExpr (ImmediateInt i) mt _ = maybeCastExpr (IRImmediateInt i pt) (Type $ pure pt) mt
-    where   pt  | i < 0 = Integer
-                | i > 0 = Positive
+    where   pt  | i > 0 = Positive      -- we don't include a < 0 case as numbers like -1 would be parsed as a Unary Neg with an inner, non-negative ImmediateInt
                 | otherwise = Natural
 elabExpr (ImmediateReal r) mt _ = maybeCastExpr (IRImmediateReal r) (Type $ pure Real) mt
 elabExpr (ImmediateBool b) mt _ = maybeCastExpr (IRImmediateBool b) (Type $ pure Boolean) mt
@@ -195,8 +194,12 @@ zipMaybeTypes a (Just (Type b))
             expectedLength = length b
 
 elabUnary :: UnaryOp -> (IRExpr, Type) -> (IRExpr, Type)
+elabUnary Neg (e, t@(Type (pt :| [])))
+    | pt /= Boolean = (IRUnary Neg resExpr, resType)     -- we use a pattern guard to fall through to the other cases if false
+    where   (resExpr, resType) = maybeCastExpr e t (Just $ Type $ pure (max pt Integer))    -- upcast to at least Integer (to allow negative numbers)
+
 elabUnary Sqrt (e, t@(Type (pt :| [])))
-    | pt /= Boolean = (IRUnary Sqrt (fst $ maybeCastExpr e t (Just $ Type $ pure Real)), Type $ pure Real) -- we use a pattern guard to fall through to the other cases if false
+    | pt /= Boolean = (IRUnary Sqrt (fst $ maybeCastExpr e t (Just $ Type $ pure Real)), Type $ pure Real)
 
 -- floor operation is not defined for integer types
 elabUnary Floor (e, (Type (Real :| []))) = (IRUnary Floor e, Type $ pure Integer)

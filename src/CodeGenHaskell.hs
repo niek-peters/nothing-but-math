@@ -27,20 +27,25 @@ prelude = "-- PRELUDE --\n\n" ++ intercalate "\n\n" [positive, casting]
     where   positive = $(embedStringFile "prelude/positive.hs")
             casting = $(embedStringFile "prelude/casting.hs")
 
-codeGenHaskell :: ElabResult -> String -> String
-codeGenHaskell (frags, _) moduleName = intercalate "\n\n" [extensions, moduleStr, imports, code, prelude]
+-- returns a tuple of the Haskell library file string and a list of eval fragment Haskell expression strings
+codeGenHaskell :: ElabResult -> String -> (String, [String])
+codeGenHaskell frags moduleName = (intercalate "\n\n" [extensions, moduleStr, imports, libCode, prelude], evalCode)
     where   moduleStr = "module " ++ moduleName ++ " " ++ exportStr ++ " where"
 
             exportStr = case exports of
                 [] -> "()"
                 es -> parenTuple es
 
-            exports = concat [[moduleName ++ "." ++ ident | (IRDeclaration _ ident _ _ _ _) <- decls] | (CodeFragment (IR _ decls)) <- frags]
+            exports = concat [[moduleName ++ "." ++ ident | (IRDeclaration _ ident _ _ _ _) <- decls] | (DefinitionFragment (IR _ decls)) <- frags]
         
-            code = concat (map codeGenFragment frags)
+            libCode = concat (map codeGenFragment frags)
 
-            codeGenFragment (TextFragment _) = ""
-            codeGenFragment (CodeFragment (IR _ decls)) = (intercalate "\n\n" (map (`codeGenDeclaration` moduleName) decls)) ++ "\n\n"
+            -- codeGenFragment (TextFragment _) = ""
+            codeGenFragment (DefinitionFragment (IR _ decls)) = (intercalate "\n\n" (map (`codeGenDeclaration` moduleName) decls)) ++ "\n\n"
+            codeGenFragment _ = ""
+
+            evalCode = [gen e | EvalFragment e <- frags, let gen = (`codeGenExpr` moduleName)]
+            -- codeGenFragment (EvalFragment e) = codeGenExpr e moduleName
 
 codeGenDeclaration :: IRDeclaration -> String -> String
 codeGenDeclaration (IRDeclaration _ ident sig params impl whereTerms) moduleName = 
@@ -102,8 +107,9 @@ codeGenCast from to
     | otherwise = "narrow @" ++ codeGenPrimitiveType to
 
 codeGenUnary :: UnaryOp -> IRExpr -> String -> String
+codeGenUnary Neg e moduleName = "-" ++ codeGenExpr e moduleName
 codeGenUnary Floor e moduleName = "floor " ++ codeGenExpr e moduleName
-codeGenUnary Sqrt e  moduleName = "sqrt " ++ codeGenExpr e moduleName
+codeGenUnary Sqrt e moduleName = "sqrt " ++ codeGenExpr e moduleName
 
 codeGenBinary :: IRBinaryOp -> IRExpr -> IRExpr -> String -> String
 codeGenBinary IRAdd = infixOp "+"

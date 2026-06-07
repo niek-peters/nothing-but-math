@@ -13,13 +13,14 @@ makeCounterName :: String -> String
 makeCounterName className = "nbm" ++ className ++ "Counter"
 
 codeGenLaTeX :: ElabResult -> String
-codeGenLaTeX (frags, _) = concatMap initCounter blockClasses ++ concat (map codeGenFragment frags)
+codeGenLaTeX frags = concatMap initCounter blockClasses ++ concat (map codeGenFragment frags)
     where   initCounter className = macro1 "newcounter" (makeCounterName className) ++ "\n"
         
-            blockClasses = collectClasses [ans | (CodeFragment (IR ans _)) <- frags]
+            blockClasses = collectClasses [ans | (DefinitionFragment (IR ans _)) <- frags]
 
             codeGenFragment (TextFragment str) = str
-            codeGenFragment (CodeFragment ir) = codeGenBlock ir
+            codeGenFragment (DefinitionFragment ir) = codeGenBlock ir
+            codeGenFragment (EvalFragment e) = wrapStatement InLineBlock $ codeGenExpr e
 
 collectClasses :: [IRBlockAnnotations] -> Set.Set String
 collectClasses anss = foldl insertClass Set.empty anss
@@ -135,6 +136,7 @@ codeGenExpr (IRUnary op e) = codeGenUnary op e
 codeGenExpr (IRTuple es) = parenTuple $ map (unparens . codeGenExpr) (toList es)
 
 codeGenUnary :: UnaryOp -> IRExpr -> String
+codeGenUnary Neg e = "-" ++ codeGenExpr e
 codeGenUnary Floor e = wrap (macro "lfloor") (macro "rfloor") $ unparens $ codeGenExpr e
 codeGenUnary Sqrt e = macro1 "sqrt" $ unparens $ codeGenExpr e
 

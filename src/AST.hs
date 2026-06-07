@@ -55,7 +55,7 @@ data Expr   = Call Id [Expr]
 data BinaryOp = Add | Sub | Mult | Div | Pow | Mod | Eq | Neq | Less | Greater | LessEq | GreaterEq | Divides
     deriving (Show, Eq)
 
-data UnaryOp = Sqrt | Floor
+data UnaryOp = Neg | Sqrt | Floor
     deriving (Show, Eq)
 
 -- block annotation for LaTeX output
