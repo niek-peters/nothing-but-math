@@ -1,14 +1,35 @@
-module Eval (eval) where
+module Eval (eval, EvalResult) where
 
 import Language.Haskell.Interpreter (runInterpreter, loadModules, setTopLevelModules, interpret, as)
-import IR (IRExpr)
-import Elab (elabTopLevelExpr)
+import IR (IRExpr, IR, IREvalResult (IREvalResult))
+import Elab (elabTopLevelExpr, ElabResult)
 import Parser (runExprParser)
 import qualified Data.Map as Map
+import Types (Fragment(..))
 
-eval :: FilePath -> String -> [String] -> IO [IRExpr]
-eval _ _ [] = pure []
-eval lib modName frags = do
+type EvalResult = [Fragment String IR IREvalResult]
+
+eval :: ElabResult -> FilePath -> String -> [String] -> IO EvalResult
+eval frags lib modName exprs = do
+    results <- evalExprs lib modName exprs
+    let irExprs = map haskellToIR results
+    return $ replaceEvalFrags frags irExprs
+-- eval :: FilePath -> String -> [String] -> IO [IRExpr]
+-- eval _ _ [] = pure []
+-- eval lib modName frags = do
+--     result <- runInterpreter $ do
+--         loadModules [lib]
+--         setTopLevelModules [modName]
+--         let showExprs = map ("show $ " ++) frags
+--         mapM (`interpret` (as :: String)) showExprs 
+
+--     case result of
+--         Right val -> return $ map haskellToIR val
+--         Left err -> error $ show err
+
+evalExprs :: FilePath -> String -> [String] -> IO [String]
+evalExprs _ _ [] = pure []
+evalExprs lib modName frags = do
     result <- runInterpreter $ do
         loadModules [lib]
         setTopLevelModules [modName]
@@ -16,7 +37,7 @@ eval lib modName frags = do
         mapM (`interpret` (as :: String)) showExprs 
 
     case result of
-        Right val -> return $ map haskellToIR val
+        Right val -> return val
         Left err -> error $ show err
 
 haskellToIR :: String -> IRExpr
@@ -29,3 +50,14 @@ haskellToNBM :: String -> String
 haskellToNBM [] = []
 haskellToNBM ('%':cs) = '/' : haskellToNBM cs
 haskellToNBM (c:cs) = c : haskellToNBM cs
+
+replaceEvalFrags :: ElabResult -> [IRExpr] -> EvalResult
+replaceEvalFrags [] _ = []
+replaceEvalFrags rs [] = map castFrag rs
+replaceEvalFrags ((EvalFragment r):rs) (e:es) = (EvalFragment (IREvalResult r e)) : replaceEvalFrags rs es
+replaceEvalFrags (r:rs) es = castFrag r : replaceEvalFrags rs es
+
+castFrag :: Fragment String IR IRExpr -> Fragment String IR IREvalResult
+castFrag (TextFragment t) = TextFragment t
+castFrag (DefinitionFragment d) = DefinitionFragment d
+castFrag (EvalFragment _) = error "LOGIC ERROR: Unhandled EvalFragment"

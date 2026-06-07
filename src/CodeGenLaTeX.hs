@@ -2,17 +2,18 @@ module CodeGenLaTeX (codeGenLaTeX, codeGenExpr) where
 
 import Elab (ElabResult)
 import Types (Fragment(..))
-import IR (IR(..), IRDeclaration (IRDeclaration), IRImplementation (..), IRLocal (..), IRExpr (..), IRWhereTerm (IRLocalDecl, IRConstraint), IRBranch (..), IRBinaryOp (..), IRDeclAnnotations (..), IRBlockAnnotations (..))
+import IR (IR(..), IRDeclaration (IRDeclaration), IRImplementation (..), IRLocal (..), IRExpr (..), IRWhereTerm (IRLocalDecl, IRConstraint), IRBranch (..), IRBinaryOp (..), IRDeclAnnotations (..), IRBlockAnnotations (..), IREvalResult (..))
 import Data.List (intercalate)
 import Data.List.NonEmpty (toList)
 import AST (Signature (Signature), PrimitiveType (..), Type (..), UnaryOp (..), DeclDisplayMode (..), BlockDisplayMode (..))
 import CodeGen
 import qualified Data.Set as Set
+import Eval (EvalResult)
 
 makeCounterName :: String -> String
 makeCounterName className = "nbm" ++ className ++ "Counter"
 
-codeGenLaTeX :: ElabResult -> String
+codeGenLaTeX :: EvalResult -> String
 codeGenLaTeX frags = concatMap initCounter blockClasses ++ concat (map codeGenFragment frags)
     where   initCounter className = macro1 "newcounter" (makeCounterName className) ++ "\n"
         
@@ -20,7 +21,7 @@ codeGenLaTeX frags = concatMap initCounter blockClasses ++ concat (map codeGenFr
 
             codeGenFragment (TextFragment str) = str
             codeGenFragment (DefinitionFragment ir) = codeGenBlock ir
-            codeGenFragment (EvalFragment e) = wrapStatement InLineBlock $ codeGenExpr e
+            codeGenFragment (EvalFragment e) = codeGenEvalRes e
 
 collectClasses :: [IRBlockAnnotations] -> Set.Set String
 collectClasses anss = foldl insertClass Set.empty anss
@@ -122,6 +123,9 @@ codeGenOther e = tab ++ unparens (codeGenExpr e) ++ ", & " ++ text "otherwise"
 codeGenWhereTerm :: IRWhereTerm -> String
 codeGenWhereTerm (IRLocalDecl (IRLocal idents e)) = maybeParenTuple idents ++ symbol "=" ++ (unparens $ codeGenExpr e)
 codeGenWhereTerm (IRConstraint e) = unparens $ codeGenExpr e
+
+codeGenEvalRes :: IREvalResult -> String
+codeGenEvalRes (IREvalResult e1 e2) = wrapStatement InLineBlock $ unparens (codeGenExpr e1) ++ symbol "=" ++ unparens (codeGenExpr e2)
 
 codeGenExpr :: IRExpr -> String
 codeGenExpr (IRCast e _ _) = codeGenExpr e

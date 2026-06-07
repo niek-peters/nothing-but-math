@@ -39,8 +39,10 @@ compile options = do
     
     -- haskellEvalRess <- eval pathHaskell (moduleName options) ["g(1, 2)", "3 / g(2,3)"] (snd elaborated)
     -- let latexEvalRess = map haskellToLaTeX haskellEvalRess
-    resFrags <- eval pathHaskell modName evalFrags 
-    let elaborated' = replaceEvalFrags elaborated resFrags
+    -- resFrags <- eval pathHaskell modName evalFrags 
+    -- let elaborated' = replaceEvalFrags elaborated resFrags
+    elaborated' <- eval elaborated pathHaskell modName evalFrags 
+
 
     -- mapM_ putStrLn latexEvalRess
 
@@ -55,11 +57,11 @@ compile options = do
 
     when (toPDF options) (compileToPDF pathLaTeX dir)
 
-replaceEvalFrags :: ElabResult -> [IRExpr] -> ElabResult
-replaceEvalFrags [] _ = []
-replaceEvalFrags rs [] = rs
-replaceEvalFrags ((EvalFragment _):rs) (e:es) = (EvalFragment e) : replaceEvalFrags rs es
-replaceEvalFrags (r:rs) es = r : replaceEvalFrags rs es
+-- replaceEvalFrags :: ElabResult -> [IRExpr] -> ElabResult
+-- replaceEvalFrags [] _ = []
+-- replaceEvalFrags rs [] = rs
+-- replaceEvalFrags ((EvalFragment _):rs) (e:es) = (EvalFragment e) : replaceEvalFrags rs es
+-- replaceEvalFrags (r:rs) es = r : replaceEvalFrags rs es
 
 processFile :: FilePath -> IO FilePath
 processFile file = do

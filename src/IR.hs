@@ -30,6 +30,9 @@ data IRLocal = IRLocal
     IRExpr  
     deriving (Show, Eq)
 
+data IREvalResult = IREvalResult IRExpr IRExpr  -- used to represent an expression and its evaluated result, e.g. f(1, 2) = 3 
+                                                -- only used by LaTeX code gen
+
 data IRExpr = IRCast IRExpr PrimitiveType PrimitiveType       -- wraps an expr that should be cast from type to type
             | IRCall Id Bool [IRExpr]       -- boolean indicates whether the reference is to a global identifier
             | IRImmediateInt Int PrimitiveType  -- the PrimitiveType indicates whether this immediate value should be interpreted as Positive, Natural or Integer
