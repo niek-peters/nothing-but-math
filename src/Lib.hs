@@ -13,7 +13,7 @@ import System.Process (readProcessWithExitCode)
 import System.Exit (ExitCode(..))
 import Control.Monad (when)
 import Types (CLIOptions (..))
-import Text.Show.Pretty (pPrint)
+-- import Text.Show.Pretty (pPrint)
 
 compile :: CLIOptions -> IO ()
 compile options = do

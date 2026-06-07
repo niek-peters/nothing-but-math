@@ -21,7 +21,7 @@ description: Please see the README on GitHub at <https://github.com/niek-peters/
 
 dependencies:
   - base >= 4.7 && < 5
-  - pretty-show
+  - pretty-show == 1.10
   - megaparsec == 9.7.0
   - containers == 0.7
   - parser-combinators == 1.3.1
@@ -68,3 +68,4 @@ tests:
     dependencies:
       - nothing-but-math
       - hspec == 2.11.17
+      - hspec-golden == 0.2.2.0

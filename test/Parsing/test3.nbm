@@ -1,0 +1,14 @@
+% this file tests the boolean type and operators
+<<<
+isPos : Z -> B
+isPos(x) := x > 0
+
+isNat : Z -> B
+isNat(x) := x >= 0
+
+isNeg : Z -> B
+isNeg(x) := x < 0
+
+nonZero : Z -> B
+nonZero(x) := x /= 0
+>>>

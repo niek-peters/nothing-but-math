@@ -1,0 +1,102 @@
+[ TextFragment "% this file tests many type narrowing cases\n"
+, DefinitionFragment
+    (IR
+       IRBlockAnnotations
+         { blockDisplayMode = DefaultBlock
+         , blockName = Nothing
+         , blockLabel = Nothing
+         , blockClass = "Definition"
+         , blockDescription = Nothing
+         }
+       [ IRDeclaration
+           IRDeclAnnotations { declDisplayMode = DefaultDecl }
+           "f"
+           (Signature
+              (Just (Type (Natural :| [ Natural ]))) (Type (Integer :| [])))
+           [ "a" , "b" ]
+           (IRUnconditional
+              (IRBinary
+                 IRSub
+                 (IRCast (IRCall "a" False []) Natural Integer)
+                 (IRCast (IRCall "b" False []) Natural Integer)))
+           []
+       , IRDeclaration
+           IRDeclAnnotations { declDisplayMode = DefaultDecl }
+           "g"
+           (Signature (Just (Type (Integer :| []))) (Type (Natural :| [])))
+           [ "x" ]
+           (IRConditional
+              [ IRBranch
+                  (IRImmediateInt 0 Natural)
+                  (IRBinary
+                     IRLess
+                     (IRCall "x" False [])
+                     (IRCast (IRImmediateInt 0 Natural) Natural Integer))
+              ]
+              (IRCast (IRCall "x" False []) Integer Natural))
+           []
+       , IRDeclaration
+           IRDeclAnnotations { declDisplayMode = DefaultDecl }
+           "h"
+           (Signature Nothing (Type (Real :| [])))
+           []
+           (IRUnconditional
+              (IRBinary
+                 IRSub
+                 (IRImmediateReal 1.25)
+                 (IRCast
+                    (IRBinary
+                       IRFrac
+                       (IRCast (IRImmediateInt 1 Positive) Positive Integer)
+                       (IRCast (IRImmediateInt 2 Positive) Positive Integer))
+                    Rational
+                    Real)))
+           []
+       , IRDeclaration
+           IRDeclAnnotations { declDisplayMode = DefaultDecl }
+           "i"
+           (Signature Nothing (Type (Positive :| [])))
+           []
+           (IRUnconditional
+              (IRCast
+                 (IRUnary Sqrt (IRCast (IRImmediateInt 9 Positive) Positive Real))
+                 Real
+                 Positive))
+           []
+       , IRDeclaration
+           IRDeclAnnotations { declDisplayMode = DefaultDecl }
+           "j"
+           (Signature Nothing (Type (Positive :| [])))
+           []
+           (IRUnconditional
+              (IRCast
+                 (IRBinary
+                    IRFrac
+                    (IRCast (IRImmediateInt 12 Positive) Positive Integer)
+                    (IRCast (IRImmediateInt 3 Positive) Positive Integer))
+                 Rational
+                 Positive))
+           []
+       , IRDeclaration
+           IRDeclAnnotations { declDisplayMode = DefaultDecl }
+           "k"
+           (Signature Nothing (Type (Rational :| [])))
+           []
+           (IRUnconditional (IRCast (IRImmediateReal 0.25) Real Rational))
+           []
+       , IRDeclaration
+           IRDeclAnnotations { declDisplayMode = DefaultDecl }
+           "l"
+           (Signature Nothing (Type (Integer :| [])))
+           []
+           (IRUnconditional
+              (IRCast
+                 (IRBinary
+                    IRMult
+                    (IRCast (IRImmediateInt 10 Positive) Positive Real)
+                    (IRBinary IRAdd (IRImmediateReal 0.1) (IRImmediateReal 0.2)))
+                 Real
+                 Integer))
+           []
+       ])
+]

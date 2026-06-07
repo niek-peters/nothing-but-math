@@ -10,6 +10,7 @@ import Data.List.NonEmpty (fromList, NonEmpty ((:|)))
 import Control.Monad.Combinators.Expr
 import Types
 
+-- TODO: add boolean operations (at least not, and, or)
 -- TODO: consider enforcing newlines in many places
 
 type Parser = Parsec Void String
@@ -106,6 +107,7 @@ parsePrimitiveType = Positive <$ symbol "Z+"
                     <|> Integer <$ symbol "Z"
                     <|> Rational <$ symbol "Q"
                     <|> Real <$ symbol "R"
+                    <|> Boolean <$ symbol "B"
 
 parseImplementation :: Parser Implementation
 parseImplementation = between (symbol "{") (symbol "}") parseConditional <|> Unconditional <$> parseExpr
@@ -125,35 +127,36 @@ parseExpr = makeExprParser parseTerm exprTable
 exprTable :: [[Operator Parser Expr]]
 exprTable = [
     [ 
-      binaryR "^"       (Binary Pow) 
+      binaryR "^"       Pow
     ], 
     [
-      unary   "-"       (Unary Neg)
+      unary   "-"       Neg
     ],
     [ 
-      binary  "*"       (Binary Mult), 
-      binary  "/"       (Binary Div), 
-      reservedOp "mod"  (Binary Mod) 
+      binary  "*"       Mult, 
+      binaryNotFollowed  "/" Div (char '='), 
+      reservedOp "mod"  Mod 
     ], 
     [ 
-      binary  "+"       (Binary Add), 
-      binary  "-"       (Binary Sub) 
+      binary  "+"       Add, 
+      binary  "-"       Sub 
     ], 
     [ 
-      binary  "="       (Binary Eq), 
-      binary  "!="      (Binary Neq), 
-      binary  "<="      (Binary LessEq), 
-      binary  ">="      (Binary GreaterEq), 
-      binary  "<"       (Binary Less), 
-      binary  ">"       (Binary Greater), 
-      binary  "|"       (Binary Divides)
+      binary  "="       Eq, 
+      binary  "/="      Neq, 
+      binary  "<="      LessEq, 
+      binary  ">="      GreaterEq, 
+      binary  "<"       Less, 
+      binary  ">"       Greater, 
+      binary  "|"       Divides
     ]
   ]
   where
-    unary s cons = Prefix (cons <$ symbol s)
-    binary s cons = InfixL (cons <$ symbol s)
-    binaryR s cons = InfixR (cons <$ symbol s)  -- right-associative
-    reservedOp s cons = InfixL (cons <$ (lexeme . try) (string s <* notFollowedBy alphaNumChar))  -- this ensures it does not eat identifiers starting with the name of some operator. E.g. a function called modInv
+    unary s cons = Prefix (Unary cons <$ symbol s)
+    binary s cons = InfixL (Binary cons <$ symbol s)
+    binaryNotFollowed s cons notFollowed = InfixL (Binary cons <$ try (symbol s <* notFollowedBy notFollowed))   -- this ensures it does not eat anything parsed by 'notFollowed'
+    binaryR s cons = InfixR (Binary cons <$ symbol s)  -- right-associative
+    reservedOp s cons = InfixL (Binary cons <$ (lexeme . try) (string s <* notFollowedBy alphaNumChar))  -- this ensures it does not eat identifiers starting with the name of some operator. E.g. a function called modInv
 
 parseTerm :: Parser Expr
 parseTerm = parens (try parseTuple <|> parseExpr)
