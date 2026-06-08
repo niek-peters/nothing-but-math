@@ -1,0 +1,62 @@
+[ DefinitionFragment
+    (IR
+       IRBlockAnnotations
+         { blockDisplayMode = DefaultBlock
+         , blockName = Nothing
+         , blockLabel = Nothing
+         , blockClass = "Definition"
+         , blockDescription = Nothing
+         }
+       [ IRDeclaration
+           IRDeclAnnotations { declDisplayMode = DefaultDecl }
+           "gcd"
+           (Signature
+              (Just (Type (Natural :| [ Natural ]))) (Type (Positive :| [])))
+           [ "a" , "b" ]
+           (IRConditional
+              [ IRBranch
+                  (IRCast (IRCall "a" False []) Natural Positive)
+                  (IRBinary IREq (IRCall "b" False []) (IRImmediateInt 0 Natural))
+              ]
+              (IRCall
+                 "gcd"
+                 True
+                 [ IRCall "b" False []
+                 , IRBinary IRMod (IRCall "a" False []) (IRCall "b" False [])
+                 ]))
+           [ IRConstraint
+               (IRBinary IRGreaterEq (IRCall "a" False []) (IRCall "b" False []))
+           ]
+       ])
+, TextFragment "\n\n"
+, EvalFragment
+    (IREvalResult
+       (IRCall
+          "gcd"
+          True
+          [ IRCast (IRImmediateInt 12 Positive) Positive Natural
+          , IRCast (IRImmediateInt 9 Positive) Positive Natural
+          ])
+       (IRImmediateInt 3 Positive))
+, TextFragment ", "
+, EvalFragment
+    (IREvalResult
+       (IRCall
+          "gcd"
+          True
+          [ IRCast (IRImmediateInt 27 Positive) Positive Natural
+          , IRCast (IRImmediateInt 14 Positive) Positive Natural
+          ])
+       (IRImmediateInt 1 Positive))
+, TextFragment " and "
+, EvalFragment
+    (IREvalResult
+       (IRCall
+          "gcd"
+          True
+          [ IRCast (IRImmediateInt 28 Positive) Positive Natural
+          , IRCast (IRImmediateInt 14 Positive) Positive Natural
+          ])
+       (IRImmediateInt 14 Positive))
+, TextFragment "."
+]

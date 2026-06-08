@@ -1,6 +1,6 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.37.0.
+-- This file has been generated from package.yaml by hpack version 0.38.1.
 --
 -- see: https://github.com/sol/hpack
 
@@ -81,7 +81,9 @@ test-suite nbm-test
   main-is: Spec.hs
   other-modules:
       CodeGenHaskell.CodeGenHaskellSpec
+      CodeGenLaTeX.CodeGenLaTeXSpec
       Elab.ElabSpec
+      Eval.EvalSpec
       Parsing.ParsingSpec
       TestUtils
       Paths_nothing_but_math

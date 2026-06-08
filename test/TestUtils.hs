@@ -1,4 +1,4 @@
-module TestUtils (shouldBe', fileProcessedShouldBe, shouldBeGolden) where
+module TestUtils (shouldBe', fileProcessedShouldBe, shouldBeGolden, shouldBeGolden') where
     
 import Test.Hspec
 import System.Directory (canonicalizePath)
@@ -16,9 +16,39 @@ shouldBeGolden :: String -> (String -> String) -> IO (Golden String)
 shouldBeGolden file f = do
     inputFile <- canonicalizePath file
     res <- f <$> readFile inputFile
-    let withExt = addExtension $ fst $ splitExtension inputFile
+    
+    return $ makeGolden inputFile res
+    -- let withExt = addExtension $ fst $ splitExtension inputFile
 
-    return Golden {
+    -- return Golden {
+    --     output = res,
+    --     encodePretty = id,
+    --     writeToFile = writeFile,
+    --     readFromFile = readFile,
+    --     goldenFile = withExt "expected",
+    --     failFirstTime = False,
+    --     actualFile = Nothing
+    -- }
+
+shouldBeGolden' :: String -> (String -> IO String) -> IO (Golden String)
+shouldBeGolden' file f = do
+    inputFile <- canonicalizePath file
+    res <- f =<< readFile inputFile
+    return $ makeGolden inputFile res
+    -- let withExt = addExtension $ fst $ splitExtension inputFile
+
+    -- return Golden {
+    --     output = res,
+    --     encodePretty = id,
+    --     writeToFile = writeFile,
+    --     readFromFile = readFile,
+    --     goldenFile = withExt "expected",
+    --     failFirstTime = False,
+    --     actualFile = Nothing
+    -- }
+
+makeGolden :: FilePath -> String -> Golden String
+makeGolden file res = Golden {
         output = res,
         encodePretty = id,
         writeToFile = writeFile,
@@ -27,3 +57,4 @@ shouldBeGolden file f = do
         failFirstTime = False,
         actualFile = Nothing
     }
+    where   withExt = addExtension $ fst $ splitExtension file

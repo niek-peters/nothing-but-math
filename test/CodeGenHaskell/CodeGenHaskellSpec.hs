@@ -1,20 +1,19 @@
 module CodeGenHaskell.CodeGenHaskellSpec (spec) where
 
 import Test.Hspec
-import TestUtils (fileProcessedShouldBe, shouldBeGolden)
-import Data.List.NonEmpty
+import TestUtils (shouldBeGolden)
 import CodeGenHaskell (codeGenHaskell)
-import Elab (ElabResult, elab)
+import Elab (elab)
 import Parser (parse)
-import Text.Show.Pretty (ppShow)
+import Data.List (intercalate)
 
 spec :: Spec
 spec = 
     describe "Sample Program Haskell code generation" $ 
         goldenTestFiles ["test1"]
         
-    where   goldenTestFiles = mapM_ shouldElabToGolden
+    where   goldenTestFiles = mapM_ shouldCodeGenToGolden
    
-shouldElabToGolden :: String -> Spec
-shouldElabToGolden file = it ("generates correct Haskell code for example program " ++ file) $ shouldBeGolden ("test/CodeGenHaskell/" ++ file ++ ".nbm") f
-    where   f = ppShow . (`codeGenHaskell` "TestModule") . elab . parse
+shouldCodeGenToGolden :: String -> Spec
+shouldCodeGenToGolden file = it ("generates correct Haskell code for example program " ++ file) $ shouldBeGolden ("test/CodeGenHaskell/" ++ file ++ ".nbm") f
+    where   f = (\(lib, evalFrags) ->  lib ++ "\n\n-- EVAL FRAGS (not in standard compiler output) --\n\n" ++ intercalate "\n\n" evalFrags) . (`codeGenHaskell` "TestModule") . elab . parse

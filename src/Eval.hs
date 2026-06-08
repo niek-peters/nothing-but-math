@@ -1,6 +1,6 @@
 module Eval (eval, EvalResult) where
 
-import Language.Haskell.Interpreter (runInterpreter, loadModules, setTopLevelModules, interpret, as)
+import Language.Haskell.Interpreter (runInterpreter, loadModules, setTopLevelModules, interpret, as, InterpreterError, InterpreterT)
 import IR (IRExpr, IR, IREvalResult (IREvalResult))
 import Elab (elabTopLevelExpr, ElabResult)
 import Parser (runExprParser)
@@ -22,11 +22,26 @@ evalExprs lib modName frags = do
         loadModules [lib]
         setTopLevelModules [modName]
         let showExprs = map ("show $ " ++) frags
+        
+        -- forM showExprs $ \expr -> do
+        --     -- res <- (Right <$> interpret expr (as :: String)) `catch` \err -> return (Left err)
+        --     -- let tmp = interpret expr (as :: String)
+        --     -- res <- try @InterpreterError tmp
+        --     res <- (try $ interpret expr (as :: String)) :: InterpreterT IO (Either InterpreterError String)
+        --     case res of
+        --         Left (err) -> error "GG"
+        --         Right (i) -> error "GG"
+        --     error "GG"
         mapM (`interpret` (as :: String)) showExprs 
 
     case result of
         Right val -> return val
         Left err -> error $ show err
+
+    -- return result
+    -- case result of
+    --     Right val -> return val
+    --     Left err -> error $ show err
 
 haskellToIR :: String -> IRExpr
 haskellToIR haskell = elaborated

@@ -1,0 +1,9 @@
+<<<
+gcd : N x N -> Z+
+gcd(a, b) := {
+    a               if b = 0
+    gcd(b, a mod b) otherwise
+} where a >= b
+>>>
+
+{{{gcd(12, 9)}}}, {{{gcd(27, 14)}}} and {{{gcd(28, 14)}}}.

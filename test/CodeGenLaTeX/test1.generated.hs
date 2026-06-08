@@ -2,15 +2,16 @@
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE FlexibleInstances #-}
 
-module TestModule (TestModule.f) where
+module TestModule (TestModule.gcd) where
 
 import GHC.Num (Natural)
 import Data.Ratio ((%), denominator, numerator)
 
-f :: Integer -> Rational
-f x
-  | not (x /= (widen @Integer (0 :: Natural))) = error "[f] Violated constraint `IRBinary IRNeq (IRCall "x" False []) (IRCast (IRImmediateInt 0 Natural) Natural Integer)`"
-  | otherwise = (widen @Integer (1 :: Positive)) % x
+gcd :: Natural -> Natural -> Positive
+gcd a b
+  | not (a >= b) = error "[gcd] Violated constraint `IRBinary IRGreaterEq (IRCall "a" False []) (IRCall "b" False [])`"
+  | b == (0 :: Natural) = narrow @Positive a
+  | otherwise = TestModule.gcd b (a `mod` b)
 
 
 
@@ -130,6 +131,3 @@ instance Widen Rational Natural where widen = fromIntegral
 instance Widen Double Natural where widen = fromIntegral
 -- Integer -> Real
 instance Widen Double Integer where widen = fromIntegral
-
--- EVAL FRAGS (not in standard compiler output) --
-
