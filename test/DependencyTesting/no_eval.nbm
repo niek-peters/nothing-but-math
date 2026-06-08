@@ -1,0 +1,7 @@
+Some text
+<<<
+f : Z -> Z
+f(x) := x
+>>>
+
+More text

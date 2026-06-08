@@ -1,11 +1,14 @@
 module Eval (eval, EvalResult) where
 
 import Language.Haskell.Interpreter (runInterpreter, loadModules, setTopLevelModules, interpret, as)
+import Language.Haskell.Interpreter.Unsafe (unsafeRunInterpreterWithArgsLibdir)
 import IR (IRExpr, IR, IREvalResult (IREvalResult))
 import Elab (elabTopLevelExpr, ElabResult)
 import Parser (runExprParser)
 import qualified Data.Map as Map
 import Types (Fragment(..))
+import System.Process (readProcess, readProcessWithExitCode)
+import GHC.IO.Exception (ExitCode(..))
 
 type EvalResult = [Fragment String IR IREvalResult]
 
@@ -17,31 +20,27 @@ eval frags lib modName exprs = do
 
 evalExprs :: FilePath -> String -> [String] -> IO [String]
 evalExprs _ _ [] = pure []
-evalExprs lib modName frags = do
-    result <- runInterpreter $ do
-        loadModules [lib]
-        setTopLevelModules [modName]
-        let showExprs = map ("show $ " ++) frags
+evalExprs lib modName frags = mapM (evalExpr lib) frags 
+    -- error "GG"
+    -- result <- forM frags $ \frag -> do
+
+    -- ghcPath <- getRuntimeGHCPath
+    -- result <- unsafeRunInterpreterWithArgsLibdir [] ghcPath $ do
+    --     loadModules [lib]
+    --     setTopLevelModules [modName]
+    --     let showExprs = map ("show $ " ++) frags
         
-        -- forM showExprs $ \expr -> do
-        --     -- res <- (Right <$> interpret expr (as :: String)) `catch` \err -> return (Left err)
-        --     -- let tmp = interpret expr (as :: String)
-        --     -- res <- try @InterpreterError tmp
-        --     res <- (try $ interpret expr (as :: String)) :: InterpreterT IO (Either InterpreterError String)
-        --     case res of
-        --         Left (err) -> error "GG"
-        --         Right (i) -> error "GG"
-        --     error "GG"
-        mapM (`interpret` (as :: String)) showExprs 
+    --     mapM (`interpret` (as :: String)) showExprs 
 
-    case result of
-        Right val -> return val
-        Left err -> error $ show err
-
-    -- return result
     -- case result of
     --     Right val -> return val
     --     Left err -> error $ show err
+    where   evalExpr lib expr = do
+                (exitCode, stdout, stderr) <- readProcessWithExitCode "ghc" ["-v0", lib, "-e", expr] ""
+                return $ case exitCode of
+                    ExitSuccess -> init stdout
+                    ExitFailure _ -> error stderr
+                    
 
 haskellToIR :: String -> IRExpr
 haskellToIR haskell = elaborated
@@ -64,3 +63,8 @@ castFrag :: Fragment String IR IRExpr -> Fragment String IR IREvalResult
 castFrag (TextFragment t) = TextFragment t
 castFrag (DefinitionFragment d) = DefinitionFragment d
 castFrag (EvalFragment _) = error "LOGIC ERROR: Unhandled EvalFragment"
+
+-- getRuntimeGHCPath :: IO FilePath
+-- getRuntimeGHCPath = do
+--     res <- readProcess "ghc" ["--print-libdir"] ""
+--     return $ init res

@@ -1,0 +1,20 @@
+# build with: docker build -f test/DependencyTesting/Dockerfile.ghc -t nbm-ghc .
+# run with: docker run -it nbm-ghc
+
+FROM debian:bookworm-slim
+
+# install only GHC
+RUN apt-get update && apt-get install -y ghc
+
+WORKDIR /test-files
+
+# copy binary to container's PATH
+COPY dist/nbm /usr/local/bin/nbm    
+
+# copy zero-dependency NBM file to container (should compile)
+COPY test/DependencyTesting/no_eval.nbm /test-files/no_eval.nbm
+
+# copy GCH-dependant NBM file to container (should compile)
+COPY test/DependencyTesting/with_eval.nbm /test-files/with_eval.nbm
+
+CMD ["/bin/bash"]

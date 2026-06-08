@@ -4,6 +4,7 @@ import Lib (compile)
 import Options.Applicative
 import Types (CLIOptions (..))
 
+-- TODO: add CLI version command
 -- TODO: make release on GitHub
 -- TODO: add ability to embed operator/syntax/grammar in output LaTeX (for Appendices)
 
