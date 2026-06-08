@@ -7,9 +7,11 @@ import qualified Eval.EvalSpec
 import qualified CodeGenLaTeX.CodeGenLaTeXSpec
 
 -- TODO:
+-- - Test if it works without dependencies in Docker container
 -- - Write way more golden tests
 -- - Add QuickCheck ParseResult -> pretty print -> ParseResult testing
 -- - Add QuickCheck ElabResult -> pretty print -> ElabResult testing
+-- - Add tests for specific critical functions
 
 main :: IO ()
 main = hspec $ do

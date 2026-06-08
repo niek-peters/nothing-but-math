@@ -4,6 +4,9 @@ import Lib (compile)
 import Options.Applicative
 import Types (CLIOptions (..))
 
+-- TODO: make release on GitHub
+-- TODO: add ability to embed operator/syntax/grammar in output LaTeX (for Appendices)
+
 main :: IO ()
 main = compile =<< execParser opts
   where

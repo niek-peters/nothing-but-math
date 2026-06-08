@@ -55,26 +55,6 @@ insertIfJust :: (String -> String) -> Maybe String -> String
 insertIfJust f (Just str) = f str
 insertIfJust _ Nothing = ""
 
-binaryOpLevel :: IRBinaryOp -> Int
-binaryOpLevel IRPow = 6
-binaryOpLevel IRExp = 6
-binaryOpLevel IRFrac = 5
-binaryOpLevel IRDiv = 5
-binaryOpLevel IRMult = 4
-binaryOpLevel IRMod = 4
-binaryOpLevel IRAdd = 3
-binaryOpLevel IRSub = 3
-binaryOpLevel IREq = 2
-binaryOpLevel IRNeq = 2
-binaryOpLevel IRLess = 2
-binaryOpLevel IRGreater = 2
-binaryOpLevel IRLessEq = 2
-binaryOpLevel IRGreaterEq = 2
-binaryOpLevel IRDivides = 2
-binaryOpLevel IRAnd = 1
-binaryOpLevel IROr = 0
-
-
 opLevel :: Either UnaryOp IRBinaryOp -> Int
 opLevel (Left Sqrt) = maxInt    -- these never have to be parenthesized
 opLevel (Left Floor) = maxInt
