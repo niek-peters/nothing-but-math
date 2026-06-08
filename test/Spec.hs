@@ -6,6 +6,11 @@ import qualified CodeGenHaskell.CodeGenHaskellSpec
 import qualified Eval.EvalSpec
 import qualified CodeGenLaTeX.CodeGenLaTeXSpec
 
+-- TODO:
+-- - Write way more golden tests
+-- - Add QuickCheck ParseResult -> pretty print -> ParseResult testing
+-- - Add QuickCheck ElabResult -> pretty print -> ElabResult testing
+
 main :: IO ()
 main = hspec $ do
     describe "Parsing" Parsing.ParsingSpec.spec

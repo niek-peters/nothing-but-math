@@ -2,8 +2,8 @@
 % function with a single argument
 % more number types
 f : N -> Z+
-f(x) := y * 2
-where y := x + 1    % local variable declaration
+f(x) := y * -2
+where y := -(x + 1)    % local variable declaration
 
 % multiple declarations in a single code block
 % function with multiple arguments

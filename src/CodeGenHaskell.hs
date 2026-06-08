@@ -107,6 +107,7 @@ codeGenUnary :: UnaryOp -> IRExpr -> String -> String
 codeGenUnary Neg e moduleName = "-" ++ codeGenExpr e moduleName
 codeGenUnary Floor e moduleName = "floor " ++ codeGenExpr e moduleName
 codeGenUnary Sqrt e moduleName = "sqrt " ++ codeGenExpr e moduleName
+codeGenUnary Not e moduleName = "not " ++ codeGenExpr e moduleName
 
 codeGenBinary :: IRBinaryOp -> IRExpr -> IRExpr -> String -> String
 codeGenBinary IRAdd = infixOp "+"
@@ -124,6 +125,8 @@ codeGenBinary IRGreater = infixOp ">"
 codeGenBinary IRLessEq = infixOp "<="
 codeGenBinary IRGreaterEq = infixOp ">="
 codeGenBinary IRDivides = (\e1 e2 moduleName -> codeGenExpr e2 moduleName ++ symbol "`mod`" ++ codeGenExpr e1 moduleName ++ " == 0")
+codeGenBinary IRAnd = infixOp "&&"
+codeGenBinary IROr = infixOp "||"
 
 infixOp :: String -> IRExpr -> IRExpr -> String -> String
 infixOp op e1 e2 moduleName = (codeGenExpr e1 moduleName) ++ symbol op ++ (codeGenExpr e2 moduleName)

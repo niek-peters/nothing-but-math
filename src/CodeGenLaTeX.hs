@@ -119,27 +119,27 @@ codeGenExpr (IRImmediateInt i _) = show i
 codeGenExpr (IRImmediateReal r) = show r
 codeGenExpr (IRImmediateBool b) = show b
 codeGenExpr (IRBinary op e1 e2) = codeGenBinary op (unwrapCast e1) (unwrapCast e2)
-    where   unwrapCast (IRCast e _ _) = e
-            unwrapCast e = e
-codeGenExpr (IRUnary op e) = codeGenUnary op e
+codeGenExpr (IRUnary op e) = codeGenUnary op (unwrapCast e)
 codeGenExpr (IRTuple es) = parenTuple $ map codeGenExpr (toList es)
 
-maybeParens :: IRExpr -> IRBinaryOp -> Bool -> String -> String
+unwrapCast :: IRExpr -> IRExpr
+unwrapCast (IRCast e _ _) = e
+unwrapCast e = e
+
+maybeParens :: IRExpr -> Either UnaryOp IRBinaryOp -> Bool -> String -> String
 maybeParens (IRBinary op _ _) parentOp isRight   
-    | opLevel < parentOpLevel = parens
-    | opLevel == parentOpLevel && isRight = parens
+    | childOpLevel < parentOpLevel = parens
+    | childOpLevel == parentOpLevel && isRight = parens
     | otherwise = id
-    where   opLevel = binaryOpLevel op
-            parentOpLevel = binaryOpLevel parentOp
-maybeParens (IRUnary Neg _) parentOp False
-    | parentOp == IRPow || parentOp == IRExp = parens
-    | otherwise = id
+    where   childOpLevel = opLevel $ Right op
+            parentOpLevel = opLevel parentOp
 maybeParens _ _ _ = id
 
 codeGenUnary :: UnaryOp -> IRExpr -> String
-codeGenUnary Neg e = "-" ++ codeGenExpr e
+codeGenUnary Neg e = "-" ++ (maybeParens e (Left Neg) False $ codeGenExpr e)
 codeGenUnary Floor e = wrap (macro "lfloor") (macro "rfloor")  $ codeGenExpr e
 codeGenUnary Sqrt e = macro1 "sqrt"  $ codeGenExpr e
+codeGenUnary Not e = macro "neg " ++ (maybeParens e (Left Not) False $ codeGenExpr e)
 
 codeGenBinary :: IRBinaryOp -> IRExpr -> IRExpr -> String
 codeGenBinary op@IRAdd = infixOp "+" op
@@ -157,16 +157,18 @@ codeGenBinary op@IRGreater = infixOp ">" op
 codeGenBinary op@IRLessEq = infixOp (macro "leq") op
 codeGenBinary op@IRGreaterEq = infixOp (macro "geq") op
 codeGenBinary op@IRDivides = infixOp (macro "mid") op
+codeGenBinary op@IRAnd = infixOp (macro "land") op
+codeGenBinary op@IROr = infixOp (macro "lor") op
 
 infixOp :: String -> IRBinaryOp -> IRExpr -> IRExpr -> String
-infixOp s op e1 e2 = (maybeParens e1 op False $ codeGenExpr e1) ++ symbol s ++ (maybeParens e2 op True $ codeGenExpr e2)
+infixOp s op e1 e2 = (maybeParens e1 (Right op) False $ codeGenExpr e1) ++ symbol s ++ (maybeParens e2 (Right op) True $ codeGenExpr e2)
 
 
 fracOp :: IRExpr -> IRExpr -> String
 fracOp e1 e2 = macro2 "frac" (codeGenExpr e1) (codeGenExpr e2)
 
 powerOp :: IRExpr -> IRExpr -> String
-powerOp e1 e2 = (maybeParens e1 IRPow False $ codeGenExpr e1) ++ "^{" ++ (codeGenExpr e2) ++ "}"
+powerOp e1 e2 = (maybeParens e1 (Right IRPow) False $ codeGenExpr e1) ++ "^{" ++ (codeGenExpr e2) ++ "}"
 
 codeGenPrimitiveType :: PrimitiveType -> String
 codeGenPrimitiveType Positive = mathbb "Z" ++ "^+"

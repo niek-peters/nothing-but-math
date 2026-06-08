@@ -3,6 +3,8 @@ module CodeGen (module CodeGen) where
 import Data.List.NonEmpty (NonEmpty ((:|)), toList)
 import Data.List (intercalate)
 import IR (IRBinaryOp (..))
+import AST (UnaryOp (..))
+import GHC.Base (maxInt)
 
 -- Generic codeGen helpers --
 
@@ -54,22 +56,47 @@ insertIfJust f (Just str) = f str
 insertIfJust _ Nothing = ""
 
 binaryOpLevel :: IRBinaryOp -> Int
-binaryOpLevel IRPow = 4
-binaryOpLevel IRExp = 4
-binaryOpLevel IRFrac = 3
-binaryOpLevel IRDiv = 3
-binaryOpLevel IRMult = 2
-binaryOpLevel IRMod = 2
-binaryOpLevel IRAdd = 1
-binaryOpLevel IRSub = 1
-binaryOpLevel IREq = 0
-binaryOpLevel IRNeq = 0
-binaryOpLevel IRLess = 0
-binaryOpLevel IRGreater = 0
-binaryOpLevel IRLessEq = 0
-binaryOpLevel IRGreaterEq = 0
-binaryOpLevel IRDivides = 0
+binaryOpLevel IRPow = 6
+binaryOpLevel IRExp = 6
+binaryOpLevel IRFrac = 5
+binaryOpLevel IRDiv = 5
+binaryOpLevel IRMult = 4
+binaryOpLevel IRMod = 4
+binaryOpLevel IRAdd = 3
+binaryOpLevel IRSub = 3
+binaryOpLevel IREq = 2
+binaryOpLevel IRNeq = 2
+binaryOpLevel IRLess = 2
+binaryOpLevel IRGreater = 2
+binaryOpLevel IRLessEq = 2
+binaryOpLevel IRGreaterEq = 2
+binaryOpLevel IRDivides = 2
+binaryOpLevel IRAnd = 1
+binaryOpLevel IROr = 0
 
+
+opLevel :: Either UnaryOp IRBinaryOp -> Int
+opLevel (Left Sqrt) = maxInt    -- these never have to be parenthesized
+opLevel (Left Floor) = maxInt
+opLevel (Right IRPow) = 7
+opLevel (Right IRExp) = 7
+opLevel (Left Neg) = 6
+opLevel (Left Not) = 6
+opLevel (Right IRFrac) = 5
+opLevel (Right IRDiv) = 5
+opLevel (Right IRMult) = 4
+opLevel (Right IRMod) = 4
+opLevel (Right IRAdd) = 3
+opLevel (Right IRSub) = 3
+opLevel (Right IREq) = 2
+opLevel (Right IRNeq) = 2
+opLevel (Right IRLess) = 2
+opLevel (Right IRGreater) = 2
+opLevel (Right IRLessEq) = 2
+opLevel (Right IRGreaterEq) = 2
+opLevel (Right IRDivides) = 2
+opLevel (Right IRAnd) = 1
+opLevel (Right IROr) = 0
 
 
 tab = "  "

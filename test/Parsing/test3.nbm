@@ -9,6 +9,15 @@ isNat(x) := x >= 0
 isNeg : Z -> B
 isNeg(x) := x < 0
 
+nonNeg : Z -> B
+nonNeg(x) := not isNeg(x)
+
 nonZero : Z -> B
 nonZero(x) := x /= 0
+
+oneOrTwo : Z -> B
+oneOrTwo(x) := x = 1 or x = 2
+
+neitherOneOrTwo : Z -> B
+neitherOneOrTwo(x) := x /= 1 and not (x = 2)
 >>>

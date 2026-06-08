@@ -52,10 +52,10 @@ data Expr   = Call Id [Expr]
             | Tuple (NonEmpty Expr)      -- E.g. (a, b, c) 
     deriving (Show, Eq)
 
-data BinaryOp = Add | Sub | Mult | Div | Pow | Mod | Eq | Neq | Less | Greater | LessEq | GreaterEq | Divides
+data BinaryOp = Add | Sub | Mult | Div | Pow | Mod | Eq | Neq | Less | Greater | LessEq | GreaterEq | Divides | And | Or
     deriving (Show, Eq)
 
-data UnaryOp = Neg | Sqrt | Floor
+data UnaryOp = Neg | Sqrt | Floor | Not
     deriving (Show, Eq)
 
 -- block annotation for LaTeX output

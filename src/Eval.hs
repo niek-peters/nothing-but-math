@@ -1,6 +1,6 @@
 module Eval (eval, EvalResult) where
 
-import Language.Haskell.Interpreter (runInterpreter, loadModules, setTopLevelModules, interpret, as, InterpreterError, InterpreterT)
+import Language.Haskell.Interpreter (runInterpreter, loadModules, setTopLevelModules, interpret, as)
 import IR (IRExpr, IR, IREvalResult (IREvalResult))
 import Elab (elabTopLevelExpr, ElabResult)
 import Parser (runExprParser)

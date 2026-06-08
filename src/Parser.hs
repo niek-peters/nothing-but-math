@@ -34,7 +34,7 @@ brackets :: Parser a -> Parser a
 brackets = between (symbol "[") (symbol "]")
 
 keywords :: Set.Set String
-keywords = Set.fromList ["if", "otherwise", "where", "True", "False", "Z+", "Z", "N", "Q", "R", "B"]    -- TODO: make it impossible to declare floor/sqrt/mod, but still allow the first two in function calls
+keywords = Set.fromList ["if", "otherwise", "where", "True", "False", "Z+", "Z", "N", "Q", "R", "B", "not", "and", "or"]    -- TODO: make it impossible to declare floor/sqrt/mod, but still allow the first two in function calls
 
 identifier :: Parser String
 identifier = (lexeme . try) $ do
@@ -130,12 +130,13 @@ exprTable = [
       binaryR "^"       Pow
     ], 
     [
-      unary   "-"       Neg
+      unary   "-"       Neg,
+      reservedUOp "not" Not
     ],
     [ 
       binary  "*"       Mult, 
       binaryNotFollowed  "/" Div (char '='), 
-      reservedOp "mod"  Mod 
+      reservedBOp "mod"  Mod 
     ], 
     [ 
       binary  "+"       Add, 
@@ -149,6 +150,12 @@ exprTable = [
       binary  "<"       Less, 
       binary  ">"       Greater, 
       binary  "|"       Divides
+    ],
+    [
+      reservedBOp "and"  And
+    ],
+    [
+      reservedBOp "or"  Or
     ]
   ]
   where
@@ -156,7 +163,8 @@ exprTable = [
     binary s cons = InfixL (Binary cons <$ symbol s)
     binaryNotFollowed s cons notFollowed = InfixL (Binary cons <$ try (symbol s <* notFollowedBy notFollowed))   -- this ensures it does not eat anything parsed by 'notFollowed'
     binaryR s cons = InfixR (Binary cons <$ symbol s)  -- right-associative
-    reservedOp s cons = InfixL (Binary cons <$ (lexeme . try) (string s <* notFollowedBy alphaNumChar))  -- this ensures it does not eat identifiers starting with the name of some operator. E.g. a function called modInv
+    reservedUOp s cons = Prefix (Unary cons <$ (lexeme . try) (string s <* notFollowedBy alphaNumChar))  -- this ensures it does not eat identifiers starting with the name of some operator. E.g. a function called notOne
+    reservedBOp s cons = InfixL (Binary cons <$ (lexeme . try) (string s <* notFollowedBy alphaNumChar))  -- this ensures it does not eat identifiers starting with the name of some operator. E.g. a function called modInv
 
 parseTerm :: Parser Expr
 parseTerm = parens (try parseTuple <|> parseExpr)

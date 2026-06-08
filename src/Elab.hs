@@ -194,6 +194,8 @@ zipMaybeTypes a (Just (Type b))
             expectedLength = length b
 
 elabUnary :: UnaryOp -> (IRExpr, Type) -> (IRExpr, Type)
+elabUnary Not (e, (Type (Boolean :| []))) = (IRUnary Not e, Type $ pure Boolean)
+
 elabUnary Neg (e, t@(Type (pt :| [])))
     | pt /= Boolean = (IRUnary Neg resExpr, resType)     -- we use a pattern guard to fall through to the other cases if false
     where   (resExpr, resType) = maybeCastExpr e t (Just $ Type $ pure (max pt Integer))    -- upcast to at least Integer (to allow negative numbers)
@@ -210,13 +212,15 @@ elabUnary op (_, t) = error $ "TYPE ERROR: Unary operation '" ++ show op ++ "' n
 
 
 elabBinary :: BinaryOp -> (IRExpr, Type) -> (IRExpr, Type) -> (IRExpr, Type) 
+elabBinary op (e1, Type (Boolean :| [])) (e2, Type (Boolean :| [])) = (IRBinary (binaryBooleanOp op) e1 e2, Type $ pure Boolean)
+
 -- we have a special case for integer powers, which don't do any type casting and have the result keep the type of the left operand
 elabBinary Pow (e1, t1@(Type (pt1 :| []))) (e2, (Type (pt2 :| [])))
     | pt1 /= Boolean && (pt2 == Positive || pt2 == Natural || pt2 == Integer) = (IRBinary IRPow e1 e2, t1)  -- we use a pattern guard to fall through to the generic case if false
 
 -- and then the generic case where both operands get casted to the same type
 elabBinary op o1@(_, (Type (pt1 :| []))) o2@(_, (Type (pt2 :| []))) = (resExpr, resType)
-    where   resExpr = sameOperandTypesBinary op o1 o2 operandType
+    where   resExpr = sameOperandTypesBinaryNumOp op o1 o2 operandType
             resType = Type $ pure $ binaryResType op operandType
             operandType | op == Sub || op == Div        = max greaterType Integer   -- prevents underflow and forces fractions to be Ratio Integer
                         | op == Mod || op == Divides    = min greaterType Integer   -- these operations are only legal for whole numbers
@@ -225,6 +229,11 @@ elabBinary op o1@(_, (Type (pt1 :| []))) o2@(_, (Type (pt2 :| []))) = (resExpr, 
 
 -- any remaining undefined operations
 elabBinary op (_, t1) (_, t2) = error $ "TYPE ERROR: Binary operation '" ++ show op ++ "' not defined for types '" ++ show t1 ++ "' and '" ++ show t2 ++ "'"
+
+binaryBooleanOp :: BinaryOp -> IRBinaryOp
+binaryBooleanOp And = IRAnd
+binaryBooleanOp Or = IROr
+binaryBooleanOp _ = error "LOGIC ERROR: binaryBooleanOp called with non-boolean operator"
 
 binaryResType :: BinaryOp -> PrimitiveType -> PrimitiveType
 binaryResType Div Real = Real
@@ -238,30 +247,31 @@ binaryResType GreaterEq _ = Boolean
 binaryResType Divides _ = Boolean
 binaryResType _ t = t  -- generic case where resulting type is the same as the operands
 
-sameOperandTypesBinary :: BinaryOp -> (IRExpr, Type) -> (IRExpr, Type) -> PrimitiveType -> IRExpr
-sameOperandTypesBinary op (e1, t1) (e2, t2) pt = IRBinary (toIRBinaryOp op t1 t2) operand1 operand2
+sameOperandTypesBinaryNumOp :: BinaryOp -> (IRExpr, Type) -> (IRExpr, Type) -> PrimitiveType -> IRExpr
+sameOperandTypesBinaryNumOp op (e1, t1) (e2, t2) pt = IRBinary (toIRBinaryNumOp op t1 t2) operand1 operand2
     where   operand1 = fst $ maybeCastExpr e1 t1 justResType
             operand2 = fst $ maybeCastExpr e2 t2 justResType
             justResType = Just resType
             resType = Type $ pure pt
 
 -- assume the special integer power case is already handled
-toIRBinaryOp :: BinaryOp -> Type -> Type -> IRBinaryOp
-toIRBinaryOp Add _ _ = IRAdd
-toIRBinaryOp Sub _ _ = IRSub
-toIRBinaryOp Mult _ _ = IRMult
-toIRBinaryOp Div t1 t2
+toIRBinaryNumOp :: BinaryOp -> Type -> Type -> IRBinaryOp
+toIRBinaryNumOp Add _ _ = IRAdd
+toIRBinaryNumOp Sub _ _ = IRSub
+toIRBinaryNumOp Mult _ _ = IRMult
+toIRBinaryNumOp Div t1 t2
     | isIntegerType t1 && isIntegerType t2 = IRFrac -- construct a fraction whenever neither operand of a division is at least a fraction yet
-toIRBinaryOp Div _ _ = IRDiv
-toIRBinaryOp Pow _ _ = IRExp
-toIRBinaryOp Mod _ _ = IRMod
-toIRBinaryOp Eq _ _ = IREq
-toIRBinaryOp Neq _ _ = IRNeq
-toIRBinaryOp Less _ _ = IRLess
-toIRBinaryOp Greater _ _ = IRGreater
-toIRBinaryOp LessEq _ _ = IRLessEq
-toIRBinaryOp GreaterEq _ _ = IRGreaterEq
-toIRBinaryOp Divides _ _ = IRDivides
+toIRBinaryNumOp Div _ _ = IRDiv
+toIRBinaryNumOp Pow _ _ = IRExp
+toIRBinaryNumOp Mod _ _ = IRMod
+toIRBinaryNumOp Eq _ _ = IREq
+toIRBinaryNumOp Neq _ _ = IRNeq
+toIRBinaryNumOp Less _ _ = IRLess
+toIRBinaryNumOp Greater _ _ = IRGreater
+toIRBinaryNumOp LessEq _ _ = IRLessEq
+toIRBinaryNumOp GreaterEq _ _ = IRGreaterEq
+toIRBinaryNumOp Divides _ _ = IRDivides
+toIRBinaryNumOp _ _ _ = error "LOGIC ERROR: toIRBinaryNumOp called with boolean operator"
 
 isIntegerType :: Type -> Bool
 isIntegerType (Type (Positive :| [])) = True
