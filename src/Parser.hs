@@ -10,7 +10,7 @@ import Data.List.NonEmpty (fromList, NonEmpty ((:|)))
 import Control.Monad.Combinators.Expr
 import Types
 
--- TODO: add boolean operations (at least not, and, or)
+-- TODO: make section parser ignore <<<, >>>, {{{ and }}} if there is a % before it on the same line
 -- TODO: consider enforcing newlines in many places
 
 type Parser = Parsec Void String
