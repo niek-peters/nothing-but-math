@@ -1,5 +1,6 @@
 # build with: docker build -f test/DependencyTesting/Dockerfile.base -t nbm-base .
 # run with: docker run -it nbm-base
+# test compile: nbm no_eval -o out
 
 FROM debian:bookworm-slim
 

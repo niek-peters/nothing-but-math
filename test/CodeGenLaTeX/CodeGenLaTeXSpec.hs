@@ -20,13 +20,12 @@ spec =
 shouldCodeGenToGolden :: String -> Spec
 shouldCodeGenToGolden file = it ("generates correct LaTeX code for example program " ++ file) $ shouldBeGolden' filePath f
     where   filePath = "test/CodeGenLaTeX/" ++ file ++ ".nbm"
-            modName = "TestModule"
             f str = do
                 let elaborated = (elab . parse) str
-                let (lib, evalFrags) = (`codeGenHaskell` modName) elaborated
+                let (lib, evalFrags) = (`codeGenHaskell` "TestModule") elaborated
                 pathHaskell <- (addExtension <$> (fst <$> splitExtension <$> canonicalizePath filePath)) <*> (pure "generated.hs")
                 writeFile pathHaskell lib
 
-                elaborated' <- eval elaborated pathHaskell modName evalFrags 
+                elaborated' <- eval elaborated pathHaskell evalFrags 
                 
                 return $ codeGenLaTeX elaborated'

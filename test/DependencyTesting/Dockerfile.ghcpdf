@@ -1,11 +1,14 @@
-# build with: docker build -f test/DependencyTesting/Dockerfile.ghc -t nbm-ghc .
-# run with: docker run -it nbm-ghc
-# test compile: nbm with_eval -o out
+# build with: docker build -f test/DependencyTesting/Dockerfile.ghcpdf -t nbm-ghcpdf .
+# run with: docker run -it nbm-ghcpdf
+# test compile: nbm with_eval -o out -w -p
 
 FROM debian:bookworm-slim
 
 # install only GHC
-RUN apt-get update && apt-get install -y ghc
+RUN apt-get update && apt-get install -y \
+    ghc \
+    texlive-latex-base \
+    texlive-fonts-recommended
 
 WORKDIR /test-files
 

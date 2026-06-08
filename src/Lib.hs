@@ -25,16 +25,14 @@ compile options = do
     let (fileName, _) = splitExtension $ takeFileName file
     (pathHaskell, pathLaTeX, dir) <- outPaths fileName $ outDir options
 
-    let modName = moduleName options
-
     let parsed = parse text
     let elaborated = elab parsed
     -- pPrint elaborated
-    let (lib, evalFrags) = codeGenHaskell elaborated modName
+    let (lib, evalFrags) = codeGenHaskell elaborated $ moduleName options
 
     writeFile pathHaskell lib
     
-    elaborated' <- eval elaborated pathHaskell modName evalFrags 
+    elaborated' <- eval elaborated pathHaskell evalFrags 
 
     let tmpLatex = codeGenLaTeX elaborated'
     let latex = case wrapDoc options of

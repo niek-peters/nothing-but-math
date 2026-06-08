@@ -10,24 +10,16 @@ import GHC.IO.Exception (ExitCode(..))
 
 type EvalResult = [Fragment String IR IREvalResult]
 
-eval :: ElabResult -> FilePath -> String -> [String] -> IO EvalResult
-eval frags lib modName exprs = do
-    -- compileLib lib
-    results <- evalExprs lib modName exprs
+eval :: ElabResult -> FilePath -> [String] -> IO EvalResult
+eval frags lib exprs = do
+    results <- evalExprs lib exprs
     let irExprs = map haskellToIR results
     return $ replaceEvalFrags frags irExprs
 
--- compileLib :: String -> IO ()
--- compileLib lib = do
---     (exitCode, _, stderr) <- readProcessWithExitCode "ghc" ["-v0", "-c", lib] ""
---     return $ case exitCode of
---         ExitSuccess   -> ()
---         ExitFailure _ -> error $ "HASKELL COMPILATION FAILED:" ++ stderr
-
 -- NOTE: this function invokes GHC for each expression. In the future it would be better to either pre-compile the module or feed it all expressions as a list and parse the result
-evalExprs :: FilePath -> String -> [String] -> IO [String]
-evalExprs _ _ [] = pure []
-evalExprs lib modName frags = mapM evalExpr frags
+evalExprs :: FilePath -> [String] -> IO [String]
+evalExprs _ [] = pure []
+evalExprs lib frags = mapM evalExpr frags
     where   evalExpr expr = do
                 (exitCode, stdout, stderr) <- readProcessWithExitCode "ghc" ["-v0", "-XTypeApplications", lib, "-e", expr] ""
                 return $ case exitCode of

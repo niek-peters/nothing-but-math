@@ -1,0 +1,27 @@
+[ DefinitionFragment
+    (AST
+       []
+       [ Declaration
+           []
+           "f"
+           (Signature (Just (Type (Natural :| []))) (Type (Positive :| [])))
+           [ "x" ]
+           (Unconditional
+              (Binary Mult (Call "y" []) (Unary Neg (ImmediateInt 2))))
+           [ LocalDecl
+               (Local
+                  ("y" :| [])
+                  (Unary Neg (Binary Add (Call "x" []) (ImmediateInt 1))))
+           ]
+       , Declaration
+           []
+           "g"
+           (Signature
+              (Just (Type (Integer :| [ Natural ]))) (Type (Rational :| [])))
+           [ "x" , "a" ]
+           (Unconditional
+              (Binary
+                 Div (Binary Pow (Call "x" []) (Call "a" [])) (ImmediateInt 2)))
+           []
+       ])
+]
