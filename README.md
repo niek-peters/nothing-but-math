@@ -7,7 +7,7 @@ TODO (write about):
     - Or download a release and add to PATH
 - How to use
     - CLI options
-    - dependencies (also based on CLI options you use)
+    - dependencies (also based on CLI options you use -> refer to Docker containers showing dependencies)
     - example code + commands (different workflows)
 - Language specification (+ code examples?)
     - Text/code/eval blocks

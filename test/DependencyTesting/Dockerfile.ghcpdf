@@ -4,7 +4,7 @@
 
 FROM debian:bookworm-slim
 
-# install only GHC
+# install only GHC and a minimal TeX distribution
 RUN apt-get update && apt-get install -y \
     ghc \
     texlive-latex-base \
