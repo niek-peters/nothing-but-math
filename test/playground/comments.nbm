@@ -1,0 +1,11 @@
+Text
+<<<
+#[box, class=Algorithm, name=My Algorithm, label=my_algorithm]
+f : Z -> Z
+f(x) := x
+>>>
+
+Now using Algorithm~\ref{my_algorithm}, we can derive:
+{{{f(1)}}} and {{{f(2)}}}.
+
+Wowzers
