@@ -4,17 +4,25 @@ import Lib (compile)
 import Options.Applicative
 import Types (CLIOptions (..))
 
--- TODO: add CLI version command
+import Data.Version (showVersion)
+import Paths_nothing_but_math (version)
+
 -- TODO: make release on GitHub
--- TODO: add ability to embed operator/syntax/grammar in output LaTeX (for Appendices)
+-- TODO: add ability to embed operator/syntax/grammar overview/table in output LaTeX (for Appendices)
 
 main :: IO ()
 main = compile =<< execParser opts
   where
-    opts = info (cliParser <**> helper)
+    opts = info (cliParser <**> helper <**> versionOption)
         ( fullDesc
         <> progDesc "Compile an NBM source file to Haskell and LaTeX. Optionally generates a PDF"
         <> header "nbm - Nothing But Math compiler" )
+
+versionOption :: Parser (a -> a)
+versionOption = infoOption (showVersion version)
+    ( long "version"
+    <> short 'v'
+    <> help "Show the compiler version" )
 
 cliParser :: Parser CLIOptions
 cliParser = CLIOptions
