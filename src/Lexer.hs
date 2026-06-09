@@ -1,4 +1,4 @@
-module Lexer (tokenize, Token(..)) where
+module Lexer (tokenize, runLexer, TokenizeResult) where
 
 import Text.Megaparsec hiding (Token)
 import Text.Megaparsec.Char
@@ -10,43 +10,48 @@ import qualified Data.Map as Map
 
 type TokenLexer = Parsec Void String
 
+type TokenizeResult = [Fragment String [Token] [Token]]
+
 
 -- Splitting the source code into sections
 
-tokenize :: String -> [Fragment String [Token] [Token]]
+tokenize :: String -> TokenizeResult
 tokenize str = case parse sectionSplitter "" str of
   Left err -> error $ errorBundlePretty err
   Right res -> res
 
-sectionSplitter :: TokenLexer [Fragment String [Token] [Token]]
+sectionSplitter :: TokenLexer TokenizeResult
 sectionSplitter = manyTill (codeBlock <|> evalBlock <|> textBlock) eof
   where
-    codeBlock = try (string "<<<") *> (DefinitionFragment <$> eatUntilTokens ">>>")
-    evalBlock = try (string "{{{") *> (EvalFragment       <$> eatUntilTokens "}}}")
+    codeBlock = try (symbol "<<<") *> (DefinitionFragment <$> eatUntilTokens ">>>")
+    evalBlock = try (symbol "{{{") *> (EvalFragment       <$> eatUntilTokens "}}}")
     
     textBlock = TextFragment . concat <$> some (commentStr <|> normalTextLine)
     commentStr = (++) <$> string "%" <*> manyTill anySingle (("" <$ eof) <|> string "\n")
     
     normalTextLine = some (
         notFollowedBy (string "%")
-        *> notFollowedBy (try (string "<<<"))
-        *> notFollowedBy (try (string "{{{"))
+        *> notFollowedBy (try (symbol "<<<"))
+        *> notFollowedBy (try (symbol "{{{"))
         *> anySingle
       )
 
 eatUntilTokens :: String -> TokenLexer [Token]
-eatUntilTokens endMarker = codeBody
-  where
-    codeBody = (commentSkip *> codeBody)
-           <|> ([] <$ try (string endMarker))
-           <|> ((:) <$> tokenLexer <*> codeBody)
+eatUntilTokens endMarker = manyTill lexer (try $ symbol endMarker)
+
+-- eatUntilTokens :: String -> TokenLexer [Token]
+-- eatUntilTokens endMarker = codeBody
+--   where
+--     codeBody = (commentSkip *> codeBody)
+--            <|> ([] <$ try (string endMarker))
+--            <|> ((:) <$> lexer <*> codeBody)
     
-    commentSkip = string "%" *> manyTill anySingle (string "\n") >> space
+--     commentSkip = string "%" *> manyTill anySingle (string "\n") >> space
 
 -- Lexing
 
 whitespace :: TokenLexer ()
-whitespace = L.space space1 empty empty
+whitespace = L.space space1 (L.skipLineComment "%") empty
 
 lexeme :: TokenLexer a -> TokenLexer a
 lexeme = L.lexeme whitespace
@@ -58,7 +63,7 @@ symbol = L.symbol whitespace
 symbolTable :: [(String, Token)]
 symbolTable = [ 
   ("Z+", TPrimType Positive),   -- we treat Z+ as a symbol as it cannot be part of an identifier name anyway
-  (":=", TColonEq),
+  (":=", TAssign),
   ("->", TArrow),
   ("/=", TBOp Neq),
   ("<=", TBOp LessEq),
@@ -104,10 +109,15 @@ keywordTable = Map.fromList [
   ("B", TPrimType Boolean)
   ]
 
-tokenLexer :: TokenLexer Token
-tokenLexer = whitespace *> (
-        try (TReal <$> lexeme L.float)
-    <|> TInt <$> lexeme L.decimal
+runLexer :: String -> [Token]
+runLexer str = case parse (manyTill lexer eof) "" str of
+  Left err -> error $ errorBundlePretty err
+  Right res -> res
+
+lexer :: TokenLexer Token
+lexer = lexeme (
+        try (TReal <$> L.float)
+    <|> TInt <$> L.decimal
     <|> stringLiteralLexer
     <|> symbolLexer
     <|> wordLexer

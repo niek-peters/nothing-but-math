@@ -13,6 +13,8 @@ import System.Process (readProcessWithExitCode)
 import System.Exit (ExitCode(..))
 import Control.Monad (when)
 import Types (CLIOptions (..))
+import Lexer (tokenize)
+import Text.Show.Pretty (pPrint)
 -- import Text.Show.Pretty (pPrint)
 
 compile :: CLIOptions -> IO ()
@@ -25,25 +27,27 @@ compile options = do
     let (fileName, _) = splitExtension $ takeFileName file
     (pathHaskell, pathLaTeX, dir) <- outPaths fileName $ outDir options
 
-    let parsed = parse text
-    let elaborated = elab parsed
-    -- pPrint elaborated
-    let (lib, evalFrags) = codeGenHaskell elaborated $ moduleName options
+    let tokenized = tokenize text
+    let parsed = parse tokenized
+    pPrint parsed
+    -- let elaborated = elab parsed
+    -- -- pPrint elaborated
+    -- let (lib, evalFrags) = codeGenHaskell elaborated $ moduleName options
 
-    writeFile pathHaskell lib
+    -- writeFile pathHaskell lib
     
-    elaborated' <- eval elaborated pathHaskell evalFrags 
+    -- elaborated' <- eval elaborated pathHaskell evalFrags 
 
-    let tmpLatex = codeGenLaTeX elaborated'
-    let latex = case wrapDoc options of
-            True -> "\\documentclass{article}\n\\usepackage{amsmath, amssymb, hyperref}\n\n\\begin{document}\n\n" ++ tmpLatex ++ "\n\n\\end{document}"
-            False -> tmpLatex
+    -- let tmpLatex = codeGenLaTeX elaborated'
+    -- let latex = case wrapDoc options of
+    --         True -> "\\documentclass{article}\n\\usepackage{amsmath, amssymb, hyperref}\n\n\\begin{document}\n\n" ++ tmpLatex ++ "\n\n\\end{document}"
+    --         False -> tmpLatex
     
-    writeFile pathLaTeX latex
+    -- writeFile pathLaTeX latex
 
-    putStrLn "NBM Compiled successfully!"
+    -- putStrLn "NBM Compiled successfully!"
 
-    when (toPDF options) (compileToPDF pathLaTeX dir)
+    -- when (toPDF options) (compileToPDF pathLaTeX dir)
 
 resolveFilePath :: FilePath -> IO FilePath
 resolveFilePath file = do

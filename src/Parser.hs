@@ -1,136 +1,75 @@
 module Parser (Parser.parse, ParseResult, runExprParser) where
 
-import Text.Megaparsec
+import Text.Megaparsec hiding (Token)
 import Data.Void (Void)
-import Text.Megaparsec.Char
-import qualified Text.Megaparsec.Char.Lexer as Lexer
 import qualified Data.Set as Set
 import AST
 import Data.List.NonEmpty (fromList, NonEmpty ((:|)))
 import Control.Monad.Combinators.Expr
 import Types
+import Token
+import Lexer (TokenizeResult)
 
 -- NOTE: might be good to enforce newlines in many places
 
-type Parser = Parsec Void String
+type Parser = Parsec Void [Token]
 
 type ParseResult = [Fragment String AST Expr]
-type SplitResult = [Fragment String String String]
 
-whitespace :: Parser ()
-whitespace = Lexer.space space1 (Lexer.skipLineComment "%") empty
+parse :: TokenizeResult -> ParseResult
+parse = map runFragmentParser
 
-lexeme :: Parser a -> Parser a
-lexeme = Lexer.lexeme whitespace
-
-symbol :: String -> Parser String
-symbol = Lexer.symbol whitespace
-
-parens :: Parser a -> Parser a
-parens = between (symbol "(") (symbol ")")
-
-brackets :: Parser a -> Parser a
-brackets = between (symbol "[") (symbol "]")
-
-keywords :: Set.Set String
-keywords = Set.fromList ["if", "otherwise", "where", "True", "False", "Z+", "Z", "N", "Q", "R", "B", "not", "and", "or"]    -- TODO: make it impossible to declare floor/sqrt/mod, but still allow the first two in function calls
-
-identifier :: Parser String
-identifier = (lexeme . try) $ do
-  name <- (:) <$> lowerChar <*> many alphaNumChar
-  if Set.member name keywords
-    then fail $ "Cannot use keyword " ++ show name ++ " as an identifier"
-    else return name
-
-parse :: String -> ParseResult
-parse str = map runFragmentParser sections
-    where sections = runSectionsParser str
-
-useParser :: Parser a -> String -> a
-useParser parser str = case Text.Megaparsec.parse parser "" str of
+useParser :: Parser a -> [Token] -> a
+useParser parser ts = case Text.Megaparsec.parse parser "" ts of
     Left e -> error $ errorBundlePretty e
     Right r -> r
 
-runSectionsParser :: String -> SplitResult
-runSectionsParser = useParser parseSections
-
-runExprParser :: String -> Expr
+runExprParser :: [Token] -> Expr
 runExprParser = useParser parseExpr
 
-parseSections :: Parser SplitResult
-parseSections = manyTill (
-        try (string "<<<") *> (DefinitionFragment <$> eatUntil ">>>") 
-    <|> try (string "{{{") *> (EvalFragment <$> eatUntil "}}}") 
-    <|> TextFragment . concat <$> some (comment <|> normalTextLine)
-  ) eof
-  where
-    -- consumes text, stopping for a comment or block entry marker
-    normalTextLine = some (
-        notFollowedBy (string "%")
-        *> notFollowedBy (try (string "<<<"))
-        *> notFollowedBy (try (string "{{{"))
-        *> anySingle
-      )
-
-    -- recursively eat characters until the given uncommented string is encountered
-    eatUntil str = (++) <$> comment <*> eatUntil str
-           <|> [] <$ try (string str)
-           <|> (:) <$> anySingle <*> eatUntil str
-
-    -- comment eats the entire rest of the line, so commented-out block entry markers get ignored
-    comment = (++) <$> string "%" <*> manyTill anySingle (("" <$ eof) <|> string "\n")
-
-runFragmentParser :: Fragment String String String -> Fragment String AST Expr
+runFragmentParser :: Fragment String [Token] [Token] -> Fragment String AST Expr
 runFragmentParser (TextFragment t) = TextFragment t
-runFragmentParser (DefinitionFragment c) = DefinitionFragment $ useParser parseCodeFragment c
-runFragmentParser (EvalFragment e) = EvalFragment $ useParser (whitespace *> lexeme parseExpr <* eof) e
+runFragmentParser (DefinitionFragment c) = (DefinitionFragment $ useParser (parseCodeFragment <* eof) c)
+runFragmentParser (EvalFragment e) = (EvalFragment $ useParser (parseExpr <* eof) e)
 
 parseCodeFragment :: Parser AST
-parseCodeFragment = AST <$> (whitespace *> (lexeme $ option [] (try $ symbol "#" *> brackets (sepBy parseBlockAnnotation (symbol ","))))) <*> (whitespace *> (lexeme $ many (lexeme parseDeclaration)) <* eof)
+parseCodeFragment = AST <$> option [] (tok THash *> brackets (sepBy parseBlockAnnotation $ tok TComma)) <*> many parseDeclaration
 
 parseDeclaration :: Parser Declaration
 parseDeclaration = do
-    declAns <- option [] (try $ symbol "@" *> brackets (sepBy parseDeclAnnotation (symbol ",")))
-    name <- identifier  -- we parse the name and later ensure it comes up again for the implementation
+    declAns <- option [] (tok TAt *> brackets (sepBy parseDeclAnnotation $ tok TComma))
+    name <- idTok  -- we parse the name and later ensure it comes up again for the implementation
 
     Declaration 
         <$> pure declAns
         <*> pure name 
-        <*> (symbol ":" *> parseSignature) 
-        <*> (symbol name *> (option [] (parens (sepBy identifier (symbol ",")))))
-        <*> (symbol ":=" *> parseImplementation)
-        <*> option [] (try $ symbol "where" *> (parseWherePart))
+        <*> (tok TColon *> parseSignature) 
+        <*> (tok (TId name) *> (option [] $ parens $ sepBy idTok $ tok TComma))
+        <*> (tok TAssign *> parseImplementation)
+        <*> option [] (tok TWhere *> parseWherePart)
     where
-        parseWherePart = sepBy1 (LocalDecl <$> try parseLocal <|> Constraint <$> parseExpr) (symbol ",")
+        parseWherePart = sepBy1 (LocalDecl <$> try parseLocal <|> Constraint <$> parseExpr) $ tok TComma
 
 parseSignature :: Parser Signature
-parseSignature = toSignature <$> parseType <*> optional (symbol "->" *> parseType)
+parseSignature = toSignature <$> parseType <*> optional (tok TArrow *> parseType)
     where
         toSignature t1 Nothing   = Signature Nothing t1     -- there is no '->'. This is a constant
         toSignature t1 (Just t2) = Signature (Just t1) t2   
 
 parseType :: Parser Type
-parseType = Type . fromList <$> sepBy1 parsePrimitiveType (symbol "x")
-
-parsePrimitiveType :: Parser PrimitiveType
-parsePrimitiveType = Positive <$ symbol "Z+"
-                    <|> Natural <$ symbol "N"
-                    <|> Integer <$ symbol "Z"
-                    <|> Rational <$ symbol "Q"
-                    <|> Real <$ symbol "R"
-                    <|> Boolean <$ symbol "B"
+parseType = Type . fromList <$> sepBy1 primTypeTok (tok $ TId "x")  -- the 'cross'/x symbol is tokenized as an identifier x
 
 parseImplementation :: Parser Implementation
-parseImplementation = between (symbol "{") (symbol "}") parseConditional <|> Unconditional <$> parseExpr
+parseImplementation = braces parseConditional <|> Unconditional <$> parseExpr
     where
-        parseConditional = Conditional <$> many (try parseBranch) <*> (parseExpr <* symbol "otherwise")     -- TODO: consider not using many but something that requires at least 1
-        parseBranch = Branch <$> parseExpr <*> (symbol "if" *> parseExpr)
+        parseConditional = Conditional <$> many (try parseBranch) <*> (parseExpr <* tok TOtherwise)     -- TODO: consider not using many but something that requires at least 1
+        parseBranch = Branch <$> parseExpr <*> (tok TIf *> parseExpr)
 
 -- NOTE: for now locals are unconditional
 parseLocal :: Parser Local
-parseLocal = Local <$> parseLHS <* symbol ":=" <*> parseExpr
+parseLocal = Local <$> parseLHS <* tok TAssign <*> parseExpr
   where
-    parseLHS = fromList <$> (parens (sepBy1 identifier (symbol ",")) <|> pure <$> identifier)   -- LHS is either a single id or a parenthesized tuple of ids
+    parseLHS = fromList <$> (parens (sepBy1 idTok $ tok TComma) <|> pure <$> idTok)   -- LHS is either a single id or a parenthesized tuple of ids
 
 parseExpr :: Parser Expr
 parseExpr = makeExprParser parseTerm exprTable
@@ -138,73 +77,107 @@ parseExpr = makeExprParser parseTerm exprTable
 exprTable :: [[Operator Parser Expr]]
 exprTable = [
     [ 
-      binaryR "^"       Pow
+      binaryR Pow
     ], 
     [
-      unary   "-"       Neg,
-      reservedUOp "not" Not
+      unary' TMinus Neg,
+      unary Not
     ],
     [ 
-      binary  "*"       Mult, 
-      binaryNotFollowed  "/" Div (char '='), 
-      reservedBOp "mod"  Mod 
+      binary Mult, 
+      binary Div, 
+      binary Mod 
     ], 
     [ 
-      binary  "+"       Add, 
-      binary  "-"       Sub 
+      binary Add, 
+      binary' TMinus Sub 
     ], 
     [ 
-      binary  "="       Eq, 
-      binary  "/="      Neq, 
-      binary  "<="      LessEq, 
-      binary  ">="      GreaterEq, 
-      binary  "<"       Less, 
-      binary  ">"       Greater, 
-      binary  "|"       Divides
+      binary Eq, 
+      binary Neq, 
+      binary LessEq, 
+      binary GreaterEq, 
+      binary Less, 
+      binary Greater, 
+      binary Divides
     ],
     [
-      reservedBOp "and"  And
+      binary And
     ],
     [
-      reservedBOp "or"  Or
+      binary Or
     ]
   ]
   where
-    unary s cons = Prefix (Unary cons <$ symbol s)
-    binary s cons = InfixL (Binary cons <$ symbol s)
-    binaryNotFollowed s cons notFollowed = InfixL (Binary cons <$ try (symbol s <* notFollowedBy notFollowed))   -- this ensures it does not eat anything parsed by 'notFollowed'
-    binaryR s cons = InfixR (Binary cons <$ symbol s)  -- right-associative
-    reservedUOp s cons = Prefix (Unary cons <$ (lexeme . try) (string s <* notFollowedBy alphaNumChar))  -- this ensures it does not eat identifiers starting with the name of some operator. E.g. a function called notOne
-    reservedBOp s cons = InfixL (Binary cons <$ (lexeme . try) (string s <* notFollowedBy alphaNumChar))  -- this ensures it does not eat identifiers starting with the name of some operator. E.g. a function called modInv
+    unary op = Prefix (Unary op <$ (tok $ TUOp op))
+    unary' t op = Prefix (Unary op <$ tok t)
+    binary op = InfixL (Binary op <$ (tok $ TBOp op))
+    binary' t op = InfixL (Binary op <$ tok t)
+    binaryR op = InfixR (Binary op <$ (tok $ TBOp op))  -- right-associative
+
+
+-- exprTable :: [[Operator Parser Expr]]
+-- exprTable = [
+--     [ 
+--       binaryR "^"       Pow
+--     ], 
+--     [
+--       unary   "-"       Neg,
+--       reservedUOp "not" Not
+--     ],
+--     [ 
+--       binary  "*"       Mult, 
+--       binaryNotFollowed  "/" Div (char '='), 
+--       reservedBOp "mod"  Mod 
+--     ], 
+--     [ 
+--       binary  "+"       Add, 
+--       binary  "-"       Sub 
+--     ], 
+--     [ 
+--       binary  "="       Eq, 
+--       binary  "/="      Neq, 
+--       binary  "<="      LessEq, 
+--       binary  ">="      GreaterEq, 
+--       binary  "<"       Less, 
+--       binary  ">"       Greater, 
+--       binary  "|"       Divides
+--     ],
+--     [
+--       reservedBOp "and"  And
+--     ],
+--     [
+--       reservedBOp "or"  Or
+--     ]
+--   ]
+--   where
+--     unary s cons = Prefix (Unary cons <$ symbol s)
+--     binary s cons = InfixL (Binary cons <$ symbol s)
+--     binaryNotFollowed s cons notFollowed = InfixL (Binary cons <$ try (symbol s <* notFollowedBy notFollowed))   -- this ensures it does not eat anything parsed by 'notFollowed'
+--     binaryR s cons = InfixR (Binary cons <$ symbol s)  -- right-associative
+--     reservedUOp s cons = Prefix (Unary cons <$ (lexeme . try) (string s <* notFollowedBy alphaNumChar))  -- this ensures it does not eat identifiers starting with the name of some operator. E.g. a function called notOne
+--     reservedBOp s cons = InfixL (Binary cons <$ (lexeme . try) (string s <* notFollowedBy alphaNumChar))  -- this ensures it does not eat identifiers starting with the name of some operator. E.g. a function called modInv
 
 parseTerm :: Parser Expr
 parseTerm = parens (try parseTuple <|> parseExpr)
   <|> parseCall
-  <|> try (ImmediateReal <$> lexeme Lexer.float)
-  <|> ImmediateInt  <$> lexeme Lexer.decimal
-  <|> ImmediateBool <$> (True <$ symbol "True" <|> False <$ symbol "False")
+  <|> ImmediateReal <$> realTok
+  <|> ImmediateInt  <$> intTok
+  <|> ImmediateBool <$> boolTok
 
 -- NOTE: we explicitly disallow single-element tuples here
 parseTuple :: Parser Expr
-parseTuple = Tuple <$> ((:|) <$> (parseExpr <* symbol ",") <*> sepBy1 parseExpr (symbol ","))
+parseTuple = Tuple <$> ((:|) <$> (parseExpr <* tok TComma) <*> (sepBy1 parseExpr $ tok TComma))
 
 parseCall :: Parser Expr
-parseCall = do
-  name <- identifier
-  maybeArgs <- optional (parens (sepBy parseExpr (symbol ",")))
-  
-  return $ case (name, maybeArgs) of
-    (n, Nothing)     -> Call n []         -- value reference
-    ("floor", Just [e]) -> Unary Floor e  -- handle special built-in operations that are written like function calls in the DSL
-    ("sqrt",  Just [e])  -> Unary Sqrt e
-    (n, Just args)   -> Call n args       -- function call
+parseCall = Call <$> idTok <*> (option [] $ parens $ sepBy1 parseExpr $ tok TComma)
 
 parseBlockAnnotation :: Parser BlockAnnotation
 parseBlockAnnotation = try (BlockDisplay <$> parseBlockDisplay)
                       <|> parseKeyValue
   where 
     parseKeyValue = do
-      (key, value) <- (,) <$> identifier <* symbol "=" <*> lexeme (manyTill anySingle (lookAhead (symbol "," <|> symbol "]")))
+      (key, value) <- (,) <$> idTok <* (tok $ TBOp Eq) <*> strTok
       let attr = case key of
             "class" -> BlockClass
             "name" -> BlockName
@@ -214,15 +187,88 @@ parseBlockAnnotation = try (BlockDisplay <$> parseBlockDisplay)
       return $ attr value
 
 parseBlockDisplay :: Parser BlockDisplayMode
-parseBlockDisplay = DefaultBlock <$ symbol "default"
-                    <|> BoxBlock <$ symbol "box"
-                    <|> try (InTextBlock <$ symbol "intext")
-                    <|> try (InLineBlock <$ symbol "inline")
-                    <|> HiddenBlock <$ symbol "hidden"
+parseBlockDisplay = DefaultBlock <$ keyTok "default"
+                    <|> BoxBlock <$ keyTok "box"
+                    <|> try (InTextBlock <$ keyTok "intext")
+                    <|> try (InLineBlock <$ keyTok "inline")
+                    <|> HiddenBlock <$ keyTok "hidden"
 
 parseDeclAnnotation :: Parser DeclAnnotation
 parseDeclAnnotation = try (DeclDisplay <$> parseDeclDisplay)
 
 parseDeclDisplay :: Parser DeclDisplayMode
-parseDeclDisplay = try (DefaultDecl <$ symbol "default")
-                    <|> HiddenDecl <$ symbol "hidden"
+parseDeclDisplay = try (DefaultDecl <$ keyTok "default")
+                    <|> HiddenDecl <$ keyTok "hidden"
+
+
+-- Helper functions
+
+tok :: Token -> Parser ()
+tok target = token test (Set.singleton (Tokens (target :| [])))
+  where
+    test t | t == target = Just ()
+           | otherwise = Nothing
+
+idTok :: Parser String
+idTok = tokExtract test
+  where
+    test (TId name) = Just name
+    test _ = Nothing
+
+strTok :: Parser String
+strTok = tokExtract test
+  where
+    test (TStr text) = Just text
+    test _ = Nothing
+
+keyTok :: String -> Parser ()
+keyTok key = tok (TId key)
+
+intTok :: Parser Integer
+intTok = tokExtract test
+  where
+    test (TInt i) = Just i
+    test _ = Nothing
+
+realTok :: Parser Double
+realTok = tokExtract test
+  where
+    test (TReal r) = Just r
+    test _ = Nothing
+
+boolTok :: Parser Bool
+boolTok = tokExtract test
+  where
+    test (TBool b) = Just b
+    test _ = Nothing
+
+uopTok :: Parser UnaryOp
+uopTok = tokExtract test
+  where
+    test (TUOp op) = Just op
+    test _ = Nothing
+
+bopTok :: Parser BinaryOp
+bopTok = tokExtract test
+  where
+    test (TBOp op) = Just op
+    test _ = Nothing
+
+primTypeTok :: Parser PrimitiveType
+primTypeTok = tokExtract test
+  where
+    test (TPrimType pt) = Just pt
+    test _ = Nothing
+
+tokExtract :: (Token -> Maybe a) -> Parser a
+tokExtract = (`token` Set.empty)
+
+
+parens :: Parser a -> Parser a
+parens = between (tok TLParen) (tok TRParen)
+
+brackets :: Parser a -> Parser a
+brackets = between (tok TLBracket) (tok TRBracket)
+
+braces :: Parser a -> Parser a
+braces = between (tok TLBrace) (tok TRBrace)

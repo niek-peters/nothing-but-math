@@ -1,7 +1,8 @@
 module IR (module IR) where -- export everything
 
-import AST (Id, Signature, UnaryOp, PrimitiveType, BlockDisplayMode (DefaultBlock), DeclDisplayMode (DefaultDecl))
+import AST (Id, Signature, BlockDisplayMode (DefaultBlock), DeclDisplayMode (DefaultDecl))
 import Data.List.NonEmpty (NonEmpty)
+import Token (PrimitiveType, UnaryOp)
 
 data IR = IR IRBlockAnnotations [IRDeclaration]
     deriving (Show, Eq)
@@ -35,7 +36,7 @@ data IREvalResult = IREvalResult IRExpr IRExpr  -- used to represent an expressi
 
 data IRExpr = IRCast IRExpr PrimitiveType PrimitiveType       -- wraps an expr that should be cast from type to type
             | IRCall Id Bool [IRExpr]       -- boolean indicates whether the reference is to a global identifier
-            | IRImmediateInt Int PrimitiveType  -- the PrimitiveType indicates whether this immediate value should be interpreted as Positive, Natural or Integer
+            | IRImmediateInt Integer PrimitiveType  -- the PrimitiveType indicates whether this immediate value should be interpreted as Positive, Natural or Integer
             | IRImmediateReal Double
             | IRImmediateBool Bool
             | IRBinary IRBinaryOp IRExpr IRExpr     

@@ -6,11 +6,12 @@ import Elab (ElabResult)
 import Types (Fragment(..))
 import IR
 import Data.List (intercalate)
-import AST (Signature (..), Type (..), PrimitiveType (..), Id, UnaryOp (..))
+import AST (Signature (..), Type (..), Id)
 import Data.List.NonEmpty (toList)
 import qualified Data.List.NonEmpty as NonEmpty
 import Data.FileEmbed (embedStringFile)
 import CodeGen
+import Token (UnaryOp (..), PrimitiveType (..))
 
 
 extensions :: String

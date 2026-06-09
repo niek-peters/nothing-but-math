@@ -7,6 +7,7 @@ import qualified Data.Map as Map
 import Types (Fragment(..))
 import System.Process (readProcessWithExitCode)
 import GHC.IO.Exception (ExitCode(..))
+import Lexer (tokenize, runLexer)
 
 type EvalResult = [Fragment String IR IREvalResult]
 
@@ -29,7 +30,8 @@ evalExprs lib frags = mapM evalExpr frags
 haskellToIR :: String -> IRExpr
 haskellToIR haskell = elaborated
     where   nbm = haskellToNBM haskell
-            parsed = runExprParser nbm
+            tokenized = runLexer nbm
+            parsed = runExprParser tokenized
             elaborated = elabTopLevelExpr parsed Map.empty  -- there should be no identifiers left
 
 haskellToNBM :: String -> String

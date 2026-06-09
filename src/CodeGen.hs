@@ -3,8 +3,8 @@ module CodeGen (module CodeGen) where
 import Data.List.NonEmpty (NonEmpty ((:|)), toList)
 import Data.List (intercalate)
 import IR (IRBinaryOp (..))
-import AST (UnaryOp (..))
 import GHC.Base (maxInt)
+import Token (UnaryOp (..))
 
 -- Generic codeGen helpers --
 

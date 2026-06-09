@@ -4,10 +4,11 @@ import Types (Fragment(..))
 import IR (IR(..), IRDeclaration (IRDeclaration), IRImplementation (..), IRLocal (..), IRExpr (..), IRWhereTerm (IRLocalDecl, IRConstraint), IRBranch (..), IRBinaryOp (..), IRDeclAnnotations (..), IRBlockAnnotations (..), IREvalResult (..))
 import Data.List (intercalate)
 import Data.List.NonEmpty (toList)
-import AST (Signature (Signature), PrimitiveType (..), Type (..), UnaryOp (..), DeclDisplayMode (..), BlockDisplayMode (..))
+import AST (Signature (Signature), Type (..), DeclDisplayMode (..), BlockDisplayMode (..))
 import CodeGen
 import qualified Data.Set as Set
 import Eval (EvalResult)
+import Token (UnaryOp(..), PrimitiveType (..))
 
 makeCounterName :: String -> String
 makeCounterName className = "nbm" ++ className ++ "Counter"

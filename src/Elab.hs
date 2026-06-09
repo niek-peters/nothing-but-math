@@ -1,13 +1,14 @@
 module Elab (elab, ElabResult, Scope, elabTopLevelExpr) where
 
 import qualified Data.Map as Map
-import AST (Id, Signature (..), AST(..), Declaration (..), Expr (..), Type (..), PrimitiveType (..), BinaryOp (..), UnaryOp (..), Local (..), Implementation (..), Branch (..), WhereTerm (..), BlockAnnotation (..), DeclAnnotation (DeclDisplay))
+import AST (Id, Signature (..), AST(..), Declaration (..), Expr (..), Type (..), Local (..), Implementation (..), Branch (..), WhereTerm (..), BlockAnnotation (..), DeclAnnotation (DeclDisplay))
 import IR (IRExpr (..), IRBinaryOp (..), IR (..), IRDeclaration (IRDeclaration), IRImplementation (IRUnconditional, IRConditional), IRBranch (IRBranch), IRLocal (..), IRWhereTerm (IRLocalDecl, IRConstraint), IRBlockAnnotations (..), defaultBlockAnnotations, IRDeclAnnotations (declDisplayMode), defaultDeclAnnotations)
 import Data.List.NonEmpty (NonEmpty(..), toList, fromList)
 import qualified Data.List.NonEmpty as NonEmpty
 import qualified Data.Functor
 import Types
 import Parser (ParseResult)
+import Token (PrimitiveType(..), UnaryOp (..), BinaryOp (..))
 
 -- From the design of the DSL we get some unique benefits:
 -- 1. There are only 2 levels of scope: global and local
