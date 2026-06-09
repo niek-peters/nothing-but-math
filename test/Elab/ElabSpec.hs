@@ -5,6 +5,7 @@ import TestUtils (shouldBeGolden)
 import Elab (elab)
 import Parser (parse)
 import Text.Show.Pretty (ppShow)
+import Lexer (tokenize)
 
 spec :: Spec
 spec = 
@@ -15,4 +16,4 @@ spec =
    
 shouldElabToGolden :: String -> Spec
 shouldElabToGolden file = it ("correctly elaborates example program " ++ file) $ shouldBeGolden ("test/Elab/" ++ file ++ ".nbm") f
-    where   f = ppShow . elab . parse
+    where   f = ppShow . elab . parse . tokenize

@@ -27,7 +27,13 @@ sectionSplitter = manyTill (codeBlock <|> evalBlock <|> textBlock) eof
     evalBlock = try (symbol "{{{") *> (EvalFragment       <$> eatUntilTokens "}}}")
     
     textBlock = TextFragment . concat <$> some (commentStr <|> normalTextLine)
-    commentStr = (++) <$> string "%" <*> manyTill anySingle (("" <$ eof) <|> string "\n")
+    -- commentStr = (++) <$> string "%" <*> manyTill anySingle (("" <$ eof) <|> string "\n")
+    commentStr = (\start (body, end) -> start ++ body ++ end) <$> string "%" <*> manyTill_ anySingle (string "\n" <|> ("" <$ eof))
+    -- commentStr = do
+    --   start <- string "%"
+    --   -- body is the text, end is either "\n" or ""
+    --   (body, end) <- manyTill_ anySingle (string "\n" <|> ("" <$ eof))
+    --   return (start ++ body ++ end)
     
     normalTextLine = some (
         notFollowedBy (string "%")
@@ -37,7 +43,7 @@ sectionSplitter = manyTill (codeBlock <|> evalBlock <|> textBlock) eof
       )
 
 eatUntilTokens :: String -> TokenLexer [Token]
-eatUntilTokens endMarker = manyTill lexer (try $ symbol endMarker)
+eatUntilTokens endMarker = manyTill lexer (try $ string endMarker)
 
 -- eatUntilTokens :: String -> TokenLexer [Token]
 -- eatUntilTokens endMarker = codeBody

@@ -4,6 +4,7 @@ import Test.Hspec
 import Parser (parse)
 import TestUtils (shouldBeGolden)
 import Text.Show.Pretty (ppShow)
+import Lexer (tokenize)
 
 spec :: Spec
 spec = 
@@ -13,4 +14,4 @@ spec =
 
 shouldParseToGolden :: String -> Spec
 shouldParseToGolden file = it ("correctly parses example program " ++ file) $ shouldBeGolden ("test/Parsing/" ++ file ++ ".nbm") f 
-    where   f = ppShow . parse
+    where   f = ppShow . parse . tokenize

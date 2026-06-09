@@ -9,6 +9,7 @@ import System.FilePath (addExtension, splitExtension)
 import System.Directory (canonicalizePath)
 import Eval (eval)
 import CodeGenLaTeX (codeGenLaTeX)
+import Lexer (tokenize)
 
 spec :: Spec
 spec = 
@@ -21,7 +22,7 @@ shouldCodeGenToGolden :: String -> Spec
 shouldCodeGenToGolden file = it ("generates correct LaTeX code for example program " ++ file) $ shouldBeGolden' filePath f
     where   filePath = "test/CodeGenLaTeX/" ++ file ++ ".nbm"
             f str = do
-                let elaborated = (elab . parse) str
+                let elaborated = (elab . parse . tokenize) str
                 let (lib, evalFrags) = (`codeGenHaskell` "TestModule") elaborated
                 pathHaskell <- (addExtension <$> (fst <$> splitExtension <$> canonicalizePath filePath)) <*> (pure "generated.hs")
                 writeFile pathHaskell lib

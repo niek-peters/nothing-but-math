@@ -6,6 +6,7 @@ import Text.Megaparsec hiding (Token)
 import qualified Text.Megaparsec as M
 
 import qualified Data.List.NonEmpty as NonEmpty
+import Data.List (intercalate)
 
 data Token
   = TId String
@@ -112,16 +113,16 @@ instance TraversableStream [Token] where
           -- construct the final display string with smart ellipsis bounds
           prefixStr    = if hasHiddenContext then "... " else ""
           suffixStr    = if length errorAndBeyond > 10 then " ..." else ""
-          streamString = prefixStr ++ unwords (map show snapshotTokens) ++ suffixStr
+          streamString = prefixStr ++ intercalate ", " (map show snapshotTokens) ++ suffixStr
           
           -- calculate the caret column, accounting for the prefix if it's there
           prefixWidth  = if hasHiddenContext then length prefixStr else 0
           contextWidth = if null contextTokens 
                          then 0 
-                         else sum (map (length . show) contextTokens) + length contextTokens
+                         else sum (map (length . show) contextTokens) + 2 * length contextTokens
                          
           caretColumn  = prefixWidth + contextWidth + 1
-          
+
   reachOffsetNoLine offset state =  state { M.pstateOffset = offset }
     
 -- -- | Clean visual representation of tokens for error strings

@@ -76,6 +76,10 @@ parseExpr = makeExprParser parseTerm exprTable
 
 exprTable :: [[Operator Parser Expr]]
 exprTable = [
+    [
+      unary Sqrt,
+      unary Floor
+    ],
     [ 
       binaryR Pow
     ], 
