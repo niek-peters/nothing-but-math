@@ -65,38 +65,11 @@ instance Ord PrimitiveType where
         rank Real     = 5
         rank Boolean  = error $ "LOGIC ERROR: Attempt at comparing Boolean to other type"
 
--- | 1. Tell Megaparsec how to step through a list of your Tokens
--- instance M.Stream [Token] where
---   type Token  [Token] = Token
---   type Tokens [Token] = [Token]
-
---   tokenToChunk  _ t   = [t]
---   tokensToChunk _ ts  = ts
---   chunkToTokens _ ts  = ts
---   chunkLength   _ ts  = length ts
---   chunkEmpty    _ ts  = null ts
-  
---   take1_ []       = Nothing
---   take1_ (t:ts)   = Just (t, ts)
-  
---   takeN_ n ts | n <= 0    = Just ([], ts)
---               | null ts   = Nothing
---               | otherwise = let (chunk, rest) = splitAt n ts 
---                             in Just (chunk, rest)
-                            
---   takeWhile_ f ts = span f ts
-
--- | 2. Tell Megaparsec how to format your Tokens visually when errors occur
 instance M.VisualStream [Token] where
   showTokens _ chunks = unwords (map show (NonEmpty.toList chunks))
   tokensLength _ chunks = length chunks
   
--- | 2. Tell Megaparsec how to track line positions on a token array
 instance TraversableStream [Token] where
-  -- reachOffset offset state =  (Just streamString, state { M.pstateOffset = offset })
-  --   where remainingTokens = M.pstateInput state
-  --         first10Tokens = take 10 remainingTokens
-  --         streamString = unwords (map show first10Tokens) ++ (if length remainingTokens > 10 then "..." else "")
   reachOffset offset state = (Just streamString, state  { M.pstateOffset = offset, M.pstateSourcePos = (M.pstateSourcePos state) { M.sourceColumn = M.mkPos caretColumn }})
     where 
           currentInput = M.pstateInput state
@@ -124,43 +97,3 @@ instance TraversableStream [Token] where
           caretColumn  = prefixWidth + contextWidth + 1
 
   reachOffsetNoLine offset state =  state { M.pstateOffset = offset }
-    
--- -- | Clean visual representation of tokens for error strings
--- prettyShowToken :: Token -> String
--- prettyShowToken t = case t of
---   TId name        -> name
---   TStr text       -> "\"" ++ text ++ "\""
---   TInt val        -> show val
---   TReal val       -> show val
---   TBool True      -> "True"
---   TBool False     -> "False"
---   TUOp op         -> prettyShowUOp op
---   TBOp op         -> prettyShowBOp op
---   TMinus          -> "-"
---   TIf             -> "if"
---   TOtherwise      -> "otherwise"
---   TWhere          -> "where"
---   TPrimType pt    -> prettyShowPrim pt
---   TColon          -> ":"
---   TAssign         -> ":="
---   TArrow          -> "->"
---   TComma          -> ","
---   THash           -> "#"
---   TAt             -> "@"
---   TLParen         -> "("
---   TRParen         -> ")"
---   TLBracket       -> "["
---   TRBracket       -> "]"
---   TLBrace         -> "{"
---   TRBrace         -> "}"
---   TTextString s   -> s
---   where
---     prettyShowBOp Add = "+"; prettyShowBOp Sub = "-"; prettyShowBOp Mult = "*"; prettyShowBOp Div = "/"
---     prettyShowBOp Pow = "^"; prettyShowBOp Mod = "mod"; prettyShowBOp Eq = "="; prettyShowBOp Neq = "/="
---     prettyShowBOp Less = "<"; prettyShowBOp Greater = ">"; prettyShowBOp LessEq = "<="; prettyShowBOp GreaterEq = ">="
---     prettyShowBOp Divides = "|"; prettyShowBOp And = "and"; prettyShowBOp Or = "or"
-
---     prettyShowUOp Neg = "-"; prettyShowUOp Sqrt = "sqrt"; prettyShowUOp Floor = "floor"; prettyShowUOp Not = "not"
-
---     prettyShowPrim Positive = "Z+"; prettyShowPrim Natural = "N"; prettyShowPrim Integer = "Z"
---     prettyShowPrim Rational = "Q";  prettyShowPrim Real = "R";    prettyShowPrim Boolean = "B"

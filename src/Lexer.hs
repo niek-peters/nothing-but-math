@@ -23,38 +23,21 @@ tokenize str = case parse sectionSplitter "" str of
 sectionSplitter :: TokenLexer TokenizeResult
 sectionSplitter = manyTill (codeBlock <|> evalBlock <|> textBlock) eof
   where
-    codeBlock = try (symbol "<<<") *> (DefinitionFragment <$> eatUntilTokens ">>>")
-    evalBlock = try (symbol "{{{") *> (EvalFragment       <$> eatUntilTokens "}}}")
-    
+    codeBlock = try (symbol "<<<") *> (DefinitionFragment <$> lexUntil ">>>")
+    evalBlock = try (symbol "{{{") *> (EvalFragment <$> lexUntil "}}}")
     textBlock = TextFragment . concat <$> some (commentStr <|> normalTextLine)
-    -- commentStr = (++) <$> string "%" <*> manyTill anySingle (("" <$ eof) <|> string "\n")
+
     commentStr = (\start (body, end) -> start ++ body ++ end) <$> string "%" <*> manyTill_ anySingle (string "\n" <|> ("" <$ eof))
-    -- commentStr = do
-    --   start <- string "%"
-    --   -- body is the text, end is either "\n" or ""
-    --   (body, end) <- manyTill_ anySingle (string "\n" <|> ("" <$ eof))
-    --   return (start ++ body ++ end)
     
     normalTextLine = some (
         notFollowedBy (string "%")
-        *> notFollowedBy (try (symbol "<<<"))
-        *> notFollowedBy (try (symbol "{{{"))
+        *> notFollowedBy (try (string "<<<"))
+        *> notFollowedBy (try (string "{{{"))
         *> anySingle
       )
 
-eatUntilTokens :: String -> TokenLexer [Token]
-eatUntilTokens endMarker = manyTill lexer (try $ string endMarker)
-
--- eatUntilTokens :: String -> TokenLexer [Token]
--- eatUntilTokens endMarker = codeBody
---   where
---     codeBody = (commentSkip *> codeBody)
---            <|> ([] <$ try (string endMarker))
---            <|> ((:) <$> lexer <*> codeBody)
-    
---     commentSkip = string "%" *> manyTill anySingle (string "\n") >> space
-
--- Lexing
+lexUntil :: String -> TokenLexer [Token]
+lexUntil endMarker = manyTill lexer (try $ string endMarker)
 
 whitespace :: TokenLexer ()
 whitespace = L.space space1 (L.skipLineComment "%") empty
