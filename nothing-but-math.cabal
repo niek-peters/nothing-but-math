@@ -32,8 +32,10 @@ library
       Elab
       Eval
       IR
+      Lexer
       Lib
       Parser
+      Token
       Types
   other-modules:
       Paths_nothing_but_math

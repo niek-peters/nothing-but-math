@@ -9,10 +9,8 @@ import AST
 import Data.List.NonEmpty (fromList, NonEmpty ((:|)))
 import Control.Monad.Combinators.Expr
 import Types
-import Control.Monad (when)
 
--- TODO: make section parser ignore <<<, >>>, {{{ and }}} if there is a % before it on the same line
--- TODO: consider enforcing newlines in many places
+-- NOTE: might be good to enforce newlines in many places
 
 type Parser = Parsec Void String
 
@@ -50,7 +48,7 @@ parse str = map runFragmentParser sections
 
 useParser :: Parser a -> String -> a
 useParser parser str = case Text.Megaparsec.parse parser "" str of
-    Left e -> error $ show e
+    Left e -> error $ errorBundlePretty e
     Right r -> r
 
 runSectionsParser :: String -> SplitResult
@@ -58,9 +56,6 @@ runSectionsParser = useParser parseSections
 
 runExprParser :: String -> Expr
 runExprParser = useParser parseExpr
-
--- parseSections :: Parser SplitResult
--- parseSections = error "GG"
 
 parseSections :: Parser SplitResult
 parseSections = manyTill (
@@ -82,36 +77,8 @@ parseSections = manyTill (
            <|> [] <$ try (string str)
            <|> (:) <$> anySingle <*> eatUntil str
 
-    -- codeBody = (++) <$> comment <*> codeBody
-    --        <|> [] <$ try (string ">>>")
-    --        <|> (:) <$> anySingle <*> codeBody
-
-    -- evalBody = (++) <$> comment   <*> evalBody
-    --        <|> [] <$ try (string "}}}")
-    --        <|> (:)  <$> anySingle  <*> evalBody
-
     -- comment eats the entire rest of the line, so commented-out block entry markers get ignored
     comment = (++) <$> string "%" <*> manyTill anySingle (("" <$ eof) <|> string "\n")
-
--- parseSections :: Parser SplitResult
--- parseSections = manyTill (choice [codeStr, evalStr, textStr]) eof
---   where
---     codeStr = DefinitionFragment <$> (try (uncommented *> string "<<<") *> manyTill anySingle (string ">>>"))
---     evalStr = EvalFragment <$> (try (uncommented *> string "{{{") *> manyTill anySingle (string "}}}"))
---     textStr = EvalFragment <$> (try (uncommented *> string "{{{") *> manyTill anySingle (string "}}}"))
---     -- codeStr = DefinitionFragment <$> (try (string "<<<") *> manyTill anySingle (string ">>>"))
---     -- evalStr = EvalFragment <$> (try (string "{{{") *> manyTill anySingle (string "}}}"))
---     -- textStr = TextFragment <$> some (
---     --     notFollowedBy (string "<<<") 
---     --     *> notFollowedBy (string "{{{") 
---     --     *> anySingle
---     --   )
-
---     uncommented = do
---       state <- getParserState
---       let inputBefore = take (stateOffset state) (stateInput state)
---       let currentLineBefore = reverse $ takeWhile (/= '\n') (reverse inputBefore)
---       when ('%' `elem` currentLineBefore) $ fail "This block marker is inside a LaTeX comment line!"
 
 runFragmentParser :: Fragment String String String -> Fragment String AST Expr
 runFragmentParser (TextFragment t) = TextFragment t
