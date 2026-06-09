@@ -7,6 +7,7 @@
            []
            "a"
            (Signature Nothing (Type (Natural :| [])))
+           "a"
            []
            (Unconditional (ImmediateInt 0))
            []
@@ -19,6 +20,7 @@
            []
            "b"
            (Signature Nothing (Type (Natural :| [])))
+           "b"
            []
            (Unconditional (Call "a" []))
            []

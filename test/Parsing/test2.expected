@@ -5,6 +5,7 @@
            []
            "f"
            (Signature (Just (Type (Natural :| []))) (Type (Positive :| [])))
+           "f"
            [ "x" ]
            (Unconditional
               (Binary Mult (Call "y" []) (Unary Neg (ImmediateInt 2))))
@@ -18,6 +19,7 @@
            "g"
            (Signature
               (Just (Type (Integer :| [ Natural ]))) (Type (Rational :| [])))
+           "g"
            [ "x" , "a" ]
            (Unconditional
               (Binary

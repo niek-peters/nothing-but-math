@@ -10,8 +10,9 @@ data AST = AST [BlockAnnotation] [Declaration]
 
 data Declaration = Declaration 
     [DeclAnnotation]
-    Id              -- name
+    Id              -- declaration name
     Signature       -- type signature
+    Id              -- implementation name (checked by elab if it matches declaration name)
     [Id]            -- arguments
     Implementation  
     [WhereTerm]

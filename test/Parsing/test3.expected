@@ -6,6 +6,7 @@
            []
            "isPos"
            (Signature (Just (Type (Integer :| []))) (Type (Boolean :| [])))
+           "isPos"
            [ "x" ]
            (Unconditional (Binary Greater (Call "x" []) (ImmediateInt 0)))
            []
@@ -13,6 +14,7 @@
            []
            "isNat"
            (Signature (Just (Type (Integer :| []))) (Type (Boolean :| [])))
+           "isNat"
            [ "x" ]
            (Unconditional (Binary GreaterEq (Call "x" []) (ImmediateInt 0)))
            []
@@ -20,6 +22,7 @@
            []
            "isNeg"
            (Signature (Just (Type (Integer :| []))) (Type (Boolean :| [])))
+           "isNeg"
            [ "x" ]
            (Unconditional (Binary Less (Call "x" []) (ImmediateInt 0)))
            []
@@ -27,6 +30,7 @@
            []
            "nonNeg"
            (Signature (Just (Type (Integer :| []))) (Type (Boolean :| [])))
+           "nonNeg"
            [ "x" ]
            (Unconditional (Unary Not (Call "isNeg" [ Call "x" [] ])))
            []
@@ -34,6 +38,7 @@
            []
            "nonZero"
            (Signature (Just (Type (Integer :| []))) (Type (Boolean :| [])))
+           "nonZero"
            [ "x" ]
            (Unconditional (Binary Neq (Call "x" []) (ImmediateInt 0)))
            []
@@ -41,6 +46,7 @@
            []
            "oneOrTwo"
            (Signature (Just (Type (Integer :| []))) (Type (Boolean :| [])))
+           "oneOrTwo"
            [ "x" ]
            (Unconditional
               (Binary
@@ -52,6 +58,7 @@
            []
            "neitherOneOrTwo"
            (Signature (Just (Type (Integer :| []))) (Type (Boolean :| [])))
+           "neitherOneOrTwo"
            [ "x" ]
            (Unconditional
               (Binary

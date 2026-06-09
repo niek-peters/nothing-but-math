@@ -57,7 +57,7 @@ collectGlobals frags = foldl collect Map.empty frags
 
 collectGlobalsFromAST :: Scope -> AST -> Scope
 collectGlobalsFromAST m (AST _ decls) = foldl insertDeclaration m decls
-    where   insertDeclaration scope (Declaration _ ident sig _ _ _) = insertIdent scope ident sig
+    where   insertDeclaration scope (Declaration _ ident sig _ _ _ _) = insertIdent scope ident sig
 
 insertIdent :: Scope -> Id -> Signature -> Scope
 insertIdent m ident sig 
@@ -73,8 +73,9 @@ resolveIdent ident (locals, globals) = case Map.lookup ident locals of
         Nothing -> error $ "ERROR: Reference to undefined value '" ++ ident ++  "'"
 
 elabDeclaration :: Declaration -> Scope -> IRDeclaration
-elabDeclaration (Declaration declAns ident sig@(Signature from to) params impl whereTerms) globals 
-    = IRDeclaration (elabDeclAnnotations declAns) ident sig params resImpl merged
+elabDeclaration (Declaration declAns declIdent sig@(Signature from to) implIdent params impl whereTerms) globals 
+    | declIdent /= implIdent = error $ "ERROR: Implementation identifier '" ++ implIdent ++ "' does not match declaration identifier '" ++ declIdent ++ "'"
+    | otherwise = IRDeclaration (elabDeclAnnotations declAns) declIdent sig params resImpl merged
     where   resImpl = elabImplementation impl (Just to) scopes
 
             -- and finally we merge the locals and constraints again in their original order
