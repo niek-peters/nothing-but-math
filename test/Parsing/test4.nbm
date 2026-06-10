@@ -1,0 +1,11 @@
+% this file tests operator precedence
+<<<
+a : Z
+a := -2 ^ 2
+
+b : Z+
+b := (-2) ^ 2
+
+c : Q
+c := 1 ^ (-2)   % parser quirk, we require parentheses here
+>>>

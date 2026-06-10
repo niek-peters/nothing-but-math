@@ -1,0 +1,33 @@
+[ TextFragment "% this file tests operator precedence\n"
+, DefinitionFragment
+    (AST
+       []
+       [ Declaration
+           []
+           "a"
+           (Signature Nothing (Type (Integer :| [])))
+           "a"
+           []
+           (Unconditional
+              (Unary Neg (Binary Pow (ImmediateInt 2) (ImmediateInt 2))))
+           []
+       , Declaration
+           []
+           "b"
+           (Signature Nothing (Type (Positive :| [])))
+           "b"
+           []
+           (Unconditional
+              (Binary Pow (Unary Neg (ImmediateInt 2)) (ImmediateInt 2)))
+           []
+       , Declaration
+           []
+           "c"
+           (Signature Nothing (Type (Rational :| [])))
+           "c"
+           []
+           (Unconditional
+              (Binary Pow (ImmediateInt 1) (Unary Neg (ImmediateInt 2))))
+           []
+       ])
+]

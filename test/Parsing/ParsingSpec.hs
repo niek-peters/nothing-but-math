@@ -9,7 +9,7 @@ import Lexer (tokenize)
 spec :: Spec
 spec = 
     describe "Sample Program Parsing" $
-        goldenTestFiles ["test1", "test2", "test3"]
+        goldenTestFiles ["test1", "test2", "test3", "test4"]
     where   goldenTestFiles = mapM_ shouldParseToGolden
 
 shouldParseToGolden :: String -> Spec

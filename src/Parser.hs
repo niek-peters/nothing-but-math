@@ -108,8 +108,8 @@ exprTable = [
     ]
   ]
   where
-    unary op = Prefix (Unary op <$ (tok $ TUOp op))
-    unary' t op = Prefix (Unary op <$ tok t)
+    unary op = Prefix (foldr1 (.) <$> some (Unary op <$ (tok $ TUOp op)))     -- chaining unary operators: https://www.stackage.org/haddock/lts-16.27/parser-combinators-1.2.1/Control-Monad-Combinators-Expr.html#v:makeExprParser
+    unary' t op = Prefix (foldr1 (.) <$> some (Unary op <$ tok t))
     binary op = InfixL (Binary op <$ (tok $ TBOp op))
     binary' t op = InfixL (Binary op <$ tok t)
     binaryR op = InfixR (Binary op <$ (tok $ TBOp op))  -- right-associative

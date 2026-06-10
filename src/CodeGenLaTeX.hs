@@ -134,6 +134,9 @@ maybeParens (IRBinary op _ _) parentOp isRight
     | otherwise = id
     where   childOpLevel = opLevel $ Right op
             parentOpLevel = opLevel parentOp
+maybeParens (IRUnary op _) parentOp _
+    | (opLevel $ Left op) < (opLevel parentOp) = parens
+    | otherwise = id
 maybeParens _ _ _ = id
 
 codeGenUnary :: UnaryOp -> IRExpr -> String
