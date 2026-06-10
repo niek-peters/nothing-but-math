@@ -8,7 +8,12 @@ import qualified Eval.EvalSpec
 import qualified CodeGenLaTeX.CodeGenLaTeXSpec
 
 -- TODO:
+-- - Add non-happy path tests (compile-time AND runtime errors)
+-- - Add happy path tests for the example algorithms
+-- - Make tests run in a chain to avoid redoing work (maybe this is stupid because parallelization)
 -- - Write way more golden tests
+
+-- Probably out of time/scope:
 -- - Add QuickCheck ParseResult -> pretty print -> ParseResult testing
 -- - Add QuickCheck ElabResult -> pretty print -> ElabResult testing
 -- - Add tests for specific critical functions
