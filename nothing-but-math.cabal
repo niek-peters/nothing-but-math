@@ -84,6 +84,7 @@ test-suite nbm-test
       CodeGenLaTeX.CodeGenLaTeXSpec
       Elab.ElabSpec
       Eval.EvalSpec
+      Lexing.LexingSpec
       Parsing.ParsingSpec
       TestUtils
       Paths_nothing_but_math
