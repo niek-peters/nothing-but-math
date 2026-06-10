@@ -1,0 +1,36 @@
+[ TextFragment
+    "% this file tests comments, text/code/eval fragments and constant definitions\nThis is text\n% this is a LaTeX comment\n"
+, DefinitionFragment
+    [ TId "a"
+    , TColon
+    , TPrimType Natural
+    , TId "a"
+    , TAssign
+    , TInt 0
+    ]
+, TextFragment "\nmore text\n"
+, DefinitionFragment
+    [ TId "b"
+    , TColon
+    , TPrimType Natural
+    , TId "b"
+    , TAssign
+    , TId "a"
+    ]
+, TextFragment "\nAnd now we use evaluation to determine "
+, EvalFragment [ TId "a" ]
+, TextFragment " and "
+, EvalFragment [ TId "b" ]
+, TextFragment
+    ".\n\nWe can also just do arbitrary expressions, like evaluating "
+, EvalFragment
+    [ TUOp Floor
+    , TLParen
+    , TUOp Sqrt
+    , TInt 11
+    , TRParen
+    , TBOp Add
+    , TInt 5
+    ]
+, TextFragment "."
+]

@@ -1,0 +1,81 @@
+\newcounter{nbmAlgorithmCounter}
+\newcounter{nbmDefinitionCounter}
+\newcounter{nbmProcedureCounter}
+% this file tests LaTeX annotations
+This brings us to two new formulae. Define $f : \mathbb{N} \times \mathbb{N} \to \mathbb{Z}$ by $f\left(a, b\right) = c$, where $c = a - b$. Define $g : \mathbb{N} \times \mathbb{N} \to \mathbb{Z}$ by $g\left(a, b\right) = d$, where $d = a + b$. With these, we can define:
+\refstepcounter{nbmAlgorithmCounter}
+\label{my_algorithm_name}
+{
+\par
+\centering
+\fbox{
+\begin{minipage}[t]{\linewidth}
+\vspace{0.5em}
+\textbf{Algorithm \thenbmAlgorithmCounter: My Algorithm Name}
+\\
+{\small This text provides a description of the algorithm}\vspace{0.5em}
+\hrule
+\vspace{-\abovedisplayskip}
+\begin{flalign*}
+&\text{Define}~h : \mathbb{N} \times \mathbb{N} \to \mathbb{Q}~\text{by}&\\
+&h\left(a, b\right) = \frac{e}{6}&\\
+&\text{where}~e = abs\left(f\left(a, b\right) \cdot g\left(a, b\right)\right).&
+\end{flalign*}
+\end{minipage}
+}
+\vspace{0.5em}
+\par
+}
+
+To give some example values: 
+$f\left(1, 2\right) = -1$, $g\left(1, 2\right) = 3$ and $h\left(1, 2\right) = \frac{1}{2}$.    % here we use evaluation fragments, which will be replaced by the evaluated results of the given expressions
+
+Now, we can finally use Algorithm~\ref{my_algorithm_name} to...
+
+...
+Define $i : \mathbb{Z} \to \mathbb{Z}$ by\\
+$i\left(x\right) = id\left(x\right).$\refstepcounter{nbmProcedureCounter}
+\label{doubling}
+{
+\par
+\centering
+\fbox{
+\begin{minipage}[t]{\linewidth}
+\vspace{0.5em}
+\textbf{Procedure \thenbmProcedureCounter}
+\vspace{0.5em}
+\hrule
+\vspace{-\abovedisplayskip}
+\begin{flalign*}
+&\text{Define}~k : \mathbb{Z} \to \mathbb{Z}~\text{by}&\\
+&k\left(x\right) = -2 \cdot neg\left(y\right)&\\
+&\text{where}~y = i\left(x\right).&
+\end{flalign*}
+\end{minipage}
+}
+\vspace{0.5em}
+\par
+}\refstepcounter{nbmAlgorithmCounter}
+
+{
+\par
+\centering
+\fbox{
+\begin{minipage}[t]{\linewidth}
+\vspace{0.5em}
+\textbf{Algorithm \thenbmAlgorithmCounter: Another Great Algorithm}
+\vspace{0.5em}
+\hrule
+\vspace{-\abovedisplayskip}
+\begin{flalign*}
+&\text{Define}~l : \mathbb{Z} \to \mathbb{Z}~\text{by}&\\
+&l\left(x\right) = x^{2}.&
+\end{flalign*}
+\end{minipage}
+}
+\vspace{0.5em}
+\par
+}
+
+Now, using Produce~\ref{doubling} together with this new algorithm, we can evaluate:
+$l\left(k\left(-3\right)\right) = 36$

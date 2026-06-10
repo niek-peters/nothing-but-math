@@ -1,0 +1,16 @@
+\newcounter{nbmDefinitionCounter}
+% this file tests comments, text/code/eval fragments and constant definitions
+This is text
+% this is a LaTeX comment
+\begin{flalign*}
+&\text{Define}~a : \mathbb{N}~\text{by}&\\
+&a = 0.&
+\end{flalign*}
+more text
+\begin{flalign*}
+&\text{Define}~b : \mathbb{N}~\text{by}&\\
+&b = a.&
+\end{flalign*}
+And now we use evaluation to determine $a = 0$ and $b = 0$.
+
+We can also just do arbitrary expressions, like evaluating $\lfloor\sqrt{11}\rfloor + 5 = 8$.

@@ -1,0 +1,217 @@
+[ TextFragment
+    "% this file tests LaTeX annotations\nThis brings us to two new formulae. "
+, DefinitionFragment
+    (IR
+       IRBlockAnnotations
+         { blockDisplayMode = InLineBlock
+         , blockName = Nothing
+         , blockLabel = Nothing
+         , blockClass = "Definition"
+         , blockDescription = Nothing
+         }
+       [ IRDeclaration
+           IRDeclAnnotations { declDisplayMode = DefaultDecl }
+           "f"
+           (Signature
+              (Just (Type (Natural :| [ Natural ]))) (Type (Integer :| [])))
+           [ "a" , "b" ]
+           (IRUnconditional (IRCall "c" False []))
+           [ IRLocalDecl
+               (IRLocal
+                  ("c" :| [])
+                  (IRBinary
+                     IRSub
+                     (IRCast (IRCall "a" False []) Natural Integer)
+                     (IRCast (IRCall "b" False []) Natural Integer)))
+           ]
+       , IRDeclaration
+           IRDeclAnnotations { declDisplayMode = DefaultDecl }
+           "g"
+           (Signature
+              (Just (Type (Natural :| [ Natural ]))) (Type (Integer :| [])))
+           [ "a" , "b" ]
+           (IRUnconditional (IRCast (IRCall "d" False []) Natural Integer))
+           [ IRLocalDecl
+               (IRLocal
+                  ("d" :| [])
+                  (IRBinary IRAdd (IRCall "a" False []) (IRCall "b" False [])))
+           ]
+       ])
+, TextFragment " With these, we can define:\n"
+, DefinitionFragment
+    (IR
+       IRBlockAnnotations
+         { blockDisplayMode = BoxBlock
+         , blockName = Just "My Algorithm Name"
+         , blockLabel = Just "my_algorithm_name"
+         , blockClass = "Algorithm"
+         , blockDescription =
+             Just "This text provides a description of the algorithm"
+         }
+       [ IRDeclaration
+           IRDeclAnnotations { declDisplayMode = HiddenDecl }
+           "abs"
+           (Signature (Just (Type (Integer :| []))) (Type (Natural :| [])))
+           [ "x" ]
+           (IRConditional
+              [ IRBranch
+                  (IRCast (IRUnary Neg (IRCall "x" False [])) Integer Natural)
+                  (IRBinary
+                     IRLess
+                     (IRCall "x" False [])
+                     (IRCast (IRImmediateInt 0 Natural) Natural Integer))
+              ]
+              (IRCast (IRCall "x" False []) Integer Natural))
+           []
+       , IRDeclaration
+           IRDeclAnnotations { declDisplayMode = DefaultDecl }
+           "h"
+           (Signature
+              (Just (Type (Natural :| [ Natural ]))) (Type (Rational :| [])))
+           [ "a" , "b" ]
+           (IRUnconditional
+              (IRBinary
+                 IRFrac
+                 (IRCast (IRCall "e" False []) Natural Integer)
+                 (IRCast (IRImmediateInt 6 Positive) Positive Integer)))
+           [ IRLocalDecl
+               (IRLocal
+                  ("e" :| [])
+                  (IRCall
+                     "abs"
+                     True
+                     [ IRBinary
+                         IRMult
+                         (IRCall "f" True [ IRCall "a" False [] , IRCall "b" False [] ])
+                         (IRCall "g" True [ IRCall "a" False [] , IRCall "b" False [] ])
+                     ]))
+           ]
+       ])
+, TextFragment "\n\nTo give some example values: \n"
+, EvalFragment
+    (IRCall
+       "f"
+       True
+       [ IRCast (IRImmediateInt 1 Positive) Positive Natural
+       , IRCast (IRImmediateInt 2 Positive) Positive Natural
+       ])
+, TextFragment ", "
+, EvalFragment
+    (IRCall
+       "g"
+       True
+       [ IRCast (IRImmediateInt 1 Positive) Positive Natural
+       , IRCast (IRImmediateInt 2 Positive) Positive Natural
+       ])
+, TextFragment " and "
+, EvalFragment
+    (IRCall
+       "h"
+       True
+       [ IRCast (IRImmediateInt 1 Positive) Positive Natural
+       , IRCast (IRImmediateInt 2 Positive) Positive Natural
+       ])
+, TextFragment
+    ".    % here we use evaluation fragments, which will be replaced by the evaluated results of the given expressions\n\nNow, we can finally use Algorithm~\\ref{my_algorithm_name} to...\n\n...\n"
+, DefinitionFragment
+    (IR
+       IRBlockAnnotations
+         { blockDisplayMode = HiddenBlock
+         , blockName = Nothing
+         , blockLabel = Nothing
+         , blockClass = "Definition"
+         , blockDescription = Nothing
+         }
+       [ IRDeclaration
+           IRDeclAnnotations { declDisplayMode = DefaultDecl }
+           "id"
+           (Signature (Just (Type (Integer :| []))) (Type (Integer :| [])))
+           [ "x" ]
+           (IRUnconditional (IRCall "x" False []))
+           []
+       , IRDeclaration
+           IRDeclAnnotations { declDisplayMode = DefaultDecl }
+           "neg"
+           (Signature (Just (Type (Integer :| []))) (Type (Integer :| [])))
+           [ "x" ]
+           (IRUnconditional
+              (IRUnary
+                 Neg
+                 (IRCast
+                    (IRCall "abs" True [ IRCall "x" False [] ]) Natural Integer)))
+           []
+       ])
+, DefinitionFragment
+    (IR
+       IRBlockAnnotations
+         { blockDisplayMode = InTextBlock
+         , blockName = Nothing
+         , blockLabel = Nothing
+         , blockClass = "Definition"
+         , blockDescription = Nothing
+         }
+       [ IRDeclaration
+           IRDeclAnnotations { declDisplayMode = DefaultDecl }
+           "i"
+           (Signature (Just (Type (Integer :| []))) (Type (Integer :| [])))
+           [ "x" ]
+           (IRUnconditional (IRCall "id" True [ IRCall "x" False [] ]))
+           []
+       ])
+, DefinitionFragment
+    (IR
+       IRBlockAnnotations
+         { blockDisplayMode = BoxBlock
+         , blockName = Nothing
+         , blockLabel = Just "doubling"
+         , blockClass = "Procedure"
+         , blockDescription = Nothing
+         }
+       [ IRDeclaration
+           IRDeclAnnotations { declDisplayMode = DefaultDecl }
+           "k"
+           (Signature (Just (Type (Integer :| []))) (Type (Integer :| [])))
+           [ "x" ]
+           (IRUnconditional
+              (IRBinary
+                 IRMult
+                 (IRUnary Neg (IRCast (IRImmediateInt 2 Positive) Positive Integer))
+                 (IRCall "neg" True [ IRCall "y" False [] ])))
+           [ IRLocalDecl
+               (IRLocal ("y" :| []) (IRCall "i" True [ IRCall "x" False [] ]))
+           ]
+       ])
+, DefinitionFragment
+    (IR
+       IRBlockAnnotations
+         { blockDisplayMode = BoxBlock
+         , blockName = Just "Another Great Algorithm"
+         , blockLabel = Nothing
+         , blockClass = "Algorithm"
+         , blockDescription = Nothing
+         }
+       [ IRDeclaration
+           IRDeclAnnotations { declDisplayMode = DefaultDecl }
+           "l"
+           (Signature (Just (Type (Integer :| []))) (Type (Integer :| [])))
+           [ "x" ]
+           (IRUnconditional
+              (IRBinary
+                 IRPosPow
+                 (IRCall "x" False [])
+                 (IRCast (IRImmediateInt 2 Positive) Positive Natural)))
+           []
+       ])
+, TextFragment
+    "\n\nNow, using Produce~\\ref{doubling} together with this new algorithm, we can evaluate:\n"
+, EvalFragment
+    (IRCall
+       "l"
+       True
+       [ IRCall
+           "k"
+           True
+           [ IRUnary Neg (IRCast (IRImmediateInt 3 Positive) Positive Integer)
+           ]
+       ])
+]

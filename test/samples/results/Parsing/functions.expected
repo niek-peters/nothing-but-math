@@ -94,23 +94,19 @@
           , Call "g" [ ImmediateInt 2 , ImmediateInt 3 ]
           ]))
 , TextFragment "\n\n"
-, EvalFragment
-    (Tuple
-       (Call "h" [ Unary Neg (ImmediateInt 1) ] :|
-          [ Call "h" [ ImmediateInt 1 ] ]))
+, EvalFragment (Call "h" [ Unary Neg (ImmediateInt 1) ])
+, TextFragment ", "
+, EvalFragment (Call "h" [ ImmediateInt 1 ])
 , TextFragment "\n\n"
-, EvalFragment
-    (Tuple
-       (Call "i" [ Unary Neg (ImmediateInt 1) ] :|
-          [ Call "i" [ ImmediateInt 1 ] ]))
+, EvalFragment (Call "i" [ Unary Neg (ImmediateInt 1) ])
+, TextFragment ", "
+, EvalFragment (Call "i" [ ImmediateInt 1 ])
 , TextFragment "\n\n"
-, EvalFragment
-    (Tuple
-       (Call "j" [ Unary Neg (ImmediateInt 1) ] :|
-          [ Call "j" [ ImmediateInt 1 ] ]))
+, EvalFragment (Call "j" [ Unary Neg (ImmediateInt 1) ])
+, TextFragment ", "
+, EvalFragment (Call "j" [ ImmediateInt 1 ])
 , TextFragment "\n\n"
-, EvalFragment
-    (Tuple
-       (Call "k" [ Unary Neg (ImmediateInt 1) ] :|
-          [ Call "k" [ ImmediateInt 1 ] ]))
+, EvalFragment (Call "k" [ Unary Neg (ImmediateInt 1) ])
+, TextFragment ", "
+, EvalFragment (Call "k" [ ImmediateInt 1 ])
 ]

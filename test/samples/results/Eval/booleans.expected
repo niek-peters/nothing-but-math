@@ -1,0 +1,237 @@
+[ TextFragment "% this file tests the boolean type and operators\n"
+, DefinitionFragment
+    (IR
+       IRBlockAnnotations
+         { blockDisplayMode = DefaultBlock
+         , blockName = Nothing
+         , blockLabel = Nothing
+         , blockClass = "Definition"
+         , blockDescription = Nothing
+         }
+       [ IRDeclaration
+           IRDeclAnnotations { declDisplayMode = DefaultDecl }
+           "isPos"
+           (Signature (Just (Type (Integer :| []))) (Type (Boolean :| [])))
+           [ "x" ]
+           (IRUnconditional
+              (IRBinary
+                 IRGreater
+                 (IRCall "x" False [])
+                 (IRCast (IRImmediateInt 0 Natural) Natural Integer)))
+           []
+       , IRDeclaration
+           IRDeclAnnotations { declDisplayMode = DefaultDecl }
+           "isNat"
+           (Signature (Just (Type (Integer :| []))) (Type (Boolean :| [])))
+           [ "x" ]
+           (IRUnconditional
+              (IRBinary
+                 IRGreaterEq
+                 (IRCall "x" False [])
+                 (IRCast (IRImmediateInt 0 Natural) Natural Integer)))
+           []
+       , IRDeclaration
+           IRDeclAnnotations { declDisplayMode = DefaultDecl }
+           "isNeg"
+           (Signature (Just (Type (Integer :| []))) (Type (Boolean :| [])))
+           [ "x" ]
+           (IRUnconditional
+              (IRBinary
+                 IRLess
+                 (IRCall "x" False [])
+                 (IRCast (IRImmediateInt 0 Natural) Natural Integer)))
+           []
+       , IRDeclaration
+           IRDeclAnnotations { declDisplayMode = DefaultDecl }
+           "nonNeg"
+           (Signature (Just (Type (Integer :| []))) (Type (Boolean :| [])))
+           [ "x" ]
+           (IRUnconditional
+              (IRUnary Not (IRCall "isNeg" True [ IRCall "x" False [] ])))
+           []
+       , IRDeclaration
+           IRDeclAnnotations { declDisplayMode = DefaultDecl }
+           "nonZero"
+           (Signature (Just (Type (Integer :| []))) (Type (Boolean :| [])))
+           [ "x" ]
+           (IRUnconditional
+              (IRBinary
+                 IRNeq
+                 (IRCall "x" False [])
+                 (IRCast (IRImmediateInt 0 Natural) Natural Integer)))
+           []
+       , IRDeclaration
+           IRDeclAnnotations { declDisplayMode = DefaultDecl }
+           "oneOrTwo"
+           (Signature (Just (Type (Integer :| []))) (Type (Boolean :| [])))
+           [ "x" ]
+           (IRUnconditional
+              (IRBinary
+                 IROr
+                 (IRBinary
+                    IREq
+                    (IRCall "x" False [])
+                    (IRCast (IRImmediateInt 1 Positive) Positive Integer))
+                 (IRBinary
+                    IREq
+                    (IRCall "x" False [])
+                    (IRCast (IRImmediateInt 2 Positive) Positive Integer))))
+           []
+       , IRDeclaration
+           IRDeclAnnotations { declDisplayMode = DefaultDecl }
+           "neitherOneOrTwo"
+           (Signature (Just (Type (Integer :| []))) (Type (Boolean :| [])))
+           [ "x" ]
+           (IRUnconditional
+              (IRBinary
+                 IRAnd
+                 (IRBinary
+                    IRNeq
+                    (IRCall "x" False [])
+                    (IRCast (IRImmediateInt 1 Positive) Positive Integer))
+                 (IRUnary
+                    Not
+                    (IRBinary
+                       IREq
+                       (IRCall "x" False [])
+                       (IRCast (IRImmediateInt 2 Positive) Positive Integer)))))
+           []
+       ])
+, TextFragment "\nWe have\n\n"
+, EvalFragment
+    (IREvalResult
+       (IRTuple
+          (IRCall
+             "isPos"
+             True
+             [ IRCast (IRImmediateInt 1 Positive) Positive Integer ] :|
+             [ IRCall
+                 "isPos"
+                 True
+                 [ IRUnary Neg (IRCast (IRImmediateInt 1 Positive) Positive Integer)
+                 ]
+             , IRCall
+                 "isPos" True [ IRCast (IRImmediateInt 0 Natural) Natural Integer ]
+             ]))
+       (IRTuple
+          (IRImmediateBool True :|
+             [ IRImmediateBool False , IRImmediateBool False ])))
+, TextFragment "\n\n"
+, EvalFragment
+    (IREvalResult
+       (IRTuple
+          (IRCall
+             "isNat"
+             True
+             [ IRCast (IRImmediateInt 1 Positive) Positive Integer ] :|
+             [ IRCall
+                 "isNat"
+                 True
+                 [ IRUnary Neg (IRCast (IRImmediateInt 1 Positive) Positive Integer)
+                 ]
+             , IRCall
+                 "isNat" True [ IRCast (IRImmediateInt 0 Natural) Natural Integer ]
+             ]))
+       (IRTuple
+          (IRImmediateBool True :|
+             [ IRImmediateBool False , IRImmediateBool True ])))
+, TextFragment "\n\n"
+, EvalFragment
+    (IREvalResult
+       (IRTuple
+          (IRCall
+             "isNeg"
+             True
+             [ IRCast (IRImmediateInt 1 Positive) Positive Integer ] :|
+             [ IRCall
+                 "isNeg"
+                 True
+                 [ IRUnary Neg (IRCast (IRImmediateInt 1 Positive) Positive Integer)
+                 ]
+             , IRCall
+                 "isNeg" True [ IRCast (IRImmediateInt 0 Natural) Natural Integer ]
+             ]))
+       (IRTuple
+          (IRImmediateBool False :|
+             [ IRImmediateBool True , IRImmediateBool False ])))
+, TextFragment "\n\n"
+, EvalFragment
+    (IREvalResult
+       (IRTuple
+          (IRCall
+             "nonNeg"
+             True
+             [ IRCast (IRImmediateInt 1 Positive) Positive Integer ] :|
+             [ IRCall
+                 "nonNeg"
+                 True
+                 [ IRUnary Neg (IRCast (IRImmediateInt 1 Positive) Positive Integer)
+                 ]
+             , IRCall
+                 "nonNeg" True [ IRCast (IRImmediateInt 0 Natural) Natural Integer ]
+             ]))
+       (IRTuple
+          (IRImmediateBool True :|
+             [ IRImmediateBool False , IRImmediateBool True ])))
+, TextFragment "\n\n"
+, EvalFragment
+    (IREvalResult
+       (IRTuple
+          (IRCall
+             "nonZero"
+             True
+             [ IRCast (IRImmediateInt 1 Positive) Positive Integer ] :|
+             [ IRCall
+                 "nonZero"
+                 True
+                 [ IRUnary Neg (IRCast (IRImmediateInt 1 Positive) Positive Integer)
+                 ]
+             , IRCall
+                 "nonZero"
+                 True
+                 [ IRCast (IRImmediateInt 0 Natural) Natural Integer ]
+             ]))
+       (IRTuple
+          (IRImmediateBool True :|
+             [ IRImmediateBool True , IRImmediateBool False ])))
+, TextFragment "\n\nAnd\n\n"
+, EvalFragment
+    (IREvalResult
+       (IRTuple
+          (IRCall
+             "oneOrTwo"
+             True
+             [ IRCast (IRImmediateInt 0 Natural) Natural Integer ] :|
+             [ IRCall
+                 "oneOrTwo"
+                 True
+                 [ IRCast (IRImmediateInt 1 Positive) Positive Integer ]
+             , IRCall
+                 "oneOrTwo"
+                 True
+                 [ IRCast (IRImmediateInt 2 Positive) Positive Integer ]
+             ]))
+       (IRTuple
+          (IRImmediateBool False :|
+             [ IRImmediateBool True , IRImmediateBool True ])))
+, TextFragment "\n\n"
+, EvalFragment
+    (IREvalResult
+       (IRTuple
+          (IRCall
+             "neitherOneOrTwo"
+             True
+             [ IRCast (IRImmediateInt 0 Natural) Natural Integer ] :|
+             [ IRCall
+                 "neitherOneOrTwo"
+                 True
+                 [ IRCast (IRImmediateInt 1 Positive) Positive Integer ]
+             , IRCall
+                 "neitherOneOrTwo"
+                 True
+                 [ IRCast (IRImmediateInt 2 Positive) Positive Integer ]
+             ]))
+       (IRTuple
+          (IRImmediateBool True :|
+             [ IRImmediateBool False , IRImmediateBool False ])))
+]

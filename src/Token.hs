@@ -9,38 +9,38 @@ import qualified Data.List.NonEmpty as NonEmpty
 import Data.List (intercalate)
 
 data Token
-  = TId String
-  | TStr String   -- string literals used for annotation values to allow arbitrary characters
-  | TInt Integer
-  | TReal Double
-  | TBool Bool
-  -- Operators
-  | TUOp UnaryOp    -- excludes Neg
-  | TBOp BinaryOp   -- excludes Sub
-  -- Ambiguous operators
-  | TMinus
-  -- Keywords
-  | TIf 
-  | TOtherwise 
-  | TWhere
-  -- Primitive types
-  | TPrimType PrimitiveType
-  -- Special symbols
-  | TColon 
-  | TAssign 
-  | TArrow 
-  | TComma 
-  | THash 
-  | TAt 
-  | TLParen 
-  | TRParen 
-  | TLBracket 
-  | TRBracket 
-  | TLBrace 
-  | TRBrace
-  -- Text elements outside code/eval blocks
-  | TTextString String
-  deriving (Show, Eq, Ord)
+    = TId String
+    | TStr String   -- string literals used for annotation values to allow arbitrary characters
+    | TInt Integer
+    | TReal Double
+    | TBool Bool
+    -- Operators
+    | TUOp UnaryOp    -- excludes Neg
+    | TBOp BinaryOp   -- excludes Sub
+    -- Ambiguous operators
+    | TMinus
+    -- Keywords
+    | TIf 
+    | TOtherwise 
+    | TWhere
+    -- Primitive types
+    | TPrimType PrimitiveType
+    -- Special symbols
+    | TColon 
+    | TAssign 
+    | TArrow 
+    | TComma 
+    | THash 
+    | TAt 
+    | TLParen 
+    | TRParen 
+    | TLBracket 
+    | TRBracket 
+    | TLBrace 
+    | TRBrace
+    -- Text elements outside code/eval blocks
+    | TTextString String
+    deriving (Show, Eq, Ord)
 
 data BinaryOp = Add | Sub | Mult | Div | Pow | Mod | Eq | Neq | Less | Greater | LessEq | GreaterEq | Divides | And | Or
     deriving (Show, Eq, Ord)
@@ -66,34 +66,34 @@ instance Ord PrimitiveType where
         rank Boolean  = error $ "LOGIC ERROR: Attempt at comparing Boolean to other type"
 
 instance M.VisualStream [Token] where
-  showTokens _ chunks = unwords (map show (NonEmpty.toList chunks))
-  tokensLength _ chunks = length chunks
+    showTokens _ chunks = unwords (map show (NonEmpty.toList chunks))
+    tokensLength _ chunks = length chunks
   
 instance TraversableStream [Token] where
-  reachOffset offset state = (Just streamString, state  { M.pstateOffset = offset, M.pstateSourcePos = (M.pstateSourcePos state) { M.sourceColumn = M.mkPos caretColumn }})
-    where 
-          currentInput = M.pstateInput state
-          consumedCount = offset - M.pstateOffset state
-          (allContextTokens, errorAndBeyond) = splitAt consumedCount currentInput
-          
-          -- cap the context to at most the last 3 tokens
-          contextTokens = drop (length allContextTokens - 3) allContextTokens
-          hasHiddenContext = length allContextTokens > 3
-          
-          -- build the snapshot (3 past tokens + 10 future tokens)
-          snapshotTokens = contextTokens ++ take 10 errorAndBeyond
-          
-          -- construct the final display string with smart ellipsis bounds
-          prefixStr    = if hasHiddenContext then "... " else ""
-          suffixStr    = if length errorAndBeyond > 10 then " ..." else ""
-          streamString = prefixStr ++ intercalate ", " (map show snapshotTokens) ++ suffixStr
-          
-          -- calculate the caret column, accounting for the prefix if it's there
-          prefixWidth  = if hasHiddenContext then length prefixStr else 0
-          contextWidth = if null contextTokens 
-                         then 0 
-                         else sum (map (length . show) contextTokens) + 2 * length contextTokens
-                         
-          caretColumn  = prefixWidth + contextWidth + 1
+    reachOffset offset state = (Just streamString, state  { M.pstateOffset = offset, M.pstateSourcePos = (M.pstateSourcePos state) { M.sourceColumn = M.mkPos caretColumn }})
+        where 
+            currentInput = M.pstateInput state
+            consumedCount = offset - M.pstateOffset state
+            (allContextTokens, errorAndBeyond) = splitAt consumedCount currentInput
+            
+            -- cap the context to at most the last 3 tokens
+            contextTokens = drop (length allContextTokens - 3) allContextTokens
+            hasHiddenContext = length allContextTokens > 3
+            
+            -- build the snapshot (3 past tokens + 10 future tokens)
+            snapshotTokens = contextTokens ++ take 10 errorAndBeyond
+            
+            -- construct the final display string with smart ellipsis bounds
+            prefixStr    = if hasHiddenContext then "... " else ""
+            suffixStr    = if length errorAndBeyond > 10 then " ..." else ""
+            streamString = prefixStr ++ intercalate ", " (map show snapshotTokens) ++ suffixStr
+            
+            -- calculate the caret column, accounting for the prefix if it's there
+            prefixWidth  = if hasHiddenContext then length prefixStr else 0
+            contextWidth = if null contextTokens 
+                            then 0 
+                            else sum (map (length . show) contextTokens) + 2 * length contextTokens
+                            
+            caretColumn  = prefixWidth + contextWidth + 1
 
-  reachOffsetNoLine offset state =  state { M.pstateOffset = offset }
+    reachOffsetNoLine offset state =  state { M.pstateOffset = offset }

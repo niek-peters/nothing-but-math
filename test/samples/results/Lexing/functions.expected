@@ -1,0 +1,235 @@
+[ DefinitionFragment
+    [ TId "f"
+    , TColon
+    , TPrimType Natural
+    , TArrow
+    , TPrimType Positive
+    , TId "f"
+    , TLParen
+    , TId "x"
+    , TRParen
+    , TAssign
+    , TId "y"
+    , TBOp Mult
+    , TMinus
+    , TInt 2
+    , TWhere
+    , TId "y"
+    , TAssign
+    , TMinus
+    , TLParen
+    , TId "x"
+    , TBOp Add
+    , TInt 1
+    , TRParen
+    , TId "g"
+    , TColon
+    , TPrimType Integer
+    , TId "x"
+    , TPrimType Natural
+    , TArrow
+    , TPrimType Rational
+    , TId "g"
+    , TLParen
+    , TId "x"
+    , TComma
+    , TId "a"
+    , TRParen
+    , TAssign
+    , TId "x"
+    , TBOp Pow
+    , TId "a"
+    , TBOp Div
+    , TInt 2
+    , TId "h"
+    , TColon
+    , TPrimType Integer
+    , TArrow
+    , TPrimType Integer
+    , TId "x"
+    , TPrimType Real
+    , TId "h"
+    , TLParen
+    , TId "x"
+    , TRParen
+    , TAssign
+    , TLParen
+    , TId "x"
+    , TComma
+    , TId "x"
+    , TRParen
+    , TId "i"
+    , TColon
+    , TPrimType Integer
+    , TArrow
+    , TPrimType Integer
+    , TId "x"
+    , TPrimType Integer
+    , TId "i"
+    , TLParen
+    , TId "x"
+    , TRParen
+    , TAssign
+    , TLParen
+    , TInt 2
+    , TBOp Mult
+    , TId "a"
+    , TComma
+    , TInt 2
+    , TBOp Mult
+    , TId "b"
+    , TRParen
+    , TWhere
+    , TLParen
+    , TId "a"
+    , TComma
+    , TId "b"
+    , TRParen
+    , TAssign
+    , TLParen
+    , TId "x"
+    , TComma
+    , TId "x"
+    , TRParen
+    , TId "j"
+    , TColon
+    , TPrimType Integer
+    , TArrow
+    , TPrimType Natural
+    , TId "x"
+    , TPrimType Integer
+    , TId "j"
+    , TLParen
+    , TId "x"
+    , TRParen
+    , TAssign
+    , TLBrace
+    , TLParen
+    , TId "x"
+    , TComma
+    , TId "x"
+    , TRParen
+    , TIf
+    , TId "x"
+    , TBOp GreaterEq
+    , TInt 0
+    , TLParen
+    , TMinus
+    , TId "x"
+    , TComma
+    , TId "x"
+    , TRParen
+    , TOtherwise
+    , TRBrace
+    , TId "k"
+    , TColon
+    , TPrimType Integer
+    , TArrow
+    , TPrimType Natural
+    , TId "x"
+    , TPrimType Integer
+    , TId "k"
+    , TLParen
+    , TId "x"
+    , TRParen
+    , TAssign
+    , TLBrace
+    , TLParen
+    , TId "x"
+    , TComma
+    , TId "x"
+    , TRParen
+    , TIf
+    , TId "x"
+    , TBOp Greater
+    , TInt 0
+    , TLParen
+    , TId "y"
+    , TComma
+    , TId "x"
+    , TRParen
+    , TOtherwise
+    , TRBrace
+    , TWhere
+    , TId "x"
+    , TBOp Neq
+    , TInt 0
+    , TComma
+    , TId "y"
+    , TAssign
+    , TMinus
+    , TId "x"
+    , TComma
+    , TId "y"
+    , TBOp Neq
+    , TInt 0
+    ]
+, TextFragment "\n\n"
+, EvalFragment
+    [ TLParen
+    , TId "f"
+    , TLParen
+    , TInt 0
+    , TRParen
+    , TComma
+    , TId "f"
+    , TLParen
+    , TInt 1
+    , TRParen
+    , TComma
+    , TId "f"
+    , TLParen
+    , TInt 2
+    , TRParen
+    , TRParen
+    ]
+, TextFragment "\n\n"
+, EvalFragment
+    [ TLParen
+    , TId "g"
+    , TLParen
+    , TMinus
+    , TInt 1
+    , TComma
+    , TInt 0
+    , TRParen
+    , TComma
+    , TId "g"
+    , TLParen
+    , TInt 0
+    , TComma
+    , TInt 0
+    , TRParen
+    , TComma
+    , TId "g"
+    , TLParen
+    , TInt 0
+    , TComma
+    , TInt 1
+    , TRParen
+    , TComma
+    , TId "g"
+    , TLParen
+    , TInt 2
+    , TComma
+    , TInt 3
+    , TRParen
+    , TRParen
+    ]
+, TextFragment "\n\n"
+, EvalFragment [ TId "h" , TLParen , TMinus , TInt 1 , TRParen ]
+, TextFragment ", "
+, EvalFragment [ TId "h" , TLParen , TInt 1 , TRParen ]
+, TextFragment "\n\n"
+, EvalFragment [ TId "i" , TLParen , TMinus , TInt 1 , TRParen ]
+, TextFragment ", "
+, EvalFragment [ TId "i" , TLParen , TInt 1 , TRParen ]
+, TextFragment "\n\n"
+, EvalFragment [ TId "j" , TLParen , TMinus , TInt 1 , TRParen ]
+, TextFragment ", "
+, EvalFragment [ TId "j" , TLParen , TInt 1 , TRParen ]
+, TextFragment "\n\n"
+, EvalFragment [ TId "k" , TLParen , TMinus , TInt 1 , TRParen ]
+, TextFragment ", "
+, EvalFragment [ TId "k" , TLParen , TInt 1 , TRParen ]
+]

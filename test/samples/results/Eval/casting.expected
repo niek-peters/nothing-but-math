@@ -1,0 +1,147 @@
+[ TextFragment "% this file tests some type casting behaviour\n"
+, DefinitionFragment
+    (IR
+       IRBlockAnnotations
+         { blockDisplayMode = DefaultBlock
+         , blockName = Nothing
+         , blockLabel = Nothing
+         , blockClass = "Definition"
+         , blockDescription = Nothing
+         }
+       [ IRDeclaration
+           IRDeclAnnotations { declDisplayMode = DefaultDecl }
+           "f"
+           (Signature
+              (Just (Type (Natural :| [ Natural ]))) (Type (Integer :| [])))
+           [ "a" , "b" ]
+           (IRUnconditional
+              (IRBinary
+                 IRSub
+                 (IRCast (IRCall "a" False []) Natural Integer)
+                 (IRCast (IRCall "b" False []) Natural Integer)))
+           []
+       , IRDeclaration
+           IRDeclAnnotations { declDisplayMode = DefaultDecl }
+           "g"
+           (Signature (Just (Type (Integer :| []))) (Type (Natural :| [])))
+           [ "x" ]
+           (IRConditional
+              [ IRBranch
+                  (IRImmediateInt 0 Natural)
+                  (IRBinary
+                     IRLess
+                     (IRCall "x" False [])
+                     (IRCast (IRImmediateInt 0 Natural) Natural Integer))
+              ]
+              (IRCast (IRCall "x" False []) Integer Natural))
+           []
+       , IRDeclaration
+           IRDeclAnnotations { declDisplayMode = DefaultDecl }
+           "h"
+           (Signature Nothing (Type (Real :| [])))
+           []
+           (IRUnconditional
+              (IRBinary
+                 IRSub
+                 (IRImmediateReal 1.25)
+                 (IRCast
+                    (IRBinary
+                       IRFrac
+                       (IRCast (IRImmediateInt 1 Positive) Positive Integer)
+                       (IRCast (IRImmediateInt 2 Positive) Positive Integer))
+                    Rational
+                    Real)))
+           []
+       , IRDeclaration
+           IRDeclAnnotations { declDisplayMode = DefaultDecl }
+           "i"
+           (Signature Nothing (Type (Positive :| [])))
+           []
+           (IRUnconditional
+              (IRCast
+                 (IRUnary Sqrt (IRCast (IRImmediateInt 9 Positive) Positive Real))
+                 Real
+                 Positive))
+           []
+       , IRDeclaration
+           IRDeclAnnotations { declDisplayMode = DefaultDecl }
+           "j"
+           (Signature Nothing (Type (Positive :| [])))
+           []
+           (IRUnconditional
+              (IRCast
+                 (IRBinary
+                    IRFrac
+                    (IRCast (IRImmediateInt 12 Positive) Positive Integer)
+                    (IRCast (IRImmediateInt 3 Positive) Positive Integer))
+                 Rational
+                 Positive))
+           []
+       , IRDeclaration
+           IRDeclAnnotations { declDisplayMode = DefaultDecl }
+           "k"
+           (Signature Nothing (Type (Rational :| [])))
+           []
+           (IRUnconditional (IRCast (IRImmediateReal 0.25) Real Rational))
+           []
+       , IRDeclaration
+           IRDeclAnnotations { declDisplayMode = DefaultDecl }
+           "l"
+           (Signature Nothing (Type (Integer :| [])))
+           []
+           (IRUnconditional
+              (IRCast
+                 (IRBinary
+                    IRMult
+                    (IRCast (IRImmediateInt 10 Positive) Positive Real)
+                    (IRBinary IRAdd (IRImmediateReal 0.1) (IRImmediateReal 0.2)))
+                 Real
+                 Integer))
+           []
+       ])
+, TextFragment "\n\n"
+, EvalFragment
+    (IREvalResult
+       (IRCall
+          "f"
+          True
+          [ IRCast (IRImmediateInt 1 Positive) Positive Natural
+          , IRCast (IRImmediateInt 2 Positive) Positive Natural
+          ])
+       (IRUnary
+          Neg (IRCast (IRImmediateInt 1 Positive) Positive Integer)))
+, TextFragment "\n\n"
+, EvalFragment
+    (IREvalResult
+       (IRTuple
+          (IRCall
+             "g"
+             True
+             [ IRUnary Neg (IRCast (IRImmediateInt 1 Positive) Positive Integer)
+             ] :|
+             [ IRCall
+                 "g" True [ IRCast (IRImmediateInt 1 Positive) Positive Integer ]
+             ]))
+       (IRTuple
+          (IRImmediateInt 0 Natural :| [ IRImmediateInt 1 Positive ])))
+, TextFragment "\n\n"
+, EvalFragment
+    (IREvalResult (IRCall "h" True []) (IRImmediateReal 0.75))
+, TextFragment ", \n"
+, EvalFragment
+    (IREvalResult (IRCall "i" True []) (IRImmediateInt 3 Positive))
+, TextFragment ", \n"
+, EvalFragment
+    (IREvalResult (IRCall "j" True []) (IRImmediateInt 4 Positive))
+, TextFragment ", \n"
+, EvalFragment
+    (IREvalResult
+       (IRCall "k" True [])
+       (IRBinary
+          IRFrac
+          (IRCast (IRImmediateInt 1 Positive) Positive Integer)
+          (IRCast (IRImmediateInt 4 Positive) Positive Integer)))
+, TextFragment " and \n"
+, EvalFragment
+    (IREvalResult (IRCall "l" True []) (IRImmediateInt 3 Positive))
+]

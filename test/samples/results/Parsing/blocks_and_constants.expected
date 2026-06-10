@@ -1,0 +1,38 @@
+[ TextFragment
+    "% this file tests comments, text/code/eval fragments and constant definitions\nThis is text\n% this is a LaTeX comment\n"
+, DefinitionFragment
+    (AST
+       []
+       [ Declaration
+           []
+           "a"
+           (Signature Nothing (Type (Natural :| [])))
+           "a"
+           []
+           (Unconditional (ImmediateInt 0))
+           []
+       ])
+, TextFragment "\nmore text\n"
+, DefinitionFragment
+    (AST
+       []
+       [ Declaration
+           []
+           "b"
+           (Signature Nothing (Type (Natural :| [])))
+           "b"
+           []
+           (Unconditional (Call "a" []))
+           []
+       ])
+, TextFragment "\nAnd now we use evaluation to determine "
+, EvalFragment (Call "a" [])
+, TextFragment " and "
+, EvalFragment (Call "b" [])
+, TextFragment
+    ".\n\nWe can also just do arbitrary expressions, like evaluating "
+, EvalFragment
+    (Binary
+       Add (Unary Floor (Unary Sqrt (ImmediateInt 11))) (ImmediateInt 5))
+, TextFragment "."
+]

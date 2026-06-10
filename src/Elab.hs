@@ -217,19 +217,28 @@ elabUnary op (_, t) = error $ "TYPE ERROR: Unary operation '" ++ show op ++ "' n
 elabBinary :: BinaryOp -> (IRExpr, Type) -> (IRExpr, Type) -> (IRExpr, Type) 
 elabBinary op (e1, Type (Boolean :| [])) (e2, Type (Boolean :| [])) = (IRBinary (binaryBooleanOp op) e1 e2, Type $ pure Boolean)
 
--- we have a special case for integer powers, which don't do any type casting and have the result keep the type of the left operand
-elabBinary Pow (e1, t1@(Type (pt1 :| []))) (e2, (Type (pt2 :| [])))
-    | pt1 /= Boolean && (pt2 == Positive || pt2 == Natural || pt2 == Integer) = (IRBinary IRPow e1 e2, t1)  -- we use a pattern guard to fall through to the generic case if false
+-- we have special cases for integer powers
+-- the first is a power with a potentially negative integer exponent
+-- this can result in a rational value and due to the type signature of the Haskell function,
+-- we need to cast the left operand to at least rational
+elabBinary Pow (e1, t1@(Type (pt1 :| []))) (e2, (Type (Integer :| [])))
+    | pt1 /= Boolean = (IRBinary IRFracPow resE1 e2, resType)
+    where   (resE1, resType) = maybeCastExpr e1 t1 (Just $ Type $ pure $ max Rational pt1)
+-- the second is for powers with positive/natural exponents
+-- these can always just keep the type of the left operand,
+-- but Haskell needs 0 to be a valid value for the exponent, so we always upcast that to at least Natural
+elabBinary Pow (e1, t1@(Type (pt1 :| []))) (e2, t2@(Type (pt2 :| [])))
+    | pt1 /= Boolean && (pt2 == Positive || pt2 == Natural) = (IRBinary IRPosPow e1 (fst $ maybeCastExpr e2 t2 (Just $ Type $ pure Natural)), t1)
 
 -- and then the generic case where both primitive type operands get casted to the same type
 elabBinary op o1@(_, (Type (pt1 :| []))) o2@(_, (Type (pt2 :| []))) = (resExpr, resType)
     where   resExpr = sameOperandTypesBinaryNumOp op o1 o2 operandType
             resType = Type $ pure $ binaryResType op operandType
-            operandType | op == Sub || op == Div        = max greaterType Integer   -- prevents underflow and forces fractions to be Ratio Integer
-                        | op == Mod || op == Divides    = min greaterType Integer   -- these operations are only legal for whole numbers
+            operandType | op == Pow = Real  -- if we get here that means we have a power with a rational/real exponent. Haskell doesn't implement Floating Rational, so we must always widen to Real
+                        | op == Sub || op == Div        = max greaterType Integer   -- prevents underflow and forces fractions to be Ratio Integer
+                        | op == Mod || op == Divides    = max Natural $ min greaterType Integer   -- these operations are only legal for natural/integer numbers (Haskell needs a 0 to exist for mod)
                         | otherwise = greaterType
             greaterType = max pt1 pt2      -- crashes on Boolean
-
 -- the Eq and Neq operations are defined for all types (also non-primitive ones)
 elabBinary op (e1, t1@(Type pts1)) (e2, t2@(Type pts2))
     | op == Eq || op == Neq = (resExpr, Type $ pure Boolean)
@@ -242,10 +251,13 @@ elabBinary op (e1, t1@(Type pts1)) (e2, t2@(Type pts2))
 -- any remaining undefined operations
 elabBinary op (_, t1) (_, t2) = error $ "TYPE ERROR: Binary operation '" ++ show op ++ "' not defined for types '" ++ show t1 ++ "' and '" ++ show t2 ++ "'"
 
+-- operations valid for two booleans
 binaryBooleanOp :: BinaryOp -> IRBinaryOp
 binaryBooleanOp And = IRAnd
 binaryBooleanOp Or = IROr
-binaryBooleanOp _ = error "LOGIC ERROR: binaryBooleanOp called with non-boolean operator"
+binaryBooleanOp Eq = IREq
+binaryBooleanOp Neq = IRNeq
+binaryBooleanOp op = error $ "TYPE ERROR: binaryBooleanOp called with non-boolean operator '" ++ show op ++ "'"
 
 binaryResType :: BinaryOp -> PrimitiveType -> PrimitiveType
 binaryResType Div Real = Real
@@ -274,7 +286,7 @@ toIRBinaryNumOp Mult _ _ = IRMult
 toIRBinaryNumOp Div t1 t2
     | isIntegerType t1 && isIntegerType t2 = IRFrac -- construct a fraction whenever neither operand of a division is at least a fraction yet
 toIRBinaryNumOp Div _ _ = IRDiv
-toIRBinaryNumOp Pow _ _ = IRExp
+toIRBinaryNumOp Pow _ _ = IRFloatPow
 toIRBinaryNumOp Mod _ _ = IRMod
 toIRBinaryNumOp Eq _ _ = IREq
 toIRBinaryNumOp Neq _ _ = IRNeq

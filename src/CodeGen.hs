@@ -58,8 +58,9 @@ insertIfJust _ Nothing = ""
 opLevel :: Either UnaryOp IRBinaryOp -> Int
 opLevel (Left Sqrt) = maxInt    -- these never have to be parenthesized
 opLevel (Left Floor) = maxInt
-opLevel (Right IRPow) = 7
-opLevel (Right IRExp) = 7
+opLevel (Right IRPosPow) = 7
+opLevel (Right IRFracPow) = 7
+opLevel (Right IRFloatPow) = 7
 opLevel (Left Neg) = 6
 opLevel (Left Not) = 6
 opLevel (Right IRFrac) = 5

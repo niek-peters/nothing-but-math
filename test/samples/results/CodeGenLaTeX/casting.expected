@@ -1,0 +1,37 @@
+\newcounter{nbmDefinitionCounter}
+% this file tests some type casting behaviour
+\begin{flalign*}
+&\text{Define}~f : \mathbb{N} \times \mathbb{N} \to \mathbb{Z}~\text{by}&\\
+&f\left(a, b\right) = a - b.&\\
+\\
+&\text{Define}~g : \mathbb{Z} \to \mathbb{N}~\text{by}&\\
+&g\left(x\right) = \begin{cases}
+  0, & \text{if}~x < 0\\
+  x, & \text{otherwise}
+\end{cases}.&\\
+\\
+&\text{Define}~h : \mathbb{R}~\text{by}&\\
+&h = 1.25 - \frac{1}{2}.&\\
+\\
+&\text{Define}~i : \mathbb{Z}^+~\text{by}&\\
+&i = \sqrt{9}.&\\
+\\
+&\text{Define}~j : \mathbb{Z}^+~\text{by}&\\
+&j = \frac{12}{3}.&\\
+\\
+&\text{Define}~k : \mathbb{Q}~\text{by}&\\
+&k = 0.25.&\\
+\\
+&\text{Define}~l : \mathbb{Z}~\text{by}&\\
+&l = 10 \cdot \left(0.1 + 0.2\right).&
+\end{flalign*}
+
+$f\left(1, 2\right) = -1$
+
+$\left(g\left(-1\right), g\left(1\right)\right) = \left(0, 1\right)$
+
+$h = 0.75$, 
+$i = 3$, 
+$j = 4$, 
+$k = \frac{1}{4}$ and 
+$l = 3$

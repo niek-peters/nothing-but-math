@@ -1,0 +1,274 @@
+[ TextFragment
+    "% this file tests LaTeX annotations\nThis brings us to two new formulae. "
+, DefinitionFragment
+    [ THash
+    , TLBracket
+    , TId "inline"
+    , TRBracket
+    , TId "f"
+    , TColon
+    , TPrimType Natural
+    , TId "x"
+    , TPrimType Natural
+    , TArrow
+    , TPrimType Integer
+    , TId "f"
+    , TLParen
+    , TId "a"
+    , TComma
+    , TId "b"
+    , TRParen
+    , TAssign
+    , TId "c"
+    , TWhere
+    , TId "c"
+    , TAssign
+    , TId "a"
+    , TMinus
+    , TId "b"
+    , TId "g"
+    , TColon
+    , TPrimType Natural
+    , TId "x"
+    , TPrimType Natural
+    , TArrow
+    , TPrimType Integer
+    , TId "g"
+    , TLParen
+    , TId "a"
+    , TComma
+    , TId "b"
+    , TRParen
+    , TAssign
+    , TId "d"
+    , TWhere
+    , TId "d"
+    , TAssign
+    , TId "a"
+    , TBOp Add
+    , TId "b"
+    ]
+, TextFragment " With these, we can define:\n"
+, DefinitionFragment
+    [ THash
+    , TLBracket
+    , TId "box"
+    , TComma
+    , TId "class"
+    , TBOp Eq
+    , TStr "Algorithm"
+    , TComma
+    , TId "name"
+    , TBOp Eq
+    , TStr "My Algorithm Name"
+    , TComma
+    , TId "label"
+    , TBOp Eq
+    , TStr "my_algorithm_name"
+    , TComma
+    , TId "description"
+    , TBOp Eq
+    , TStr "This text provides a description of the algorithm"
+    , TRBracket
+    , TAt
+    , TLBracket
+    , TId "hidden"
+    , TRBracket
+    , TId "abs"
+    , TColon
+    , TPrimType Integer
+    , TArrow
+    , TPrimType Natural
+    , TId "abs"
+    , TLParen
+    , TId "x"
+    , TRParen
+    , TAssign
+    , TLBrace
+    , TMinus
+    , TId "x"
+    , TIf
+    , TId "x"
+    , TBOp Less
+    , TInt 0
+    , TId "x"
+    , TOtherwise
+    , TRBrace
+    , TId "h"
+    , TColon
+    , TPrimType Natural
+    , TId "x"
+    , TPrimType Natural
+    , TArrow
+    , TPrimType Rational
+    , TId "h"
+    , TLParen
+    , TId "a"
+    , TComma
+    , TId "b"
+    , TRParen
+    , TAssign
+    , TId "e"
+    , TBOp Div
+    , TInt 6
+    , TWhere
+    , TId "e"
+    , TAssign
+    , TId "abs"
+    , TLParen
+    , TId "f"
+    , TLParen
+    , TId "a"
+    , TComma
+    , TId "b"
+    , TRParen
+    , TBOp Mult
+    , TId "g"
+    , TLParen
+    , TId "a"
+    , TComma
+    , TId "b"
+    , TRParen
+    , TRParen
+    ]
+, TextFragment "\n\nTo give some example values: \n"
+, EvalFragment
+    [ TId "f" , TLParen , TInt 1 , TComma , TInt 2 , TRParen ]
+, TextFragment ", "
+, EvalFragment
+    [ TId "g" , TLParen , TInt 1 , TComma , TInt 2 , TRParen ]
+, TextFragment " and "
+, EvalFragment
+    [ TId "h" , TLParen , TInt 1 , TComma , TInt 2 , TRParen ]
+, TextFragment
+    ".    % here we use evaluation fragments, which will be replaced by the evaluated results of the given expressions\n\nNow, we can finally use Algorithm~\\ref{my_algorithm_name} to...\n\n...\n"
+, DefinitionFragment
+    [ THash
+    , TLBracket
+    , TId "hidden"
+    , TRBracket
+    , TId "id"
+    , TColon
+    , TPrimType Integer
+    , TArrow
+    , TPrimType Integer
+    , TId "id"
+    , TLParen
+    , TId "x"
+    , TRParen
+    , TAssign
+    , TId "x"
+    , TId "neg"
+    , TColon
+    , TPrimType Integer
+    , TArrow
+    , TPrimType Integer
+    , TId "neg"
+    , TLParen
+    , TId "x"
+    , TRParen
+    , TAssign
+    , TMinus
+    , TId "abs"
+    , TLParen
+    , TId "x"
+    , TRParen
+    ]
+, DefinitionFragment
+    [ THash
+    , TLBracket
+    , TId "intext"
+    , TRBracket
+    , TId "i"
+    , TColon
+    , TPrimType Integer
+    , TArrow
+    , TPrimType Integer
+    , TId "i"
+    , TLParen
+    , TId "x"
+    , TRParen
+    , TAssign
+    , TId "id"
+    , TLParen
+    , TId "x"
+    , TRParen
+    ]
+, DefinitionFragment
+    [ THash
+    , TLBracket
+    , TId "box"
+    , TComma
+    , TId "class"
+    , TBOp Eq
+    , TStr "Procedure"
+    , TComma
+    , TId "label"
+    , TBOp Eq
+    , TStr "doubling"
+    , TRBracket
+    , TId "k"
+    , TColon
+    , TPrimType Integer
+    , TArrow
+    , TPrimType Integer
+    , TId "k"
+    , TLParen
+    , TId "x"
+    , TRParen
+    , TAssign
+    , TMinus
+    , TInt 2
+    , TBOp Mult
+    , TId "neg"
+    , TLParen
+    , TId "y"
+    , TRParen
+    , TWhere
+    , TId "y"
+    , TAssign
+    , TId "i"
+    , TLParen
+    , TId "x"
+    , TRParen
+    ]
+, DefinitionFragment
+    [ THash
+    , TLBracket
+    , TId "box"
+    , TComma
+    , TId "class"
+    , TBOp Eq
+    , TStr "Algorithm"
+    , TComma
+    , TId "name"
+    , TBOp Eq
+    , TStr "Another Great Algorithm"
+    , TRBracket
+    , TId "l"
+    , TColon
+    , TPrimType Integer
+    , TArrow
+    , TPrimType Integer
+    , TId "l"
+    , TLParen
+    , TId "x"
+    , TRParen
+    , TAssign
+    , TId "x"
+    , TBOp Pow
+    , TInt 2
+    ]
+, TextFragment
+    "\n\nNow, using Produce~\\ref{doubling} together with this new algorithm, we can evaluate:\n"
+, EvalFragment
+    [ TId "l"
+    , TLParen
+    , TId "k"
+    , TLParen
+    , TMinus
+    , TInt 3
+    , TRParen
+    , TRParen
+    ]
+]

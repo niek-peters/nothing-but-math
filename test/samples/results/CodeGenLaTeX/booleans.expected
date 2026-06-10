@@ -1,0 +1,41 @@
+\newcounter{nbmDefinitionCounter}
+% this file tests the boolean type and operators
+\begin{flalign*}
+&\text{Define}~isPos : \mathbb{Z} \to \mathbb{B}~\text{by}&\\
+&isPos\left(x\right) = x > 0.&\\
+\\
+&\text{Define}~isNat : \mathbb{Z} \to \mathbb{B}~\text{by}&\\
+&isNat\left(x\right) = x \geq 0.&\\
+\\
+&\text{Define}~isNeg : \mathbb{Z} \to \mathbb{B}~\text{by}&\\
+&isNeg\left(x\right) = x < 0.&\\
+\\
+&\text{Define}~nonNeg : \mathbb{Z} \to \mathbb{B}~\text{by}&\\
+&nonNeg\left(x\right) = \neg isNeg\left(x\right).&\\
+\\
+&\text{Define}~nonZero : \mathbb{Z} \to \mathbb{B}~\text{by}&\\
+&nonZero\left(x\right) = x \neq 0.&\\
+\\
+&\text{Define}~oneOrTwo : \mathbb{Z} \to \mathbb{B}~\text{by}&\\
+&oneOrTwo\left(x\right) = x = 1 \lor x = 2.&\\
+\\
+&\text{Define}~neitherOneOrTwo : \mathbb{Z} \to \mathbb{B}~\text{by}&\\
+&neitherOneOrTwo\left(x\right) = x \neq 1 \land \neg \left(x = 2\right).&
+\end{flalign*}
+We have
+
+$\left(isPos\left(1\right), isPos\left(-1\right), isPos\left(0\right)\right) = \left(True, False, False\right)$
+
+$\left(isNat\left(1\right), isNat\left(-1\right), isNat\left(0\right)\right) = \left(True, False, True\right)$
+
+$\left(isNeg\left(1\right), isNeg\left(-1\right), isNeg\left(0\right)\right) = \left(False, True, False\right)$
+
+$\left(nonNeg\left(1\right), nonNeg\left(-1\right), nonNeg\left(0\right)\right) = \left(True, False, True\right)$
+
+$\left(nonZero\left(1\right), nonZero\left(-1\right), nonZero\left(0\right)\right) = \left(True, True, False\right)$
+
+And
+
+$\left(oneOrTwo\left(0\right), oneOrTwo\left(1\right), oneOrTwo\left(2\right)\right) = \left(False, True, True\right)$
+
+$\left(neitherOneOrTwo\left(0\right), neitherOneOrTwo\left(1\right), neitherOneOrTwo\left(2\right)\right) = \left(True, False, False\right)$

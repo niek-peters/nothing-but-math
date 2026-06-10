@@ -1,0 +1,277 @@
+[ TextFragment "% this file tests operator precedence\n"
+, DefinitionFragment
+    [ TId "a"
+    , TColon
+    , TPrimType Integer
+    , TId "a"
+    , TAssign
+    , TMinus
+    , TInt 2
+    , TBOp Pow
+    , TInt 2
+    , TId "b"
+    , TColon
+    , TPrimType Positive
+    , TId "b"
+    , TAssign
+    , TLParen
+    , TMinus
+    , TInt 2
+    , TRParen
+    , TBOp Pow
+    , TInt 2
+    , TId "c"
+    , TColon
+    , TPrimType Rational
+    , TId "c"
+    , TAssign
+    , TInt 1
+    , TBOp Pow
+    , TLParen
+    , TMinus
+    , TInt 2
+    , TRParen
+    , TId "d"
+    , TColon
+    , TPrimType Rational
+    , TId "d"
+    , TAssign
+    , TUOp Sqrt
+    , TInt 16
+    , TBOp Div
+    , TInt 2
+    , TId "e"
+    , TColon
+    , TPrimType Integer
+    , TId "e"
+    , TAssign
+    , TInt 1
+    , TBOp Add
+    , TInt 2
+    , TBOp Mult
+    , TInt 3
+    , TId "f"
+    , TColon
+    , TPrimType Integer
+    , TId "f"
+    , TAssign
+    , TInt 1
+    , TMinus
+    , TInt 2
+    , TMinus
+    , TInt 3
+    , TId "g"
+    , TColon
+    , TPrimType Integer
+    , TId "g"
+    , TAssign
+    , TInt 1
+    , TBOp Pow
+    , TInt 2
+    , TBOp Pow
+    , TInt 3
+    , TId "h"
+    , TColon
+    , TPrimType Integer
+    , TId "h"
+    , TAssign
+    , TInt 10
+    , TBOp Mod
+    , TInt 3
+    , TBOp Add
+    , TInt 1
+    , TId "i"
+    , TColon
+    , TPrimType Rational
+    , TId "i"
+    , TAssign
+    , TInt 1
+    , TBOp Add
+    , TInt 2
+    , TBOp Div
+    , TInt 3
+    , TBOp Mult
+    , TInt 4
+    , TBOp Div
+    , TInt 5
+    , TBOp Add
+    , TInt 6
+    , TBOp Div
+    , TInt 7
+    , TId "j"
+    , TColon
+    , TPrimType Boolean
+    , TId "j"
+    , TAssign
+    , TInt 1
+    , TBOp Add
+    , TInt 2
+    , TBOp LessEq
+    , TInt 3
+    , TBOp Add
+    , TInt 4
+    , TId "k"
+    , TColon
+    , TPrimType Boolean
+    , TId "k"
+    , TAssign
+    , TInt 1
+    , TBOp Eq
+    , TInt 2
+    , TBOp Neq
+    , TBool True
+    , TId "l"
+    , TColon
+    , TPrimType Boolean
+    , TId "l"
+    , TAssign
+    , TBool True
+    , TBOp Or
+    , TBool False
+    , TBOp And
+    , TBool False
+    , TId "m"
+    , TColon
+    , TPrimType Boolean
+    , TId "m"
+    , TAssign
+    , TUOp Not
+    , TBool False
+    , TBOp Or
+    , TBool False
+    , TId "n"
+    , TColon
+    , TPrimType Integer
+    , TId "n"
+    , TAssign
+    , TUOp Sqrt
+    , TLParen
+    , TMinus
+    , TMinus
+    , TInt 9
+    , TRParen
+    , TId "o"
+    , TColon
+    , TPrimType Integer
+    , TId "o"
+    , TAssign
+    , TMinus
+    , TUOp Sqrt
+    , TUOp Sqrt
+    , TInt 16
+    , TId "p"
+    , TColon
+    , TPrimType Boolean
+    , TId "p"
+    , TAssign
+    , TUOp Not
+    , TUOp Not
+    , TBool True
+    , TId "q"
+    , TColon
+    , TPrimType Integer
+    , TArrow
+    , TPrimType Rational
+    , TId "q"
+    , TLParen
+    , TId "x"
+    , TRParen
+    , TAssign
+    , TLBrace
+    , TId "x"
+    , TBOp Div
+    , TInt 5
+    , TBOp Mult
+    , TLParen
+    , TInt 5
+    , TBOp Mult
+    , TLParen
+    , TInt 1
+    , TBOp Add
+    , TId "x"
+    , TRParen
+    , TBOp Div
+    , TLParen
+    , TMinus
+    , TId "x"
+    , TRParen
+    , TBOp Pow
+    , TInt 3
+    , TRParen
+    , TBOp Add
+    , TInt 6
+    , TIf
+    , TId "x"
+    , TBOp Greater
+    , TInt 3
+    , TLParen
+    , TInt 1
+    , TBOp Add
+    , TLParen
+    , TId "x"
+    , TBOp Div
+    , TInt 3
+    , TRParen
+    , TRParen
+    , TBOp Div
+    , TInt 4
+    , TOtherwise
+    , TRBrace
+    ]
+, TextFragment "\n\nAnd all evaluated:\n"
+, EvalFragment [ TId "a" ]
+, TextFragment ", \n"
+, EvalFragment [ TId "b" ]
+, TextFragment ", \n"
+, EvalFragment [ TId "c" ]
+, TextFragment ", \n"
+, EvalFragment [ TId "d" ]
+, TextFragment ", \n"
+, EvalFragment [ TId "e" ]
+, TextFragment ", \n"
+, EvalFragment [ TId "f" ]
+, TextFragment ", \n"
+, EvalFragment [ TId "g" ]
+, TextFragment ", \n"
+, EvalFragment [ TId "h" ]
+, TextFragment ", \n"
+, EvalFragment [ TId "i" ]
+, TextFragment ", \n"
+, EvalFragment [ TId "j" ]
+, TextFragment ", \n"
+, EvalFragment [ TId "k" ]
+, TextFragment ", \n"
+, EvalFragment [ TId "l" ]
+, TextFragment ", \n"
+, EvalFragment [ TId "m" ]
+, TextFragment ", \n"
+, EvalFragment [ TId "n" ]
+, TextFragment ", \n"
+, EvalFragment [ TId "o" ]
+, TextFragment ",  \n"
+, EvalFragment [ TId "p" ]
+, TextFragment " and finally \n"
+, EvalFragment
+    [ TLParen
+    , TId "q"
+    , TLParen
+    , TInt 2
+    , TRParen
+    , TComma
+    , TId "q"
+    , TLParen
+    , TInt 3
+    , TRParen
+    , TComma
+    , TId "q"
+    , TLParen
+    , TInt 4
+    , TRParen
+    , TComma
+    , TId "q"
+    , TLParen
+    , TInt 5
+    , TRParen
+    , TRParen
+    ]
+]

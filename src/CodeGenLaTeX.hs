@@ -151,8 +151,9 @@ codeGenBinary op@IRSub = infixOp "-" op
 codeGenBinary op@IRMult = infixOp (macro "cdot") op
 codeGenBinary IRFrac = fracOp
 codeGenBinary IRDiv = fracOp
-codeGenBinary IRPow = powerOp
-codeGenBinary IRExp = powerOp
+codeGenBinary IRPosPow = powerOp
+codeGenBinary IRFracPow = powerOp
+codeGenBinary IRFloatPow = powerOp
 codeGenBinary op@IRMod = infixOp (macro "bmod") op
 codeGenBinary op@IREq = infixOp "=" op
 codeGenBinary op@IRNeq = infixOp (macro "neq") op
@@ -172,7 +173,7 @@ fracOp :: IRExpr -> IRExpr -> String
 fracOp e1 e2 = macro2 "frac" (codeGenExpr e1) (codeGenExpr e2)
 
 powerOp :: IRExpr -> IRExpr -> String
-powerOp e1 e2 = (maybeParens e1 (Right IRPow) False $ codeGenExpr e1) ++ "^{" ++ (codeGenExpr e2) ++ "}"
+powerOp e1 e2 = (maybeParens e1 (Right IRPosPow) False $ codeGenExpr e1) ++ "^{" ++ (codeGenExpr e2) ++ "}"
 
 codeGenPrimitiveType :: PrimitiveType -> String
 codeGenPrimitiveType Positive = mathbb "Z" ++ "^+"

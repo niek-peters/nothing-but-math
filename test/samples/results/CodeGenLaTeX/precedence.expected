@@ -1,0 +1,76 @@
+\newcounter{nbmDefinitionCounter}
+% this file tests operator precedence
+\begin{flalign*}
+&\text{Define}~a : \mathbb{Z}~\text{by}&\\
+&a = -2^{2}.&\\
+\\
+&\text{Define}~b : \mathbb{Z}^+~\text{by}&\\
+&b = \left(-2\right)^{2}.&\\
+\\
+&\text{Define}~c : \mathbb{Q}~\text{by}&\\
+&c = 1^{-2}.&\\
+\\
+&\text{Define}~d : \mathbb{Q}~\text{by}&\\
+&d = \frac{\sqrt{16}}{2}.&\\
+\\
+&\text{Define}~e : \mathbb{Z}~\text{by}&\\
+&e = 1 + 2 \cdot 3.&\\
+\\
+&\text{Define}~f : \mathbb{Z}~\text{by}&\\
+&f = 1 - 2 - 3.&\\
+\\
+&\text{Define}~g : \mathbb{Z}~\text{by}&\\
+&g = 1^{2^{3}}.&\\
+\\
+&\text{Define}~h : \mathbb{Z}~\text{by}&\\
+&h = 10 \bmod 3 + 1.&\\
+\\
+&\text{Define}~i : \mathbb{Q}~\text{by}&\\
+&i = 1 + \frac{\frac{2}{3} \cdot 4}{5} + \frac{6}{7}.&\\
+\\
+&\text{Define}~j : \mathbb{B}~\text{by}&\\
+&j = 1 + 2 \leq 3 + 4.&\\
+\\
+&\text{Define}~k : \mathbb{B}~\text{by}&\\
+&k = 1 = 2 \neq True.&\\
+\\
+&\text{Define}~l : \mathbb{B}~\text{by}&\\
+&l = True \lor False \land False.&\\
+\\
+&\text{Define}~m : \mathbb{B}~\text{by}&\\
+&m = \neg False \lor False.&\\
+\\
+&\text{Define}~n : \mathbb{Z}~\text{by}&\\
+&n = \sqrt{--9}.&\\
+\\
+&\text{Define}~o : \mathbb{Z}~\text{by}&\\
+&o = -\sqrt{\sqrt{16}}.&\\
+\\
+&\text{Define}~p : \mathbb{B}~\text{by}&\\
+&p = \neg \neg True.&\\
+\\
+&\text{Define}~q : \mathbb{Z} \to \mathbb{Q}~\text{by}&\\
+&q\left(x\right) = \begin{cases}
+  \frac{x}{5} \cdot \frac{5 \cdot \left(1 + x\right)}{\left(-x\right)^{3}} + 6, & \text{if}~x > 3\\
+  \frac{1 + \frac{x}{3}}{4}, & \text{otherwise}
+\end{cases}.&
+\end{flalign*}
+
+And all evaluated:
+$a = -4$, 
+$b = 4$, 
+$c = \frac{1}{1}$, 
+$d = \frac{2}{1}$, 
+$e = 7$, 
+$f = -4$, 
+$g = 1$, 
+$h = 2$, 
+$i = \frac{251}{105}$, 
+$j = True$, 
+$k = True$, 
+$l = True$, 
+$m = True$, 
+$n = 3$, 
+$o = -2$,  
+$p = True$ and finally 
+$\left(q\left(2\right), q\left(3\right), q\left(4\right), q\left(5\right)\right) = \left(\frac{5}{12}, \frac{1}{2}, \frac{91}{16}, \frac{144}{25}\right)$

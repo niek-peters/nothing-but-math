@@ -1,0 +1,14 @@
+[ EvalFragment []
+, TextFragment "\nhello guys\n"
+, DefinitionFragment []
+, TextFragment "\n% <<<\n% a : Z\n% a := 0\n% >>>\ngoodbye\n"
+, DefinitionFragment []
+, TextFragment "\nok hii again\n"
+, EvalFragment []
+, EvalFragment []
+, TextFragment "\n"
+, DefinitionFragment []
+, DefinitionFragment []
+, TextFragment "\n% {{{a}}}\n"
+, EvalFragment []
+]

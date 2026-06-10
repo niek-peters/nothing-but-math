@@ -1,0 +1,41 @@
+\newcounter{nbmDefinitionCounter}
+\begin{flalign*}
+&\text{Define}~f : \mathbb{N} \to \mathbb{Z}^+~\text{by}&\\
+&f\left(x\right) = y \cdot -2&\\
+&\text{where}~y = -\left(x + 1\right).&\\
+\\
+&\text{Define}~g : \mathbb{Z} \times \mathbb{N} \to \mathbb{Q}~\text{by}&\\
+&g\left(x, a\right) = \frac{x^{a}}{2}.&\\
+\\
+&\text{Define}~h : \mathbb{Z} \to \mathbb{Z} \times \mathbb{R}~\text{by}&\\
+&h\left(x\right) = \left(x, x\right).&\\
+\\
+&\text{Define}~i : \mathbb{Z} \to \mathbb{Z} \times \mathbb{Z}~\text{by}&\\
+&i\left(x\right) = \left(2 \cdot a, 2 \cdot b\right)&\\
+&\text{where}~\left(a, b\right) = \left(x, x\right).&\\
+\\
+&\text{Define}~j : \mathbb{Z} \to \mathbb{N} \times \mathbb{Z}~\text{by}&\\
+&j\left(x\right) = \begin{cases}
+  \left(x, x\right), & \text{if}~x \geq 0\\
+  \left(-x, x\right), & \text{otherwise}
+\end{cases}.&\\
+\\
+&\text{Define}~k : \mathbb{Z} \to \mathbb{N} \times \mathbb{Z}~\text{by}&\\
+&k\left(x\right) = \begin{cases}
+  \left(x, x\right), & \text{if}~x > 0\\
+  \left(y, x\right), & \text{otherwise}
+\end{cases}&\\
+&\text{where}~x \neq 0, y = -x~\text{and}~y \neq 0.&
+\end{flalign*}
+
+$\left(f\left(0\right), f\left(1\right), f\left(2\right)\right) = \left(2, 4, 6\right)$
+
+$\left(g\left(-1, 0\right), g\left(0, 0\right), g\left(0, 1\right), g\left(2, 3\right)\right) = \left(\frac{1}{2}, \frac{1}{2}, \frac{0}{1}, \frac{4}{1}\right)$
+
+$h\left(-1\right) = \left(-1, -1.0\right)$, $h\left(1\right) = \left(1, 1.0\right)$
+
+$i\left(-1\right) = \left(-2, -2\right)$, $i\left(1\right) = \left(2, 2\right)$
+
+$j\left(-1\right) = \left(1, -1\right)$, $j\left(1\right) = \left(1, 1\right)$
+
+$k\left(-1\right) = \left(1, -1\right)$, $k\left(1\right) = \left(1, 1\right)$

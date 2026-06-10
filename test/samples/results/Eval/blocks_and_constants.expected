@@ -1,0 +1,56 @@
+[ TextFragment
+    "% this file tests comments, text/code/eval fragments and constant definitions\nThis is text\n% this is a LaTeX comment\n"
+, DefinitionFragment
+    (IR
+       IRBlockAnnotations
+         { blockDisplayMode = DefaultBlock
+         , blockName = Nothing
+         , blockLabel = Nothing
+         , blockClass = "Definition"
+         , blockDescription = Nothing
+         }
+       [ IRDeclaration
+           IRDeclAnnotations { declDisplayMode = DefaultDecl }
+           "a"
+           (Signature Nothing (Type (Natural :| [])))
+           []
+           (IRUnconditional (IRImmediateInt 0 Natural))
+           []
+       ])
+, TextFragment "\nmore text\n"
+, DefinitionFragment
+    (IR
+       IRBlockAnnotations
+         { blockDisplayMode = DefaultBlock
+         , blockName = Nothing
+         , blockLabel = Nothing
+         , blockClass = "Definition"
+         , blockDescription = Nothing
+         }
+       [ IRDeclaration
+           IRDeclAnnotations { declDisplayMode = DefaultDecl }
+           "b"
+           (Signature Nothing (Type (Natural :| [])))
+           []
+           (IRUnconditional (IRCall "a" True []))
+           []
+       ])
+, TextFragment "\nAnd now we use evaluation to determine "
+, EvalFragment
+    (IREvalResult (IRCall "a" True []) (IRImmediateInt 0 Natural))
+, TextFragment " and "
+, EvalFragment
+    (IREvalResult (IRCall "b" True []) (IRImmediateInt 0 Natural))
+, TextFragment
+    ".\n\nWe can also just do arbitrary expressions, like evaluating "
+, EvalFragment
+    (IREvalResult
+       (IRBinary
+          IRAdd
+          (IRUnary
+             Floor
+             (IRUnary Sqrt (IRCast (IRImmediateInt 11 Positive) Positive Real)))
+          (IRCast (IRImmediateInt 5 Positive) Positive Integer))
+       (IRImmediateInt 8 Positive))
+, TextFragment "."
+]

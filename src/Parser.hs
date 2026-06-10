@@ -15,7 +15,7 @@ type Parser = Parsec Void [Token]
 type ParseResult = [Fragment String AST Expr]
 
 parse :: TokenizeResult -> ParseResult
-parse = map runFragmentParser
+parse frags = [res | (Just res) <- map runFragmentParser frags] -- here we filter out the empty code/eval fragments
 
 useParser :: Parser a -> [Token] -> a
 useParser parser ts = case Text.Megaparsec.parse parser "" ts of
@@ -25,13 +25,13 @@ useParser parser ts = case Text.Megaparsec.parse parser "" ts of
 runExprParser :: [Token] -> Expr
 runExprParser = useParser parseExpr
 
-runFragmentParser :: Fragment String [Token] [Token] -> Fragment String AST Expr
-runFragmentParser (TextFragment t) = TextFragment t
-runFragmentParser (DefinitionFragment c) = (DefinitionFragment $ useParser (parseCodeFragment <* eof) c)
-runFragmentParser (EvalFragment e) = (EvalFragment $ useParser (parseExpr <* eof) e)
+runFragmentParser :: Fragment String [Token] [Token] -> Maybe (Fragment String AST Expr)
+runFragmentParser (TextFragment t) = Just $ TextFragment t
+runFragmentParser (DefinitionFragment c) = DefinitionFragment <$> useParser (optional parseCodeFragment <* eof) c
+runFragmentParser (EvalFragment e) = EvalFragment <$> useParser (optional parseExpr <* eof) e
 
 parseCodeFragment :: Parser AST
-parseCodeFragment = AST <$> option [] (tok THash *> brackets (sepBy parseBlockAnnotation $ tok TComma)) <*> many parseDeclaration
+parseCodeFragment = AST <$> option [] (tok THash *> brackets (sepBy parseBlockAnnotation $ tok TComma)) <*> some parseDeclaration
 
 parseDeclaration :: Parser Declaration
 parseDeclaration = Declaration 

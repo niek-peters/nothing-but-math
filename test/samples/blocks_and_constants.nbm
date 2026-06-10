@@ -14,4 +14,4 @@ b := a  % identifier reference
 >>>
 And now we use evaluation to determine {{{a}}} and {{{b}}}.
 
-We can also just do arbitrary expressions, like evaluating {{{floor sqrt 11 + 5}}}.
+We can also just do arbitrary expressions, like evaluating {{{floor (sqrt 11) + 5}}}.

@@ -14,6 +14,7 @@ import System.Exit (ExitCode(..))
 import Control.Monad (when)
 import Types (CLIOptions (..))
 import Lexer (tokenize)
+import Text.Show.Pretty (pPrint)
 
 compile :: CLIOptions -> IO ()
 compile options = do

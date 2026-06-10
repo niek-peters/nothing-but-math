@@ -16,10 +16,10 @@ spec =
 
 evalFromSource :: FilePath -> String -> IO EvalResult
 evalFromSource filePath src = do
-    pathHaskell <- (addExtension <$> (fst <$> splitExtension <$> canonicalizePath filePath)) <*> (pure "generated.hs")
-    writeFile pathHaskell lib
+    -- pathHaskell <- (addExtension <$> (fst <$> splitExtension <$> canonicalizePath filePath)) <*> (pure "generated.hs")
+    writeFile filePath lib
 
-    eval elaborated pathHaskell evalFrags
+    eval elaborated filePath evalFrags
 
     where   ((lib, evalFrags), elaborated) = codeGenHaskellFromSource src
 

@@ -1,0 +1,246 @@
+[ TextFragment "% this file tests the boolean type and operators\n"
+, DefinitionFragment
+    [ TId "isPos"
+    , TColon
+    , TPrimType Integer
+    , TArrow
+    , TPrimType Boolean
+    , TId "isPos"
+    , TLParen
+    , TId "x"
+    , TRParen
+    , TAssign
+    , TId "x"
+    , TBOp Greater
+    , TInt 0
+    , TId "isNat"
+    , TColon
+    , TPrimType Integer
+    , TArrow
+    , TPrimType Boolean
+    , TId "isNat"
+    , TLParen
+    , TId "x"
+    , TRParen
+    , TAssign
+    , TId "x"
+    , TBOp GreaterEq
+    , TInt 0
+    , TId "isNeg"
+    , TColon
+    , TPrimType Integer
+    , TArrow
+    , TPrimType Boolean
+    , TId "isNeg"
+    , TLParen
+    , TId "x"
+    , TRParen
+    , TAssign
+    , TId "x"
+    , TBOp Less
+    , TInt 0
+    , TId "nonNeg"
+    , TColon
+    , TPrimType Integer
+    , TArrow
+    , TPrimType Boolean
+    , TId "nonNeg"
+    , TLParen
+    , TId "x"
+    , TRParen
+    , TAssign
+    , TUOp Not
+    , TId "isNeg"
+    , TLParen
+    , TId "x"
+    , TRParen
+    , TId "nonZero"
+    , TColon
+    , TPrimType Integer
+    , TArrow
+    , TPrimType Boolean
+    , TId "nonZero"
+    , TLParen
+    , TId "x"
+    , TRParen
+    , TAssign
+    , TId "x"
+    , TBOp Neq
+    , TInt 0
+    , TId "oneOrTwo"
+    , TColon
+    , TPrimType Integer
+    , TArrow
+    , TPrimType Boolean
+    , TId "oneOrTwo"
+    , TLParen
+    , TId "x"
+    , TRParen
+    , TAssign
+    , TId "x"
+    , TBOp Eq
+    , TInt 1
+    , TBOp Or
+    , TId "x"
+    , TBOp Eq
+    , TInt 2
+    , TId "neitherOneOrTwo"
+    , TColon
+    , TPrimType Integer
+    , TArrow
+    , TPrimType Boolean
+    , TId "neitherOneOrTwo"
+    , TLParen
+    , TId "x"
+    , TRParen
+    , TAssign
+    , TId "x"
+    , TBOp Neq
+    , TInt 1
+    , TBOp And
+    , TUOp Not
+    , TLParen
+    , TId "x"
+    , TBOp Eq
+    , TInt 2
+    , TRParen
+    ]
+, TextFragment "\nWe have\n\n"
+, EvalFragment
+    [ TLParen
+    , TId "isPos"
+    , TLParen
+    , TInt 1
+    , TRParen
+    , TComma
+    , TId "isPos"
+    , TLParen
+    , TMinus
+    , TInt 1
+    , TRParen
+    , TComma
+    , TId "isPos"
+    , TLParen
+    , TInt 0
+    , TRParen
+    , TRParen
+    ]
+, TextFragment "\n\n"
+, EvalFragment
+    [ TLParen
+    , TId "isNat"
+    , TLParen
+    , TInt 1
+    , TRParen
+    , TComma
+    , TId "isNat"
+    , TLParen
+    , TMinus
+    , TInt 1
+    , TRParen
+    , TComma
+    , TId "isNat"
+    , TLParen
+    , TInt 0
+    , TRParen
+    , TRParen
+    ]
+, TextFragment "\n\n"
+, EvalFragment
+    [ TLParen
+    , TId "isNeg"
+    , TLParen
+    , TInt 1
+    , TRParen
+    , TComma
+    , TId "isNeg"
+    , TLParen
+    , TMinus
+    , TInt 1
+    , TRParen
+    , TComma
+    , TId "isNeg"
+    , TLParen
+    , TInt 0
+    , TRParen
+    , TRParen
+    ]
+, TextFragment "\n\n"
+, EvalFragment
+    [ TLParen
+    , TId "nonNeg"
+    , TLParen
+    , TInt 1
+    , TRParen
+    , TComma
+    , TId "nonNeg"
+    , TLParen
+    , TMinus
+    , TInt 1
+    , TRParen
+    , TComma
+    , TId "nonNeg"
+    , TLParen
+    , TInt 0
+    , TRParen
+    , TRParen
+    ]
+, TextFragment "\n\n"
+, EvalFragment
+    [ TLParen
+    , TId "nonZero"
+    , TLParen
+    , TInt 1
+    , TRParen
+    , TComma
+    , TId "nonZero"
+    , TLParen
+    , TMinus
+    , TInt 1
+    , TRParen
+    , TComma
+    , TId "nonZero"
+    , TLParen
+    , TInt 0
+    , TRParen
+    , TRParen
+    ]
+, TextFragment "\n\nAnd\n\n"
+, EvalFragment
+    [ TLParen
+    , TId "oneOrTwo"
+    , TLParen
+    , TInt 0
+    , TRParen
+    , TComma
+    , TId "oneOrTwo"
+    , TLParen
+    , TInt 1
+    , TRParen
+    , TComma
+    , TId "oneOrTwo"
+    , TLParen
+    , TInt 2
+    , TRParen
+    , TRParen
+    ]
+, TextFragment "\n\n"
+, EvalFragment
+    [ TLParen
+    , TId "neitherOneOrTwo"
+    , TLParen
+    , TInt 0
+    , TRParen
+    , TComma
+    , TId "neitherOneOrTwo"
+    , TLParen
+    , TInt 1
+    , TRParen
+    , TComma
+    , TId "neitherOneOrTwo"
+    , TLParen
+    , TInt 2
+    , TRParen
+    , TRParen
+    ]
+]

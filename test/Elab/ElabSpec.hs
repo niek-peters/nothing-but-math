@@ -10,7 +10,7 @@ import Text.Show.Pretty (ppShow)
 spec :: Spec
 spec =
     describe "Sample Program Elaboration" $ 
-        testGolden "test/samples" "test/samples/results/Parsing" "correctly parses example program" (const (pure . ppShow . elabFromSource))
+        testGolden "test/samples" "test/samples/results/Elab" "correctly elaborates example program" (const (pure . ppShow . elabFromSource))
 
 elabFromSource :: String -> ElabResult
 elabFromSource = elab . parseFromSource

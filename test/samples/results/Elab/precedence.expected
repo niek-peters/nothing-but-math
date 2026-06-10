@@ -1,0 +1,339 @@
+[ TextFragment "% this file tests operator precedence\n"
+, DefinitionFragment
+    (IR
+       IRBlockAnnotations
+         { blockDisplayMode = DefaultBlock
+         , blockName = Nothing
+         , blockLabel = Nothing
+         , blockClass = "Definition"
+         , blockDescription = Nothing
+         }
+       [ IRDeclaration
+           IRDeclAnnotations { declDisplayMode = DefaultDecl }
+           "a"
+           (Signature Nothing (Type (Integer :| [])))
+           []
+           (IRUnconditional
+              (IRUnary
+                 Neg
+                 (IRCast
+                    (IRBinary
+                       IRPosPow
+                       (IRImmediateInt 2 Positive)
+                       (IRCast (IRImmediateInt 2 Positive) Positive Natural))
+                    Positive
+                    Integer)))
+           []
+       , IRDeclaration
+           IRDeclAnnotations { declDisplayMode = DefaultDecl }
+           "b"
+           (Signature Nothing (Type (Positive :| [])))
+           []
+           (IRUnconditional
+              (IRCast
+                 (IRBinary
+                    IRPosPow
+                    (IRUnary Neg (IRCast (IRImmediateInt 2 Positive) Positive Integer))
+                    (IRCast (IRImmediateInt 2 Positive) Positive Natural))
+                 Integer
+                 Positive))
+           []
+       , IRDeclaration
+           IRDeclAnnotations { declDisplayMode = DefaultDecl }
+           "c"
+           (Signature Nothing (Type (Rational :| [])))
+           []
+           (IRUnconditional
+              (IRBinary
+                 IRFracPow
+                 (IRCast (IRImmediateInt 1 Positive) Positive Rational)
+                 (IRUnary
+                    Neg (IRCast (IRImmediateInt 2 Positive) Positive Integer))))
+           []
+       , IRDeclaration
+           IRDeclAnnotations { declDisplayMode = DefaultDecl }
+           "d"
+           (Signature Nothing (Type (Rational :| [])))
+           []
+           (IRUnconditional
+              (IRCast
+                 (IRBinary
+                    IRDiv
+                    (IRUnary Sqrt (IRCast (IRImmediateInt 16 Positive) Positive Real))
+                    (IRCast (IRImmediateInt 2 Positive) Positive Real))
+                 Real
+                 Rational))
+           []
+       , IRDeclaration
+           IRDeclAnnotations { declDisplayMode = DefaultDecl }
+           "e"
+           (Signature Nothing (Type (Integer :| [])))
+           []
+           (IRUnconditional
+              (IRCast
+                 (IRBinary
+                    IRAdd
+                    (IRImmediateInt 1 Positive)
+                    (IRBinary
+                       IRMult (IRImmediateInt 2 Positive) (IRImmediateInt 3 Positive)))
+                 Positive
+                 Integer))
+           []
+       , IRDeclaration
+           IRDeclAnnotations { declDisplayMode = DefaultDecl }
+           "f"
+           (Signature Nothing (Type (Integer :| [])))
+           []
+           (IRUnconditional
+              (IRBinary
+                 IRSub
+                 (IRBinary
+                    IRSub
+                    (IRCast (IRImmediateInt 1 Positive) Positive Integer)
+                    (IRCast (IRImmediateInt 2 Positive) Positive Integer))
+                 (IRCast (IRImmediateInt 3 Positive) Positive Integer)))
+           []
+       , IRDeclaration
+           IRDeclAnnotations { declDisplayMode = DefaultDecl }
+           "g"
+           (Signature Nothing (Type (Integer :| [])))
+           []
+           (IRUnconditional
+              (IRCast
+                 (IRBinary
+                    IRPosPow
+                    (IRImmediateInt 1 Positive)
+                    (IRCast
+                       (IRBinary
+                          IRPosPow
+                          (IRImmediateInt 2 Positive)
+                          (IRCast (IRImmediateInt 3 Positive) Positive Natural))
+                       Positive
+                       Natural))
+                 Positive
+                 Integer))
+           []
+       , IRDeclaration
+           IRDeclAnnotations { declDisplayMode = DefaultDecl }
+           "h"
+           (Signature Nothing (Type (Integer :| [])))
+           []
+           (IRUnconditional
+              (IRCast
+                 (IRBinary
+                    IRAdd
+                    (IRBinary
+                       IRMod
+                       (IRCast (IRImmediateInt 10 Positive) Positive Natural)
+                       (IRCast (IRImmediateInt 3 Positive) Positive Natural))
+                    (IRCast (IRImmediateInt 1 Positive) Positive Natural))
+                 Natural
+                 Integer))
+           []
+       , IRDeclaration
+           IRDeclAnnotations { declDisplayMode = DefaultDecl }
+           "i"
+           (Signature Nothing (Type (Rational :| [])))
+           []
+           (IRUnconditional
+              (IRBinary
+                 IRAdd
+                 (IRBinary
+                    IRAdd
+                    (IRCast (IRImmediateInt 1 Positive) Positive Rational)
+                    (IRBinary
+                       IRDiv
+                       (IRBinary
+                          IRMult
+                          (IRBinary
+                             IRFrac
+                             (IRCast (IRImmediateInt 2 Positive) Positive Integer)
+                             (IRCast (IRImmediateInt 3 Positive) Positive Integer))
+                          (IRCast (IRImmediateInt 4 Positive) Positive Rational))
+                       (IRCast (IRImmediateInt 5 Positive) Positive Rational)))
+                 (IRBinary
+                    IRFrac
+                    (IRCast (IRImmediateInt 6 Positive) Positive Integer)
+                    (IRCast (IRImmediateInt 7 Positive) Positive Integer))))
+           []
+       , IRDeclaration
+           IRDeclAnnotations { declDisplayMode = DefaultDecl }
+           "j"
+           (Signature Nothing (Type (Boolean :| [])))
+           []
+           (IRUnconditional
+              (IRBinary
+                 IRLessEq
+                 (IRBinary
+                    IRAdd (IRImmediateInt 1 Positive) (IRImmediateInt 2 Positive))
+                 (IRBinary
+                    IRAdd (IRImmediateInt 3 Positive) (IRImmediateInt 4 Positive))))
+           []
+       , IRDeclaration
+           IRDeclAnnotations { declDisplayMode = DefaultDecl }
+           "k"
+           (Signature Nothing (Type (Boolean :| [])))
+           []
+           (IRUnconditional
+              (IRBinary
+                 IRNeq
+                 (IRBinary
+                    IREq (IRImmediateInt 1 Positive) (IRImmediateInt 2 Positive))
+                 (IRImmediateBool True)))
+           []
+       , IRDeclaration
+           IRDeclAnnotations { declDisplayMode = DefaultDecl }
+           "l"
+           (Signature Nothing (Type (Boolean :| [])))
+           []
+           (IRUnconditional
+              (IRBinary
+                 IROr
+                 (IRImmediateBool True)
+                 (IRBinary IRAnd (IRImmediateBool False) (IRImmediateBool False))))
+           []
+       , IRDeclaration
+           IRDeclAnnotations { declDisplayMode = DefaultDecl }
+           "m"
+           (Signature Nothing (Type (Boolean :| [])))
+           []
+           (IRUnconditional
+              (IRBinary
+                 IROr
+                 (IRUnary Not (IRImmediateBool False))
+                 (IRImmediateBool False)))
+           []
+       , IRDeclaration
+           IRDeclAnnotations { declDisplayMode = DefaultDecl }
+           "n"
+           (Signature Nothing (Type (Integer :| [])))
+           []
+           (IRUnconditional
+              (IRCast
+                 (IRUnary
+                    Sqrt
+                    (IRCast
+                       (IRUnary
+                          Neg
+                          (IRUnary
+                             Neg (IRCast (IRImmediateInt 9 Positive) Positive Integer)))
+                       Integer
+                       Real))
+                 Real
+                 Integer))
+           []
+       , IRDeclaration
+           IRDeclAnnotations { declDisplayMode = DefaultDecl }
+           "o"
+           (Signature Nothing (Type (Integer :| [])))
+           []
+           (IRUnconditional
+              (IRCast
+                 (IRUnary
+                    Neg
+                    (IRUnary
+                       Sqrt
+                       (IRUnary
+                          Sqrt (IRCast (IRImmediateInt 16 Positive) Positive Real))))
+                 Real
+                 Integer))
+           []
+       , IRDeclaration
+           IRDeclAnnotations { declDisplayMode = DefaultDecl }
+           "p"
+           (Signature Nothing (Type (Boolean :| [])))
+           []
+           (IRUnconditional
+              (IRUnary Not (IRUnary Not (IRImmediateBool True))))
+           []
+       , IRDeclaration
+           IRDeclAnnotations { declDisplayMode = DefaultDecl }
+           "q"
+           (Signature (Just (Type (Integer :| []))) (Type (Rational :| [])))
+           [ "x" ]
+           (IRConditional
+              [ IRBranch
+                  (IRBinary
+                     IRAdd
+                     (IRBinary
+                        IRMult
+                        (IRBinary
+                           IRFrac
+                           (IRCall "x" False [])
+                           (IRCast (IRImmediateInt 5 Positive) Positive Integer))
+                        (IRBinary
+                           IRFrac
+                           (IRBinary
+                              IRMult
+                              (IRCast (IRImmediateInt 5 Positive) Positive Integer)
+                              (IRBinary
+                                 IRAdd
+                                 (IRCast (IRImmediateInt 1 Positive) Positive Integer)
+                                 (IRCall "x" False [])))
+                           (IRBinary
+                              IRPosPow
+                              (IRUnary Neg (IRCall "x" False []))
+                              (IRCast (IRImmediateInt 3 Positive) Positive Natural))))
+                     (IRCast (IRImmediateInt 6 Positive) Positive Rational))
+                  (IRBinary
+                     IRGreater
+                     (IRCall "x" False [])
+                     (IRCast (IRImmediateInt 3 Positive) Positive Integer))
+              ]
+              (IRBinary
+                 IRDiv
+                 (IRBinary
+                    IRAdd
+                    (IRCast (IRImmediateInt 1 Positive) Positive Rational)
+                    (IRBinary
+                       IRFrac
+                       (IRCall "x" False [])
+                       (IRCast (IRImmediateInt 3 Positive) Positive Integer)))
+                 (IRCast (IRImmediateInt 4 Positive) Positive Rational)))
+           []
+       ])
+, TextFragment "\n\nAnd all evaluated:\n"
+, EvalFragment (IRCall "a" True [])
+, TextFragment ", \n"
+, EvalFragment (IRCall "b" True [])
+, TextFragment ", \n"
+, EvalFragment (IRCall "c" True [])
+, TextFragment ", \n"
+, EvalFragment (IRCall "d" True [])
+, TextFragment ", \n"
+, EvalFragment (IRCall "e" True [])
+, TextFragment ", \n"
+, EvalFragment (IRCall "f" True [])
+, TextFragment ", \n"
+, EvalFragment (IRCall "g" True [])
+, TextFragment ", \n"
+, EvalFragment (IRCall "h" True [])
+, TextFragment ", \n"
+, EvalFragment (IRCall "i" True [])
+, TextFragment ", \n"
+, EvalFragment (IRCall "j" True [])
+, TextFragment ", \n"
+, EvalFragment (IRCall "k" True [])
+, TextFragment ", \n"
+, EvalFragment (IRCall "l" True [])
+, TextFragment ", \n"
+, EvalFragment (IRCall "m" True [])
+, TextFragment ", \n"
+, EvalFragment (IRCall "n" True [])
+, TextFragment ", \n"
+, EvalFragment (IRCall "o" True [])
+, TextFragment ",  \n"
+, EvalFragment (IRCall "p" True [])
+, TextFragment " and finally \n"
+, EvalFragment
+    (IRTuple
+       (IRCall
+          "q" True [ IRCast (IRImmediateInt 2 Positive) Positive Integer ] :|
+          [ IRCall
+              "q" True [ IRCast (IRImmediateInt 3 Positive) Positive Integer ]
+          , IRCall
+              "q" True [ IRCast (IRImmediateInt 4 Positive) Positive Integer ]
+          , IRCall
+              "q" True [ IRCast (IRImmediateInt 5 Positive) Positive Integer ]
+          ]))
+]

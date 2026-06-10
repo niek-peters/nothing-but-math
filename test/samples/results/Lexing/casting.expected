@@ -1,0 +1,111 @@
+[ TextFragment "% this file tests some type casting behaviour\n"
+, DefinitionFragment
+    [ TId "f"
+    , TColon
+    , TPrimType Natural
+    , TId "x"
+    , TPrimType Natural
+    , TArrow
+    , TPrimType Integer
+    , TId "f"
+    , TLParen
+    , TId "a"
+    , TComma
+    , TId "b"
+    , TRParen
+    , TAssign
+    , TId "a"
+    , TMinus
+    , TId "b"
+    , TId "g"
+    , TColon
+    , TPrimType Integer
+    , TArrow
+    , TPrimType Natural
+    , TId "g"
+    , TLParen
+    , TId "x"
+    , TRParen
+    , TAssign
+    , TLBrace
+    , TInt 0
+    , TIf
+    , TId "x"
+    , TBOp Less
+    , TInt 0
+    , TId "x"
+    , TOtherwise
+    , TRBrace
+    , TId "h"
+    , TColon
+    , TPrimType Real
+    , TId "h"
+    , TAssign
+    , TReal 1.25
+    , TMinus
+    , TInt 1
+    , TBOp Div
+    , TInt 2
+    , TId "i"
+    , TColon
+    , TPrimType Positive
+    , TId "i"
+    , TAssign
+    , TUOp Sqrt
+    , TInt 9
+    , TId "j"
+    , TColon
+    , TPrimType Positive
+    , TId "j"
+    , TAssign
+    , TInt 12
+    , TBOp Div
+    , TInt 3
+    , TId "k"
+    , TColon
+    , TPrimType Rational
+    , TId "k"
+    , TAssign
+    , TReal 0.25
+    , TId "l"
+    , TColon
+    , TPrimType Integer
+    , TId "l"
+    , TAssign
+    , TInt 10
+    , TBOp Mult
+    , TLParen
+    , TReal 0.1
+    , TBOp Add
+    , TReal 0.2
+    , TRParen
+    ]
+, TextFragment "\n\n"
+, EvalFragment
+    [ TId "f" , TLParen , TInt 1 , TComma , TInt 2 , TRParen ]
+, TextFragment "\n\n"
+, EvalFragment
+    [ TLParen
+    , TId "g"
+    , TLParen
+    , TMinus
+    , TInt 1
+    , TRParen
+    , TComma
+    , TId "g"
+    , TLParen
+    , TInt 1
+    , TRParen
+    , TRParen
+    ]
+, TextFragment "\n\n"
+, EvalFragment [ TId "h" ]
+, TextFragment ", \n"
+, EvalFragment [ TId "i" ]
+, TextFragment ", \n"
+, EvalFragment [ TId "j" ]
+, TextFragment ", \n"
+, EvalFragment [ TId "k" ]
+, TextFragment " and \n"
+, EvalFragment [ TId "l" ]
+]

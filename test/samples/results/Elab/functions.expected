@@ -1,0 +1,216 @@
+[ DefinitionFragment
+    (IR
+       IRBlockAnnotations
+         { blockDisplayMode = DefaultBlock
+         , blockName = Nothing
+         , blockLabel = Nothing
+         , blockClass = "Definition"
+         , blockDescription = Nothing
+         }
+       [ IRDeclaration
+           IRDeclAnnotations { declDisplayMode = DefaultDecl }
+           "f"
+           (Signature (Just (Type (Natural :| []))) (Type (Positive :| [])))
+           [ "x" ]
+           (IRUnconditional
+              (IRCast
+                 (IRBinary
+                    IRMult
+                    (IRCall "y" False [])
+                    (IRUnary
+                       Neg (IRCast (IRImmediateInt 2 Positive) Positive Integer)))
+                 Integer
+                 Positive))
+           [ IRLocalDecl
+               (IRLocal
+                  ("y" :| [])
+                  (IRUnary
+                     Neg
+                     (IRCast
+                        (IRBinary
+                           IRAdd
+                           (IRCall "x" False [])
+                           (IRCast (IRImmediateInt 1 Positive) Positive Natural))
+                        Natural
+                        Integer)))
+           ]
+       , IRDeclaration
+           IRDeclAnnotations { declDisplayMode = DefaultDecl }
+           "g"
+           (Signature
+              (Just (Type (Integer :| [ Natural ]))) (Type (Rational :| [])))
+           [ "x" , "a" ]
+           (IRUnconditional
+              (IRBinary
+                 IRFrac
+                 (IRBinary IRPosPow (IRCall "x" False []) (IRCall "a" False []))
+                 (IRCast (IRImmediateInt 2 Positive) Positive Integer)))
+           []
+       , IRDeclaration
+           IRDeclAnnotations { declDisplayMode = DefaultDecl }
+           "h"
+           (Signature
+              (Just (Type (Integer :| []))) (Type (Integer :| [ Real ])))
+           [ "x" ]
+           (IRUnconditional
+              (IRTuple
+                 (IRCall "x" False [] :|
+                    [ IRCast (IRCall "x" False []) Integer Real ])))
+           []
+       , IRDeclaration
+           IRDeclAnnotations { declDisplayMode = DefaultDecl }
+           "i"
+           (Signature
+              (Just (Type (Integer :| []))) (Type (Integer :| [ Integer ])))
+           [ "x" ]
+           (IRUnconditional
+              (IRTuple
+                 (IRBinary
+                    IRMult
+                    (IRCast (IRImmediateInt 2 Positive) Positive Integer)
+                    (IRCall "a" False []) :|
+                    [ IRBinary
+                        IRMult
+                        (IRCast (IRImmediateInt 2 Positive) Positive Integer)
+                        (IRCall "b" False [])
+                    ])))
+           [ IRLocalDecl
+               (IRLocal
+                  ("a" :| [ "b" ])
+                  (IRTuple (IRCall "x" False [] :| [ IRCall "x" False [] ])))
+           ]
+       , IRDeclaration
+           IRDeclAnnotations { declDisplayMode = DefaultDecl }
+           "j"
+           (Signature
+              (Just (Type (Integer :| []))) (Type (Natural :| [ Integer ])))
+           [ "x" ]
+           (IRConditional
+              [ IRBranch
+                  (IRTuple
+                     (IRCast (IRCall "x" False []) Integer Natural :|
+                        [ IRCall "x" False [] ]))
+                  (IRBinary
+                     IRGreaterEq
+                     (IRCall "x" False [])
+                     (IRCast (IRImmediateInt 0 Natural) Natural Integer))
+              ]
+              (IRTuple
+                 (IRCast (IRUnary Neg (IRCall "x" False [])) Integer Natural :|
+                    [ IRCall "x" False [] ])))
+           []
+       , IRDeclaration
+           IRDeclAnnotations { declDisplayMode = DefaultDecl }
+           "k"
+           (Signature
+              (Just (Type (Integer :| []))) (Type (Natural :| [ Integer ])))
+           [ "x" ]
+           (IRConditional
+              [ IRBranch
+                  (IRTuple
+                     (IRCast (IRCall "x" False []) Integer Natural :|
+                        [ IRCall "x" False [] ]))
+                  (IRBinary
+                     IRGreater
+                     (IRCall "x" False [])
+                     (IRCast (IRImmediateInt 0 Natural) Natural Integer))
+              ]
+              (IRTuple
+                 (IRCast (IRCall "y" False []) Integer Natural :|
+                    [ IRCall "x" False [] ])))
+           [ IRConstraint
+               (IRBinary
+                  IRNeq
+                  (IRCall "x" False [])
+                  (IRCast (IRImmediateInt 0 Natural) Natural Integer))
+           , IRLocalDecl
+               (IRLocal ("y" :| []) (IRUnary Neg (IRCall "x" False [])))
+           , IRConstraint
+               (IRBinary
+                  IRNeq
+                  (IRCall "y" False [])
+                  (IRCast (IRImmediateInt 0 Natural) Natural Integer))
+           ]
+       ])
+, TextFragment "\n\n"
+, EvalFragment
+    (IRTuple
+       (IRCall "f" True [ IRImmediateInt 0 Natural ] :|
+          [ IRCall
+              "f" True [ IRCast (IRImmediateInt 1 Positive) Positive Natural ]
+          , IRCall
+              "f" True [ IRCast (IRImmediateInt 2 Positive) Positive Natural ]
+          ]))
+, TextFragment "\n\n"
+, EvalFragment
+    (IRTuple
+       (IRCall
+          "g"
+          True
+          [ IRUnary Neg (IRCast (IRImmediateInt 1 Positive) Positive Integer)
+          , IRImmediateInt 0 Natural
+          ] :|
+          [ IRCall
+              "g"
+              True
+              [ IRCast (IRImmediateInt 0 Natural) Natural Integer
+              , IRImmediateInt 0 Natural
+              ]
+          , IRCall
+              "g"
+              True
+              [ IRCast (IRImmediateInt 0 Natural) Natural Integer
+              , IRCast (IRImmediateInt 1 Positive) Positive Natural
+              ]
+          , IRCall
+              "g"
+              True
+              [ IRCast (IRImmediateInt 2 Positive) Positive Integer
+              , IRCast (IRImmediateInt 3 Positive) Positive Natural
+              ]
+          ]))
+, TextFragment "\n\n"
+, EvalFragment
+    (IRCall
+       "h"
+       True
+       [ IRUnary Neg (IRCast (IRImmediateInt 1 Positive) Positive Integer)
+       ])
+, TextFragment ", "
+, EvalFragment
+    (IRCall
+       "h" True [ IRCast (IRImmediateInt 1 Positive) Positive Integer ])
+, TextFragment "\n\n"
+, EvalFragment
+    (IRCall
+       "i"
+       True
+       [ IRUnary Neg (IRCast (IRImmediateInt 1 Positive) Positive Integer)
+       ])
+, TextFragment ", "
+, EvalFragment
+    (IRCall
+       "i" True [ IRCast (IRImmediateInt 1 Positive) Positive Integer ])
+, TextFragment "\n\n"
+, EvalFragment
+    (IRCall
+       "j"
+       True
+       [ IRUnary Neg (IRCast (IRImmediateInt 1 Positive) Positive Integer)
+       ])
+, TextFragment ", "
+, EvalFragment
+    (IRCall
+       "j" True [ IRCast (IRImmediateInt 1 Positive) Positive Integer ])
+, TextFragment "\n\n"
+, EvalFragment
+    (IRCall
+       "k"
+       True
+       [ IRUnary Neg (IRCast (IRImmediateInt 1 Positive) Positive Integer)
+       ])
+, TextFragment ", "
+, EvalFragment
+    (IRCall
+       "k" True [ IRCast (IRImmediateInt 1 Positive) Positive Integer ])
+]

@@ -46,8 +46,8 @@ data IRExpr = IRCast IRExpr PrimitiveType PrimitiveType       -- wraps an expr t
 
 -- here we differentiate between:
 -- 1. Frac (Haskell %, creates a fraction) and Div (Haskell /, performs a division)
--- 2. Pow (Haskell ^, integer power) and Exp (Haskell **, rational/real power)
-data IRBinaryOp = IRAdd | IRSub | IRMult | IRFrac | IRDiv | IRPow | IRExp | IRMod | IREq | IRNeq | IRLess | IRGreater | IRLessEq | IRGreaterEq | IRDivides | IRAnd | IROr
+-- 2. PosPow (Haskell ^, positive/natural exponent), FracPow (Haskell ^^, integer exponent) and FloatPow (Haskell **, rational/real exponent)
+data IRBinaryOp = IRAdd | IRSub | IRMult | IRFrac | IRDiv | IRPosPow | IRFracPow | IRFloatPow | IRMod | IREq | IRNeq | IRLess | IRGreater | IRLessEq | IRGreaterEq | IRDivides | IRAnd | IROr
     deriving (Show, Eq)
 
 -- in the IR we explicitly have one value for each possible annotation setting
