@@ -29,5 +29,155 @@
            (Unconditional
               (Binary Pow (ImmediateInt 1) (Unary Neg (ImmediateInt 2))))
            []
+       , Declaration
+           []
+           "d"
+           (Signature Nothing (Type (Rational :| [])))
+           "d"
+           []
+           (Unconditional
+              (Binary Div (Unary Sqrt (ImmediateInt 16)) (ImmediateInt 2)))
+           []
+       , Declaration
+           []
+           "e"
+           (Signature Nothing (Type (Integer :| [])))
+           "e"
+           []
+           (Unconditional
+              (Binary
+                 Add
+                 (ImmediateInt 1)
+                 (Binary Mult (ImmediateInt 2) (ImmediateInt 3))))
+           []
+       , Declaration
+           []
+           "f"
+           (Signature Nothing (Type (Integer :| [])))
+           "f"
+           []
+           (Unconditional
+              (Binary
+                 Sub
+                 (Binary Sub (ImmediateInt 1) (ImmediateInt 2))
+                 (ImmediateInt 3)))
+           []
+       , Declaration
+           []
+           "g"
+           (Signature Nothing (Type (Integer :| [])))
+           "g"
+           []
+           (Unconditional
+              (Binary
+                 Pow
+                 (ImmediateInt 1)
+                 (Binary Pow (ImmediateInt 2) (ImmediateInt 3))))
+           []
+       , Declaration
+           []
+           "h"
+           (Signature Nothing (Type (Integer :| [])))
+           "h"
+           []
+           (Unconditional
+              (Binary
+                 Add
+                 (Binary Mod (ImmediateInt 10) (ImmediateInt 3))
+                 (ImmediateInt 1)))
+           []
+       , Declaration
+           []
+           "i"
+           (Signature Nothing (Type (Rational :| [])))
+           "i"
+           []
+           (Unconditional
+              (Binary
+                 Add
+                 (Binary
+                    Add
+                    (ImmediateInt 1)
+                    (Binary
+                       Div
+                       (Binary
+                          Mult
+                          (Binary Div (ImmediateInt 2) (ImmediateInt 3))
+                          (ImmediateInt 4))
+                       (ImmediateInt 5)))
+                 (Binary Div (ImmediateInt 6) (ImmediateInt 7))))
+           []
+       , Declaration
+           []
+           "j"
+           (Signature Nothing (Type (Boolean :| [])))
+           "j"
+           []
+           (Unconditional
+              (Binary
+                 LessEq
+                 (Binary Add (ImmediateInt 1) (ImmediateInt 2))
+                 (Binary Add (ImmediateInt 3) (ImmediateInt 4))))
+           []
+       , Declaration
+           []
+           "k"
+           (Signature Nothing (Type (Boolean :| [])))
+           "k"
+           []
+           (Unconditional
+              (Binary
+                 Neq
+                 (Binary Eq (ImmediateInt 1) (ImmediateInt 2))
+                 (ImmediateBool True)))
+           []
+       , Declaration
+           []
+           "l"
+           (Signature Nothing (Type (Boolean :| [])))
+           "l"
+           []
+           (Unconditional
+              (Binary
+                 Or
+                 (ImmediateBool True)
+                 (Binary And (ImmediateBool False) (ImmediateBool False))))
+           []
+       , Declaration
+           []
+           "m"
+           (Signature Nothing (Type (Boolean :| [])))
+           "m"
+           []
+           (Unconditional
+              (Binary
+                 Or (Unary Not (ImmediateBool False)) (ImmediateBool False)))
+           []
+       , Declaration
+           []
+           "n"
+           (Signature Nothing (Type (Integer :| [])))
+           "n"
+           []
+           (Unconditional
+              (Unary Sqrt (Unary Neg (Unary Neg (ImmediateInt 9)))))
+           []
+       , Declaration
+           []
+           "o"
+           (Signature Nothing (Type (Integer :| [])))
+           "o"
+           []
+           (Unconditional
+              (Unary Neg (Unary Sqrt (Unary Sqrt (ImmediateInt 16)))))
+           []
+       , Declaration
+           []
+           "p"
+           (Signature Nothing (Type (Boolean :| [])))
+           "p"
+           []
+           (Unconditional (Unary Not (Unary Not (ImmediateBool True))))
+           []
        ])
 ]

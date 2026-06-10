@@ -25,5 +25,59 @@
               (Binary
                  Div (Binary Pow (Call "x" []) (Call "a" [])) (ImmediateInt 2)))
            []
+       , Declaration
+           []
+           "h"
+           (Signature
+              (Just (Type (Integer :| []))) (Type (Integer :| [ Integer ])))
+           "h"
+           [ "x" ]
+           (Unconditional (Tuple (Call "x" [] :| [ Call "x" [] ])))
+           []
+       , Declaration
+           []
+           "i"
+           (Signature
+              (Just (Type (Integer :| []))) (Type (Integer :| [ Integer ])))
+           "i"
+           [ "x" ]
+           (Unconditional
+              (Tuple
+                 (Binary Mult (ImmediateInt 2) (Call "a" []) :|
+                    [ Binary Mult (ImmediateInt 2) (Call "b" []) ])))
+           [ LocalDecl
+               (Local ("a" :| [ "b" ]) (Tuple (Call "x" [] :| [ Call "x" [] ])))
+           ]
+       , Declaration
+           []
+           "j"
+           (Signature
+              (Just (Type (Integer :| []))) (Type (Natural :| [ Integer ])))
+           "j"
+           [ "x" ]
+           (Conditional
+              [ Branch
+                  (Tuple (Call "x" [] :| [ Call "x" [] ]))
+                  (Binary GreaterEq (Call "x" []) (ImmediateInt 0))
+              ]
+              (Tuple (Unary Neg (Call "x" []) :| [ Call "x" [] ])))
+           []
+       , Declaration
+           []
+           "k"
+           (Signature
+              (Just (Type (Integer :| []))) (Type (Natural :| [ Integer ])))
+           "k"
+           [ "x" ]
+           (Conditional
+              [ Branch
+                  (Tuple (Call "x" [] :| [ Call "x" [] ]))
+                  (Binary Greater (Call "x" []) (ImmediateInt 0))
+              ]
+              (Tuple (Call "y" [] :| [ Call "x" [] ])))
+           [ Constraint (Binary Neq (Call "x" []) (ImmediateInt 0))
+           , LocalDecl (Local ("y" :| []) (Unary Neg (Call "x" [])))
+           , Constraint (Binary Neq (Call "y" []) (ImmediateInt 0))
+           ]
        ])
 ]

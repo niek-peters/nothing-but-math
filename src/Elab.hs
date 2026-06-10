@@ -130,15 +130,16 @@ elabLocal (Local idents expr) scopes = ((idents, resType), (IRLocal idents resEx
     where   (resExpr, resType) = elabExpr expr Nothing scopes
 
 elabDestructure :: Scopes -> (NonEmpty Id, Type) -> Scope
-elabDestructure (locals, globals) (idents, (Type pts)) 
+elabDestructure (locals, globals) (idents@(i:|_), t@(Type pts)) 
+                | identCount == 1 = insertLocal locals (i, t)
                 | identCount /= valueCount = error $ "TYPE ERROR: Tuple destructuring has member count different from value. Value had " ++ show valueCount ++ " values, but tried to destructure to " ++ show identCount ++ " members for identifiers '" ++ show idents ++ "'"
-                | otherwise = foldl insertLocal locals (NonEmpty.zip idents pts)
+                | otherwise = foldl insertLocal locals (NonEmpty.zip idents $ NonEmpty.map (Type . pure) pts)
     where   identCount = length idents
             valueCount = length pts
 
-            insertLocal locals' (ident, pt) = case Map.lookup ident globals of
+            insertLocal locals' (ident, t) = case Map.lookup ident globals of
                 Just _ -> error $ "ERROR: Local declaration of '" ++ ident ++ "' is disallowed as it shadows a global declaration of the same name"
-                Nothing -> insertIdent locals' ident (Signature Nothing (Type $ pure pt))
+                Nothing -> insertIdent locals' ident (Signature Nothing t)
 
 elabImplementation :: Implementation -> Maybe Type -> Scopes -> IRImplementation
 elabImplementation (Unconditional expr) mt scopes = IRUnconditional $ fst $ elabExpr expr mt scopes
@@ -220,7 +221,7 @@ elabBinary op (e1, Type (Boolean :| [])) (e2, Type (Boolean :| [])) = (IRBinary 
 elabBinary Pow (e1, t1@(Type (pt1 :| []))) (e2, (Type (pt2 :| [])))
     | pt1 /= Boolean && (pt2 == Positive || pt2 == Natural || pt2 == Integer) = (IRBinary IRPow e1 e2, t1)  -- we use a pattern guard to fall through to the generic case if false
 
--- and then the generic case where both operands get casted to the same type
+-- and then the generic case where both primitive type operands get casted to the same type
 elabBinary op o1@(_, (Type (pt1 :| []))) o2@(_, (Type (pt2 :| []))) = (resExpr, resType)
     where   resExpr = sameOperandTypesBinaryNumOp op o1 o2 operandType
             resType = Type $ pure $ binaryResType op operandType
@@ -228,6 +229,15 @@ elabBinary op o1@(_, (Type (pt1 :| []))) o2@(_, (Type (pt2 :| []))) = (resExpr, 
                         | op == Mod || op == Divides    = min greaterType Integer   -- these operations are only legal for whole numbers
                         | otherwise = greaterType
             greaterType = max pt1 pt2      -- crashes on Boolean
+
+-- the Eq and Neq operations are defined for all types (also non-primitive ones)
+elabBinary op (e1, t1@(Type pts1)) (e2, t2@(Type pts2))
+    | op == Eq || op == Neq = (resExpr, Type $ pure Boolean)
+    where   resExpr = IRBinary (toIRBinaryNumOp op t1 t2) resO1 resO2
+            resO1 = fst $ maybeCastExpr e1 t1 justResOpType
+            resO2 = fst $ maybeCastExpr e2 t2 justResOpType
+            justResOpType = Just resOpType
+            resOpType = Type $ NonEmpty.map (\(a, b) -> max a b) $ NonEmpty.zip pts1 pts2     -- we create the smallest common supertype
 
 -- any remaining undefined operations
 elabBinary op (_, t1) (_, t2) = error $ "TYPE ERROR: Binary operation '" ++ show op ++ "' not defined for types '" ++ show t1 ++ "' and '" ++ show t2 ++ "'"
@@ -286,6 +296,8 @@ maybeCastExpr e f Nothing = (e, f)
 maybeCastExpr e f (Just t)  | f == t = (e, f)
                             | otherwise = castExpr e f t
 
+-- NOTE: a limitation is that identifiers referencing tuple values cannot be cast, as tuple casts are implemented by casting the individual elements
+-- as a workaround, you can destructure tuples and construct them again at the return site (e.g. doing (a, b) := f(x) and then returning (a, b) again)
 castExpr :: IRExpr -> Type -> Type -> (IRExpr, Type)
 castExpr (IRTuple es) (Type f) (Type t) 
     | length f == length t = (IRTuple resExprs, Type resType)
