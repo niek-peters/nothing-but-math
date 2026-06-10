@@ -1,0 +1,187 @@
+\newcounter{nbmAlgorithmCounter}
+\refstepcounter{nbmAlgorithmCounter}
+
+{
+\par
+\centering
+\fbox{
+\begin{minipage}[t]{\linewidth}
+\vspace{0.5em}
+\textbf{Algorithm \thenbmAlgorithmCounter: Euclidean}
+\vspace{0.5em}
+\hrule
+\vspace{-\abovedisplayskip}
+\begin{flalign*}
+&\text{Define}~gcd : \mathbb{N} \times \mathbb{N} \to \mathbb{Z}^+~\text{by}&\\
+&gcd\left(a, b\right) = \begin{cases}
+  a, & \text{if}~b = 0\\
+  gcd\left(b, a \bmod b\right), & \text{otherwise}
+\end{cases}&\\
+&\text{where}~a \geq b.&
+\end{flalign*}
+\end{minipage}
+}
+\vspace{0.5em}
+\par
+}\refstepcounter{nbmAlgorithmCounter}
+
+{
+\par
+\centering
+\fbox{
+\begin{minipage}[t]{\linewidth}
+\vspace{0.5em}
+\textbf{Algorithm \thenbmAlgorithmCounter: Extended Euclidean}
+\vspace{0.5em}
+\hrule
+\vspace{-\abovedisplayskip}
+\begin{flalign*}
+&\text{Define}~egcd : \mathbb{N} \times \mathbb{N} \to \mathbb{Z}^+ \times \mathbb{Z} \times \mathbb{Z}~\text{by}&\\
+&egcd\left(a, b\right) = \begin{cases}
+  \left(a, 1, 0\right), & \text{if}~b = 0\\
+  \left(g, y, x - \lfloor\frac{a}{b}\rfloor \cdot y\right), & \text{otherwise}
+\end{cases}&\\
+&\text{where}~a \geq b~\text{and}~\left(g, x, y\right) = egcd\left(b, a \bmod b\right).&
+\end{flalign*}
+\end{minipage}
+}
+\vspace{0.5em}
+\par
+}\refstepcounter{nbmAlgorithmCounter}
+
+{
+\par
+\centering
+\fbox{
+\begin{minipage}[t]{\linewidth}
+\vspace{0.5em}
+\textbf{Algorithm \thenbmAlgorithmCounter: Modular Inverse}
+\vspace{0.5em}
+\hrule
+\vspace{-\abovedisplayskip}
+\begin{flalign*}
+&\text{Define}~modInv : \mathbb{N} \times \mathbb{Z}^+ \to \mathbb{Z}^+~\text{by}&\\
+&modInv\left(a, m\right) = x \bmod m&\\
+&\text{where}~\left(g, x, y\right) = egcd\left(a, m\right)~\text{and}~g = 1.&
+\end{flalign*}
+\end{minipage}
+}
+\vspace{0.5em}
+\par
+}\refstepcounter{nbmAlgorithmCounter}
+
+{
+\par
+\centering
+\fbox{
+\begin{minipage}[t]{\linewidth}
+\vspace{0.5em}
+\textbf{Algorithm \thenbmAlgorithmCounter: Repeated Squaring}
+\vspace{0.5em}
+\hrule
+\vspace{-\abovedisplayskip}
+\begin{flalign*}
+&\text{Define}~fastExp : \mathbb{R} \times \mathbb{N} \to \mathbb{R}~\text{by}&\\
+&fastExp\left(a, n\right) = \begin{cases}
+  1, & \text{if}~n = 0\\
+  r, & \text{if}~2 \mid n\\
+  a \cdot r, & \text{otherwise}
+\end{cases}&\\
+&\text{where}~r = fastExp\left(a^{2}, \lfloor\frac{n}{2}\rfloor\right).&
+\end{flalign*}
+\end{minipage}
+}
+\vspace{0.5em}
+\par
+}\refstepcounter{nbmAlgorithmCounter}
+
+{
+\par
+\centering
+\fbox{
+\begin{minipage}[t]{\linewidth}
+\vspace{0.5em}
+\textbf{Algorithm \thenbmAlgorithmCounter: Prime Testing}
+\vspace{0.5em}
+\hrule
+\vspace{-\abovedisplayskip}
+\begin{flalign*}
+&\text{Define}~isPrime : \mathbb{N} \to \mathbb{B}~\text{by}&\\
+&isPrime\left(n\right) = \begin{cases}
+  False, & \text{if}~n < 2\\
+  check\left(n, 2, \lfloor\sqrt{n}\rfloor\right), & \text{otherwise}
+\end{cases}.&\\
+\\
+&\text{Define}~check : \mathbb{N} \times \mathbb{N} \times \mathbb{N} \to \mathbb{B}~\text{by}&\\
+&check\left(n, t, l\right) = \begin{cases}
+  True, & \text{if}~t > l\\
+  False, & \text{if}~t \mid n\\
+  check\left(n, t + 1, l\right), & \text{otherwise}
+\end{cases}.&
+\end{flalign*}
+\end{minipage}
+}
+\vspace{0.5em}
+\par
+}\refstepcounter{nbmAlgorithmCounter}
+
+{
+\par
+\centering
+\fbox{
+\begin{minipage}[t]{\linewidth}
+\vspace{0.5em}
+\textbf{Algorithm \thenbmAlgorithmCounter: Integer Square Root}
+\vspace{0.5em}
+\hrule
+\vspace{-\abovedisplayskip}
+\begin{flalign*}
+&\text{Define}~isqrt : \mathbb{Z}^+ \to \mathbb{Z}^+~\text{by}&\\
+&isqrt\left(n\right) = newtIter\left(n, n\right).&\\
+\\
+&\text{Define}~newtIter : \mathbb{Z}^+ \times \mathbb{Z}^+ \to \mathbb{Z}^+~\text{by}&\\
+&newtIter\left(n, x\right) = \begin{cases}
+  newtIter\left(n, y\right), & \text{if}~y < x\\
+  x, & \text{otherwise}
+\end{cases}&\\
+&\text{where}~y = \lfloor\frac{x + \lfloor\frac{n}{x}\rfloor}{2}\rfloor.&
+\end{flalign*}
+\end{minipage}
+}
+\vspace{0.5em}
+\par
+}
+
+We do some test evaluation.
+
+Euclidean:
+$gcd\left(1, 0\right) = 1$, 
+$gcd\left(12, 9\right) = 3$,
+$gcd\left(27, 14\right) = 1$
+
+Extended Euclidean:
+$egcd\left(1, 0\right) = \left(1, 1, 0\right)$, 
+$egcd\left(12, 9\right) = \left(3, 1, -1\right)$, 
+$egcd\left(27, 14\right) = \left(1, -1, 2\right)$
+
+Modular Inverse:
+$modInv\left(27, 14\right) = 13$, 
+$modInv\left(29, 12\right) = 5$
+
+Repeated Squaring:
+$fastExp\left(2, 8\right) = 256.0$, 
+$fastExp\left(\frac{1}{6}, 5\right) = 1.2860082304526747e-4$, 
+$fastExp\left(1.25, 6\right) = 3.814697265625$
+
+Prime Testing:
+$isPrime\left(1\right) = False$, 
+$isPrime\left(2\right) = True$, 
+$isPrime\left(4\right) = False$, 
+$isPrime\left(17\right) = True$, 
+$isPrime\left(59\right) = True$
+
+Integer Square Root:
+$isqrt\left(1\right) = 1$, 
+$isqrt\left(7\right) = 2$, 
+$isqrt\left(16\right) = 4$, 
+$isqrt\left(21\right) = 4$

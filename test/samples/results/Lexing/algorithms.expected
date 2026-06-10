@@ -1,0 +1,468 @@
+[ DefinitionFragment
+    [ THash
+    , TLBracket
+    , TId "box"
+    , TComma
+    , TId "class"
+    , TBOp Eq
+    , TStr "Algorithm"
+    , TComma
+    , TId "name"
+    , TBOp Eq
+    , TStr "Euclidean"
+    , TRBracket
+    , TId "gcd"
+    , TColon
+    , TPrimType Natural
+    , TId "x"
+    , TPrimType Natural
+    , TArrow
+    , TPrimType Positive
+    , TId "gcd"
+    , TLParen
+    , TId "a"
+    , TComma
+    , TId "b"
+    , TRParen
+    , TAssign
+    , TLBrace
+    , TId "a"
+    , TIf
+    , TId "b"
+    , TBOp Eq
+    , TInt 0
+    , TId "gcd"
+    , TLParen
+    , TId "b"
+    , TComma
+    , TId "a"
+    , TBOp Mod
+    , TId "b"
+    , TRParen
+    , TOtherwise
+    , TRBrace
+    , TWhere
+    , TId "a"
+    , TBOp GreaterEq
+    , TId "b"
+    ]
+, DefinitionFragment
+    [ THash
+    , TLBracket
+    , TId "box"
+    , TComma
+    , TId "class"
+    , TBOp Eq
+    , TStr "Algorithm"
+    , TComma
+    , TId "name"
+    , TBOp Eq
+    , TStr "Extended Euclidean"
+    , TRBracket
+    , TId "egcd"
+    , TColon
+    , TPrimType Natural
+    , TId "x"
+    , TPrimType Natural
+    , TArrow
+    , TPrimType Positive
+    , TId "x"
+    , TPrimType Integer
+    , TId "x"
+    , TPrimType Integer
+    , TId "egcd"
+    , TLParen
+    , TId "a"
+    , TComma
+    , TId "b"
+    , TRParen
+    , TAssign
+    , TLBrace
+    , TLParen
+    , TId "a"
+    , TComma
+    , TInt 1
+    , TComma
+    , TInt 0
+    , TRParen
+    , TIf
+    , TId "b"
+    , TBOp Eq
+    , TInt 0
+    , TLParen
+    , TId "g"
+    , TComma
+    , TId "y"
+    , TComma
+    , TId "x"
+    , TMinus
+    , TUOp Floor
+    , TLParen
+    , TId "a"
+    , TBOp Div
+    , TId "b"
+    , TRParen
+    , TBOp Mult
+    , TId "y"
+    , TRParen
+    , TOtherwise
+    , TRBrace
+    , TWhere
+    , TId "a"
+    , TBOp GreaterEq
+    , TId "b"
+    , TComma
+    , TLParen
+    , TId "g"
+    , TComma
+    , TId "x"
+    , TComma
+    , TId "y"
+    , TRParen
+    , TAssign
+    , TId "egcd"
+    , TLParen
+    , TId "b"
+    , TComma
+    , TId "a"
+    , TBOp Mod
+    , TId "b"
+    , TRParen
+    ]
+, DefinitionFragment
+    [ THash
+    , TLBracket
+    , TId "box"
+    , TComma
+    , TId "class"
+    , TBOp Eq
+    , TStr "Algorithm"
+    , TComma
+    , TId "name"
+    , TBOp Eq
+    , TStr "Modular Inverse"
+    , TRBracket
+    , TId "modInv"
+    , TColon
+    , TPrimType Natural
+    , TId "x"
+    , TPrimType Positive
+    , TArrow
+    , TPrimType Positive
+    , TId "modInv"
+    , TLParen
+    , TId "a"
+    , TComma
+    , TId "m"
+    , TRParen
+    , TAssign
+    , TId "x"
+    , TBOp Mod
+    , TId "m"
+    , TWhere
+    , TLParen
+    , TId "g"
+    , TComma
+    , TId "x"
+    , TComma
+    , TId "y"
+    , TRParen
+    , TAssign
+    , TId "egcd"
+    , TLParen
+    , TId "a"
+    , TComma
+    , TId "m"
+    , TRParen
+    , TComma
+    , TId "g"
+    , TBOp Eq
+    , TInt 1
+    ]
+, DefinitionFragment
+    [ THash
+    , TLBracket
+    , TId "box"
+    , TComma
+    , TId "class"
+    , TBOp Eq
+    , TStr "Algorithm"
+    , TComma
+    , TId "name"
+    , TBOp Eq
+    , TStr "Repeated Squaring"
+    , TRBracket
+    , TId "fastExp"
+    , TColon
+    , TPrimType Real
+    , TId "x"
+    , TPrimType Natural
+    , TArrow
+    , TPrimType Real
+    , TId "fastExp"
+    , TLParen
+    , TId "a"
+    , TComma
+    , TId "n"
+    , TRParen
+    , TAssign
+    , TLBrace
+    , TInt 1
+    , TIf
+    , TId "n"
+    , TBOp Eq
+    , TInt 0
+    , TId "r"
+    , TIf
+    , TInt 2
+    , TBOp Divides
+    , TId "n"
+    , TId "a"
+    , TBOp Mult
+    , TId "r"
+    , TOtherwise
+    , TRBrace
+    , TWhere
+    , TId "r"
+    , TAssign
+    , TId "fastExp"
+    , TLParen
+    , TId "a"
+    , TBOp Pow
+    , TInt 2
+    , TComma
+    , TUOp Floor
+    , TLParen
+    , TId "n"
+    , TBOp Div
+    , TInt 2
+    , TRParen
+    , TRParen
+    ]
+, DefinitionFragment
+    [ THash
+    , TLBracket
+    , TId "box"
+    , TComma
+    , TId "class"
+    , TBOp Eq
+    , TStr "Algorithm"
+    , TComma
+    , TId "name"
+    , TBOp Eq
+    , TStr "Prime Testing"
+    , TRBracket
+    , TId "isPrime"
+    , TColon
+    , TPrimType Natural
+    , TArrow
+    , TPrimType Boolean
+    , TId "isPrime"
+    , TLParen
+    , TId "n"
+    , TRParen
+    , TAssign
+    , TLBrace
+    , TBool False
+    , TIf
+    , TId "n"
+    , TBOp Less
+    , TInt 2
+    , TId "check"
+    , TLParen
+    , TId "n"
+    , TComma
+    , TInt 2
+    , TComma
+    , TUOp Floor
+    , TLParen
+    , TUOp Sqrt
+    , TId "n"
+    , TRParen
+    , TRParen
+    , TOtherwise
+    , TRBrace
+    , TId "check"
+    , TColon
+    , TPrimType Natural
+    , TId "x"
+    , TPrimType Natural
+    , TId "x"
+    , TPrimType Natural
+    , TArrow
+    , TPrimType Boolean
+    , TId "check"
+    , TLParen
+    , TId "n"
+    , TComma
+    , TId "t"
+    , TComma
+    , TId "l"
+    , TRParen
+    , TAssign
+    , TLBrace
+    , TBool True
+    , TIf
+    , TId "t"
+    , TBOp Greater
+    , TId "l"
+    , TBool False
+    , TIf
+    , TId "t"
+    , TBOp Divides
+    , TId "n"
+    , TId "check"
+    , TLParen
+    , TId "n"
+    , TComma
+    , TId "t"
+    , TBOp Add
+    , TInt 1
+    , TComma
+    , TId "l"
+    , TRParen
+    , TOtherwise
+    , TRBrace
+    ]
+, DefinitionFragment
+    [ THash
+    , TLBracket
+    , TId "box"
+    , TComma
+    , TId "class"
+    , TBOp Eq
+    , TStr "Algorithm"
+    , TComma
+    , TId "name"
+    , TBOp Eq
+    , TStr "Integer Square Root"
+    , TRBracket
+    , TId "isqrt"
+    , TColon
+    , TPrimType Positive
+    , TArrow
+    , TPrimType Positive
+    , TId "isqrt"
+    , TLParen
+    , TId "n"
+    , TRParen
+    , TAssign
+    , TId "newtIter"
+    , TLParen
+    , TId "n"
+    , TComma
+    , TId "n"
+    , TRParen
+    , TId "newtIter"
+    , TColon
+    , TPrimType Positive
+    , TId "x"
+    , TPrimType Positive
+    , TArrow
+    , TPrimType Positive
+    , TId "newtIter"
+    , TLParen
+    , TId "n"
+    , TComma
+    , TId "x"
+    , TRParen
+    , TAssign
+    , TLBrace
+    , TId "newtIter"
+    , TLParen
+    , TId "n"
+    , TComma
+    , TId "y"
+    , TRParen
+    , TIf
+    , TId "y"
+    , TBOp Less
+    , TId "x"
+    , TId "x"
+    , TOtherwise
+    , TRBrace
+    , TWhere
+    , TId "y"
+    , TAssign
+    , TUOp Floor
+    , TLParen
+    , TLParen
+    , TId "x"
+    , TBOp Add
+    , TUOp Floor
+    , TLParen
+    , TId "n"
+    , TBOp Div
+    , TId "x"
+    , TRParen
+    , TRParen
+    , TBOp Div
+    , TInt 2
+    , TRParen
+    ]
+, TextFragment "\n\nWe do some test evaluation.\n\nEuclidean:\n"
+, EvalFragment
+    [ TId "gcd" , TLParen , TInt 1 , TComma , TInt 0 , TRParen ]
+, TextFragment ", \n"
+, EvalFragment
+    [ TId "gcd" , TLParen , TInt 12 , TComma , TInt 9 , TRParen ]
+, TextFragment ",\n"
+, EvalFragment
+    [ TId "gcd" , TLParen , TInt 27 , TComma , TInt 14 , TRParen ]
+, TextFragment "\n\nExtended Euclidean:\n"
+, EvalFragment
+    [ TId "egcd" , TLParen , TInt 1 , TComma , TInt 0 , TRParen ]
+, TextFragment ", \n"
+, EvalFragment
+    [ TId "egcd" , TLParen , TInt 12 , TComma , TInt 9 , TRParen ]
+, TextFragment ", \n"
+, EvalFragment
+    [ TId "egcd" , TLParen , TInt 27 , TComma , TInt 14 , TRParen ]
+, TextFragment "\n\nModular Inverse:\n"
+, EvalFragment
+    [ TId "modInv" , TLParen , TInt 27 , TComma , TInt 14 , TRParen ]
+, TextFragment ", \n"
+, EvalFragment
+    [ TId "modInv" , TLParen , TInt 29 , TComma , TInt 12 , TRParen ]
+, TextFragment "\n\nRepeated Squaring:\n"
+, EvalFragment
+    [ TId "fastExp" , TLParen , TInt 2 , TComma , TInt 8 , TRParen ]
+, TextFragment ", \n"
+, EvalFragment
+    [ TId "fastExp"
+    , TLParen
+    , TInt 1
+    , TBOp Div
+    , TInt 6
+    , TComma
+    , TInt 5
+    , TRParen
+    ]
+, TextFragment ", \n"
+, EvalFragment
+    [ TId "fastExp"
+    , TLParen
+    , TReal 1.25
+    , TComma
+    , TInt 6
+    , TRParen
+    ]
+, TextFragment "\n\nPrime Testing:\n"
+, EvalFragment [ TId "isPrime" , TLParen , TInt 1 , TRParen ]
+, TextFragment ", \n"
+, EvalFragment [ TId "isPrime" , TLParen , TInt 2 , TRParen ]
+, TextFragment ", \n"
+, EvalFragment [ TId "isPrime" , TLParen , TInt 4 , TRParen ]
+, TextFragment ", \n"
+, EvalFragment [ TId "isPrime" , TLParen , TInt 17 , TRParen ]
+, TextFragment ", \n"
+, EvalFragment [ TId "isPrime" , TLParen , TInt 59 , TRParen ]
+, TextFragment "\n\nInteger Square Root:\n"
+, EvalFragment [ TId "isqrt" , TLParen , TInt 1 , TRParen ]
+, TextFragment ", \n"
+, EvalFragment [ TId "isqrt" , TLParen , TInt 7 , TRParen ]
+, TextFragment ", \n"
+, EvalFragment [ TId "isqrt" , TLParen , TInt 16 , TRParen ]
+, TextFragment ", \n"
+, EvalFragment [ TId "isqrt" , TLParen , TInt 21 , TRParen ]
+]

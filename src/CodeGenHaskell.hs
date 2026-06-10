@@ -106,7 +106,7 @@ codeGenCast from to
 
 codeGenUnary :: UnaryOp -> IRExpr -> String -> String
 codeGenUnary Neg e moduleName = "-" ++ codeGenExpr e moduleName
-codeGenUnary Floor e moduleName = "floor " ++ codeGenExpr e moduleName
+codeGenUnary Floor e moduleName = (parens $ "floor " ++ codeGenExpr e moduleName) ++ " :: Integer"  -- return type of floor can cause ambiguity. We explicitly tell Haskell it's an Integer here
 codeGenUnary Sqrt e moduleName = "sqrt " ++ codeGenExpr e moduleName
 codeGenUnary Not e moduleName = "not " ++ codeGenExpr e moduleName
 

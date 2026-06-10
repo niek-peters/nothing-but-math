@@ -1,0 +1,419 @@
+[ DefinitionFragment
+    (IR
+       IRBlockAnnotations
+         { blockDisplayMode = BoxBlock
+         , blockName = Just "Euclidean"
+         , blockLabel = Nothing
+         , blockClass = "Algorithm"
+         , blockDescription = Nothing
+         }
+       [ IRDeclaration
+           IRDeclAnnotations { declDisplayMode = DefaultDecl }
+           "gcd"
+           (Signature
+              (Just (Type (Natural :| [ Natural ]))) (Type (Positive :| [])))
+           [ "a" , "b" ]
+           (IRConditional
+              [ IRBranch
+                  (IRCast (IRCall "a" False []) Natural Positive)
+                  (IRBinary IREq (IRCall "b" False []) (IRImmediateInt 0 Natural))
+              ]
+              (IRCall
+                 "gcd"
+                 True
+                 [ IRCall "b" False []
+                 , IRBinary IRMod (IRCall "a" False []) (IRCall "b" False [])
+                 ]))
+           [ IRConstraint
+               (IRBinary IRGreaterEq (IRCall "a" False []) (IRCall "b" False []))
+           ]
+       ])
+, DefinitionFragment
+    (IR
+       IRBlockAnnotations
+         { blockDisplayMode = BoxBlock
+         , blockName = Just "Extended Euclidean"
+         , blockLabel = Nothing
+         , blockClass = "Algorithm"
+         , blockDescription = Nothing
+         }
+       [ IRDeclaration
+           IRDeclAnnotations { declDisplayMode = DefaultDecl }
+           "egcd"
+           (Signature
+              (Just (Type (Natural :| [ Natural ])))
+              (Type (Positive :| [ Integer , Integer ])))
+           [ "a" , "b" ]
+           (IRConditional
+              [ IRBranch
+                  (IRTuple
+                     (IRCast (IRCall "a" False []) Natural Positive :|
+                        [ IRCast (IRImmediateInt 1 Positive) Positive Integer
+                        , IRCast (IRImmediateInt 0 Natural) Natural Integer
+                        ]))
+                  (IRBinary IREq (IRCall "b" False []) (IRImmediateInt 0 Natural))
+              ]
+              (IRTuple
+                 (IRCall "g" False [] :|
+                    [ IRCall "y" False []
+                    , IRBinary
+                        IRSub
+                        (IRCall "x" False [])
+                        (IRBinary
+                           IRMult
+                           (IRUnary
+                              Floor
+                              (IRBinary
+                                 IRFrac
+                                 (IRCast (IRCall "a" False []) Natural Integer)
+                                 (IRCast (IRCall "b" False []) Natural Integer)))
+                           (IRCall "y" False []))
+                    ])))
+           [ IRConstraint
+               (IRBinary IRGreaterEq (IRCall "a" False []) (IRCall "b" False []))
+           , IRLocalDecl
+               (IRLocal
+                  ("g" :| [ "x" , "y" ])
+                  (IRCall
+                     "egcd"
+                     True
+                     [ IRCall "b" False []
+                     , IRBinary IRMod (IRCall "a" False []) (IRCall "b" False [])
+                     ]))
+           ]
+       ])
+, DefinitionFragment
+    (IR
+       IRBlockAnnotations
+         { blockDisplayMode = BoxBlock
+         , blockName = Just "Modular Inverse"
+         , blockLabel = Nothing
+         , blockClass = "Algorithm"
+         , blockDescription = Nothing
+         }
+       [ IRDeclaration
+           IRDeclAnnotations { declDisplayMode = DefaultDecl }
+           "modInv"
+           (Signature
+              (Just (Type (Natural :| [ Positive ]))) (Type (Positive :| [])))
+           [ "a" , "m" ]
+           (IRUnconditional
+              (IRCast
+                 (IRBinary
+                    IRMod
+                    (IRCall "x" False [])
+                    (IRCast (IRCall "m" False []) Positive Integer))
+                 Integer
+                 Positive))
+           [ IRLocalDecl
+               (IRLocal
+                  ("g" :| [ "x" , "y" ])
+                  (IRCall
+                     "egcd"
+                     True
+                     [ IRCall "a" False []
+                     , IRCast (IRCall "m" False []) Positive Natural
+                     ]))
+           , IRConstraint
+               (IRBinary IREq (IRCall "g" False []) (IRImmediateInt 1 Positive))
+           ]
+       ])
+, DefinitionFragment
+    (IR
+       IRBlockAnnotations
+         { blockDisplayMode = BoxBlock
+         , blockName = Just "Repeated Squaring"
+         , blockLabel = Nothing
+         , blockClass = "Algorithm"
+         , blockDescription = Nothing
+         }
+       [ IRDeclaration
+           IRDeclAnnotations { declDisplayMode = DefaultDecl }
+           "fastExp"
+           (Signature (Just (Type (Real :| [ Natural ]))) (Type (Real :| [])))
+           [ "a" , "n" ]
+           (IRConditional
+              [ IRBranch
+                  (IRCast (IRImmediateInt 1 Positive) Positive Real)
+                  (IRBinary IREq (IRCall "n" False []) (IRImmediateInt 0 Natural))
+              , IRBranch
+                  (IRCall "r" False [])
+                  (IRBinary
+                     IRDivides
+                     (IRCast (IRImmediateInt 2 Positive) Positive Natural)
+                     (IRCall "n" False []))
+              ]
+              (IRBinary IRMult (IRCall "a" False []) (IRCall "r" False [])))
+           [ IRLocalDecl
+               (IRLocal
+                  ("r" :| [])
+                  (IRCall
+                     "fastExp"
+                     True
+                     [ IRBinary
+                         IRPosPow
+                         (IRCall "a" False [])
+                         (IRCast (IRImmediateInt 2 Positive) Positive Natural)
+                     , IRCast
+                         (IRUnary
+                            Floor
+                            (IRBinary
+                               IRFrac
+                               (IRCast (IRCall "n" False []) Natural Integer)
+                               (IRCast (IRImmediateInt 2 Positive) Positive Integer)))
+                         Integer
+                         Natural
+                     ]))
+           ]
+       ])
+, DefinitionFragment
+    (IR
+       IRBlockAnnotations
+         { blockDisplayMode = BoxBlock
+         , blockName = Just "Prime Testing"
+         , blockLabel = Nothing
+         , blockClass = "Algorithm"
+         , blockDescription = Nothing
+         }
+       [ IRDeclaration
+           IRDeclAnnotations { declDisplayMode = DefaultDecl }
+           "isPrime"
+           (Signature (Just (Type (Natural :| []))) (Type (Boolean :| [])))
+           [ "n" ]
+           (IRConditional
+              [ IRBranch
+                  (IRImmediateBool False)
+                  (IRBinary
+                     IRLess
+                     (IRCall "n" False [])
+                     (IRCast (IRImmediateInt 2 Positive) Positive Natural))
+              ]
+              (IRCall
+                 "check"
+                 True
+                 [ IRCall "n" False []
+                 , IRCast (IRImmediateInt 2 Positive) Positive Natural
+                 , IRCast
+                     (IRUnary
+                        Floor (IRUnary Sqrt (IRCast (IRCall "n" False []) Natural Real)))
+                     Integer
+                     Natural
+                 ]))
+           []
+       , IRDeclaration
+           IRDeclAnnotations { declDisplayMode = DefaultDecl }
+           "check"
+           (Signature
+              (Just (Type (Natural :| [ Natural , Natural ])))
+              (Type (Boolean :| [])))
+           [ "n" , "t" , "l" ]
+           (IRConditional
+              [ IRBranch
+                  (IRImmediateBool True)
+                  (IRBinary IRGreater (IRCall "t" False []) (IRCall "l" False []))
+              , IRBranch
+                  (IRImmediateBool False)
+                  (IRBinary IRDivides (IRCall "t" False []) (IRCall "n" False []))
+              ]
+              (IRCall
+                 "check"
+                 True
+                 [ IRCall "n" False []
+                 , IRBinary
+                     IRAdd
+                     (IRCall "t" False [])
+                     (IRCast (IRImmediateInt 1 Positive) Positive Natural)
+                 , IRCall "l" False []
+                 ]))
+           []
+       ])
+, DefinitionFragment
+    (IR
+       IRBlockAnnotations
+         { blockDisplayMode = BoxBlock
+         , blockName = Just "Integer Square Root"
+         , blockLabel = Nothing
+         , blockClass = "Algorithm"
+         , blockDescription = Nothing
+         }
+       [ IRDeclaration
+           IRDeclAnnotations { declDisplayMode = DefaultDecl }
+           "isqrt"
+           (Signature (Just (Type (Positive :| []))) (Type (Positive :| [])))
+           [ "n" ]
+           (IRUnconditional
+              (IRCall
+                 "newtIter" True [ IRCall "n" False [] , IRCall "n" False [] ]))
+           []
+       , IRDeclaration
+           IRDeclAnnotations { declDisplayMode = DefaultDecl }
+           "newtIter"
+           (Signature
+              (Just (Type (Positive :| [ Positive ]))) (Type (Positive :| [])))
+           [ "n" , "x" ]
+           (IRConditional
+              [ IRBranch
+                  (IRCall
+                     "newtIter"
+                     True
+                     [ IRCall "n" False []
+                     , IRCast (IRCall "y" False []) Integer Positive
+                     ])
+                  (IRBinary
+                     IRLess
+                     (IRCall "y" False [])
+                     (IRCast (IRCall "x" False []) Positive Integer))
+              ]
+              (IRCall "x" False []))
+           [ IRLocalDecl
+               (IRLocal
+                  ("y" :| [])
+                  (IRUnary
+                     Floor
+                     (IRBinary
+                        IRFrac
+                        (IRBinary
+                           IRAdd
+                           (IRCast (IRCall "x" False []) Positive Integer)
+                           (IRUnary
+                              Floor
+                              (IRBinary
+                                 IRFrac
+                                 (IRCast (IRCall "n" False []) Positive Integer)
+                                 (IRCast (IRCall "x" False []) Positive Integer))))
+                        (IRCast (IRImmediateInt 2 Positive) Positive Integer))))
+           ]
+       ])
+, TextFragment "\n\nWe do some test evaluation.\n\nEuclidean:\n"
+, EvalFragment
+    (IRCall
+       "gcd"
+       True
+       [ IRCast (IRImmediateInt 1 Positive) Positive Natural
+       , IRImmediateInt 0 Natural
+       ])
+, TextFragment ", \n"
+, EvalFragment
+    (IRCall
+       "gcd"
+       True
+       [ IRCast (IRImmediateInt 12 Positive) Positive Natural
+       , IRCast (IRImmediateInt 9 Positive) Positive Natural
+       ])
+, TextFragment ",\n"
+, EvalFragment
+    (IRCall
+       "gcd"
+       True
+       [ IRCast (IRImmediateInt 27 Positive) Positive Natural
+       , IRCast (IRImmediateInt 14 Positive) Positive Natural
+       ])
+, TextFragment "\n\nExtended Euclidean:\n"
+, EvalFragment
+    (IRCall
+       "egcd"
+       True
+       [ IRCast (IRImmediateInt 1 Positive) Positive Natural
+       , IRImmediateInt 0 Natural
+       ])
+, TextFragment ", \n"
+, EvalFragment
+    (IRCall
+       "egcd"
+       True
+       [ IRCast (IRImmediateInt 12 Positive) Positive Natural
+       , IRCast (IRImmediateInt 9 Positive) Positive Natural
+       ])
+, TextFragment ", \n"
+, EvalFragment
+    (IRCall
+       "egcd"
+       True
+       [ IRCast (IRImmediateInt 27 Positive) Positive Natural
+       , IRCast (IRImmediateInt 14 Positive) Positive Natural
+       ])
+, TextFragment "\n\nModular Inverse:\n"
+, EvalFragment
+    (IRCall
+       "modInv"
+       True
+       [ IRCast (IRImmediateInt 27 Positive) Positive Natural
+       , IRImmediateInt 14 Positive
+       ])
+, TextFragment ", \n"
+, EvalFragment
+    (IRCall
+       "modInv"
+       True
+       [ IRCast (IRImmediateInt 29 Positive) Positive Natural
+       , IRImmediateInt 12 Positive
+       ])
+, TextFragment "\n\nRepeated Squaring:\n"
+, EvalFragment
+    (IRCall
+       "fastExp"
+       True
+       [ IRCast (IRImmediateInt 2 Positive) Positive Real
+       , IRCast (IRImmediateInt 8 Positive) Positive Natural
+       ])
+, TextFragment ", \n"
+, EvalFragment
+    (IRCall
+       "fastExp"
+       True
+       [ IRCast
+           (IRBinary
+              IRFrac
+              (IRCast (IRImmediateInt 1 Positive) Positive Integer)
+              (IRCast (IRImmediateInt 6 Positive) Positive Integer))
+           Rational
+           Real
+       , IRCast (IRImmediateInt 5 Positive) Positive Natural
+       ])
+, TextFragment ", \n"
+, EvalFragment
+    (IRCall
+       "fastExp"
+       True
+       [ IRImmediateReal 1.25
+       , IRCast (IRImmediateInt 6 Positive) Positive Natural
+       ])
+, TextFragment "\n\nPrime Testing:\n"
+, EvalFragment
+    (IRCall
+       "isPrime"
+       True
+       [ IRCast (IRImmediateInt 1 Positive) Positive Natural ])
+, TextFragment ", \n"
+, EvalFragment
+    (IRCall
+       "isPrime"
+       True
+       [ IRCast (IRImmediateInt 2 Positive) Positive Natural ])
+, TextFragment ", \n"
+, EvalFragment
+    (IRCall
+       "isPrime"
+       True
+       [ IRCast (IRImmediateInt 4 Positive) Positive Natural ])
+, TextFragment ", \n"
+, EvalFragment
+    (IRCall
+       "isPrime"
+       True
+       [ IRCast (IRImmediateInt 17 Positive) Positive Natural ])
+, TextFragment ", \n"
+, EvalFragment
+    (IRCall
+       "isPrime"
+       True
+       [ IRCast (IRImmediateInt 59 Positive) Positive Natural ])
+, TextFragment "\n\nInteger Square Root:\n"
+, EvalFragment (IRCall "isqrt" True [ IRImmediateInt 1 Positive ])
+, TextFragment ", \n"
+, EvalFragment (IRCall "isqrt" True [ IRImmediateInt 7 Positive ])
+, TextFragment ", \n"
+, EvalFragment (IRCall "isqrt" True [ IRImmediateInt 16 Positive ])
+, TextFragment ", \n"
+, EvalFragment (IRCall "isqrt" True [ IRImmediateInt 21 Positive ])
+]

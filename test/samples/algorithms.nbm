@@ -1,0 +1,86 @@
+<<<
+#[box, class="Algorithm", name="Euclidean"]
+gcd : N x N -> Z+
+gcd(a, b) := {
+    a                   if b = 0
+    gcd(b, a mod b)     otherwise
+} where a >= b
+>>><<<
+#[box, class="Algorithm", name="Extended Euclidean"]
+egcd : N x N -> Z+ x Z x Z
+egcd(a, b) := {
+    (a, 1, 0)                       if b = 0
+    (g, y, x - floor (a / b) * y)   otherwise
+} where a >= b, (g, x, y) := egcd(b, a mod b)
+>>><<<
+#[box, class="Algorithm", name="Modular Inverse"]
+modInv : N x Z+ -> Z+
+modInv(a, m) := x mod m
+where (g, x, y) := egcd(a, m), g = 1
+>>><<<
+#[box, class="Algorithm", name="Repeated Squaring"]
+fastExp : R x N -> R
+fastExp(a, n) := {
+    1       if n = 0
+    r       if 2 | n
+    a * r   otherwise
+} where r := fastExp(a ^ 2, floor (n / 2))
+>>><<<
+#[box, class="Algorithm", name="Prime Testing"]
+isPrime : N -> B
+isPrime(n) := {
+    False                           if n < 2
+    check(n, 2, floor (sqrt n))     otherwise
+}
+
+check : N x N x N -> B
+check(n, t, l) := {
+    True                if t > l
+    False               if t | n
+    check(n, t + 1, l)  otherwise
+}
+>>><<<
+#[box, class="Algorithm", name="Integer Square Root"]
+isqrt : Z+ -> Z+
+isqrt(n) := newtIter(n, n)
+
+newtIter : Z+ x Z+ -> Z+
+newtIter(n, x) := {
+    newtIter(n, y)  if y < x
+    x               otherwise
+} where y := floor ((x + floor (n / x)) / 2)
+>>>
+
+We do some test evaluation.
+
+Euclidean:
+{{{gcd(1, 0)}}}, 
+{{{gcd(12, 9)}}},
+{{{gcd(27, 14)}}}
+
+Extended Euclidean:
+{{{egcd(1,0)}}}, 
+{{{egcd(12,9)}}}, 
+{{{egcd(27,14)}}}
+
+Modular Inverse:
+{{{modInv(27, 14)}}}, 
+{{{modInv(29, 12)}}}
+
+Repeated Squaring:
+{{{fastExp(2, 8)}}}, 
+{{{fastExp(1 / 6, 5)}}}, 
+{{{fastExp(1.25, 6)}}}
+
+Prime Testing:
+{{{isPrime(1)}}}, 
+{{{isPrime(2)}}}, 
+{{{isPrime(4)}}}, 
+{{{isPrime(17)}}}, 
+{{{isPrime(59)}}}
+
+Integer Square Root:
+{{{isqrt(1)}}}, 
+{{{isqrt(7)}}}, 
+{{{isqrt(16)}}}, 
+{{{isqrt(21)}}}

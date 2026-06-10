@@ -2,18 +2,61 @@
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE FlexibleInstances #-}
 
-module TestModule (TestModule.a, TestModule.b) where
+module TestModule (TestModule.gcd, TestModule.egcd, TestModule.modInv, TestModule.fastExp, TestModule.isPrime, TestModule.check, TestModule.isqrt, TestModule.newtIter) where
 
 import GHC.Num (Natural)
 import Data.Ratio ((%), denominator, numerator)
 
-a :: Natural
-a 
-  | otherwise = 0 :: Natural
+gcd :: Natural -> Natural -> Positive
+gcd a b
+  | not (a >= b) = error "[gcd] Violated constraint `IRBinary IRGreaterEq (IRCall "a" False []) (IRCall "b" False [])`"
+  | b == (0 :: Natural) = narrow @Positive a
+  | otherwise = TestModule.gcd b (a `mod` b)
 
-b :: Natural
-b 
-  | otherwise = TestModule.a
+egcd :: Natural -> Natural -> (Positive, Integer, Integer)
+egcd a b
+  | not (a >= b) = error "[egcd] Violated constraint `IRBinary IRGreaterEq (IRCall "a" False []) (IRCall "b" False [])`"
+  | b == (0 :: Natural) = (narrow @Positive a, widen @Integer (1 :: Positive), widen @Integer (0 :: Natural))
+  | otherwise = (g, y, x - (((floor ((widen @Integer a) % (widen @Integer b))) :: Integer) * y))
+  where
+    (g, x, y) = TestModule.egcd b (a `mod` b)
+
+modInv :: Natural -> Positive -> Positive
+modInv a m
+  | not (g == (1 :: Positive)) = error "[modInv] Violated constraint `IRBinary IREq (IRCall "g" False []) (IRImmediateInt 1 Positive)`"
+  | otherwise = narrow @Positive (x `mod` (widen @Integer m))
+  where
+    (g, x, y) = TestModule.egcd a (widen @Natural m)
+
+fastExp :: Double -> Natural -> Double
+fastExp a n
+  | n == (0 :: Natural) = widen @Double (1 :: Positive)
+  | n `mod` (widen @Natural (2 :: Positive)) == 0 = r
+  | otherwise = a * r
+  where
+    r = TestModule.fastExp (a ^ (widen @Natural (2 :: Positive))) (narrow @Natural ((floor ((widen @Integer n) % (widen @Integer (2 :: Positive)))) :: Integer))
+
+isPrime :: Natural -> Bool
+isPrime n
+  | n < (widen @Natural (2 :: Positive)) = False
+  | otherwise = TestModule.check n (widen @Natural (2 :: Positive)) (narrow @Natural ((floor (sqrt (widen @Double n))) :: Integer))
+
+check :: Natural -> Natural -> Natural -> Bool
+check n t l
+  | t > l = True
+  | n `mod` t == 0 = False
+  | otherwise = TestModule.check n (t + (widen @Natural (1 :: Positive))) l
+
+isqrt :: Positive -> Positive
+isqrt n
+  | otherwise = TestModule.newtIter n n
+
+newtIter :: Positive -> Positive -> Positive
+newtIter n x
+  | y < (widen @Integer x) = TestModule.newtIter n (narrow @Positive y)
+  | otherwise = x
+  where
+    y = (floor (((widen @Integer x) + ((floor ((widen @Integer n) % (widen @Integer x))) :: Integer)) % (widen @Integer (2 :: Positive)))) :: Integer
 
 
 
@@ -134,11 +177,3 @@ instance Widen Rational Natural where widen = fromIntegral
 instance Widen Double Natural where widen = fromIntegral
 -- Integer -> Real
 instance Widen Double Integer where widen = fromIntegral
-
--- EVAL FRAGS (not in standard compiler output) --
-
-TestModule.a
-
-TestModule.b
-
-(((floor (sqrt (widen @Double (11 :: Positive)))) :: Integer) + (widen @Integer (5 :: Positive)))

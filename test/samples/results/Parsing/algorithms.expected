@@ -1,0 +1,239 @@
+[ DefinitionFragment
+    (AST
+       [ BlockDisplay BoxBlock
+       , BlockClass "Algorithm"
+       , BlockName "Euclidean"
+       ]
+       [ Declaration
+           []
+           "gcd"
+           (Signature
+              (Just (Type (Natural :| [ Natural ]))) (Type (Positive :| [])))
+           "gcd"
+           [ "a" , "b" ]
+           (Conditional
+              [ Branch (Call "a" []) (Binary Eq (Call "b" []) (ImmediateInt 0)) ]
+              (Call
+                 "gcd" [ Call "b" [] , Binary Mod (Call "a" []) (Call "b" []) ]))
+           [ Constraint (Binary GreaterEq (Call "a" []) (Call "b" [])) ]
+       ])
+, DefinitionFragment
+    (AST
+       [ BlockDisplay BoxBlock
+       , BlockClass "Algorithm"
+       , BlockName "Extended Euclidean"
+       ]
+       [ Declaration
+           []
+           "egcd"
+           (Signature
+              (Just (Type (Natural :| [ Natural ])))
+              (Type (Positive :| [ Integer , Integer ])))
+           "egcd"
+           [ "a" , "b" ]
+           (Conditional
+              [ Branch
+                  (Tuple (Call "a" [] :| [ ImmediateInt 1 , ImmediateInt 0 ]))
+                  (Binary Eq (Call "b" []) (ImmediateInt 0))
+              ]
+              (Tuple
+                 (Call "g" [] :|
+                    [ Call "y" []
+                    , Binary
+                        Sub
+                        (Call "x" [])
+                        (Binary
+                           Mult
+                           (Unary Floor (Binary Div (Call "a" []) (Call "b" [])))
+                           (Call "y" []))
+                    ])))
+           [ Constraint (Binary GreaterEq (Call "a" []) (Call "b" []))
+           , LocalDecl
+               (Local
+                  ("g" :| [ "x" , "y" ])
+                  (Call
+                     "egcd" [ Call "b" [] , Binary Mod (Call "a" []) (Call "b" []) ]))
+           ]
+       ])
+, DefinitionFragment
+    (AST
+       [ BlockDisplay BoxBlock
+       , BlockClass "Algorithm"
+       , BlockName "Modular Inverse"
+       ]
+       [ Declaration
+           []
+           "modInv"
+           (Signature
+              (Just (Type (Natural :| [ Positive ]))) (Type (Positive :| [])))
+           "modInv"
+           [ "a" , "m" ]
+           (Unconditional (Binary Mod (Call "x" []) (Call "m" [])))
+           [ LocalDecl
+               (Local
+                  ("g" :| [ "x" , "y" ]) (Call "egcd" [ Call "a" [] , Call "m" [] ]))
+           , Constraint (Binary Eq (Call "g" []) (ImmediateInt 1))
+           ]
+       ])
+, DefinitionFragment
+    (AST
+       [ BlockDisplay BoxBlock
+       , BlockClass "Algorithm"
+       , BlockName "Repeated Squaring"
+       ]
+       [ Declaration
+           []
+           "fastExp"
+           (Signature (Just (Type (Real :| [ Natural ]))) (Type (Real :| [])))
+           "fastExp"
+           [ "a" , "n" ]
+           (Conditional
+              [ Branch
+                  (ImmediateInt 1) (Binary Eq (Call "n" []) (ImmediateInt 0))
+              , Branch
+                  (Call "r" []) (Binary Divides (ImmediateInt 2) (Call "n" []))
+              ]
+              (Binary Mult (Call "a" []) (Call "r" [])))
+           [ LocalDecl
+               (Local
+                  ("r" :| [])
+                  (Call
+                     "fastExp"
+                     [ Binary Pow (Call "a" []) (ImmediateInt 2)
+                     , Unary Floor (Binary Div (Call "n" []) (ImmediateInt 2))
+                     ]))
+           ]
+       ])
+, DefinitionFragment
+    (AST
+       [ BlockDisplay BoxBlock
+       , BlockClass "Algorithm"
+       , BlockName "Prime Testing"
+       ]
+       [ Declaration
+           []
+           "isPrime"
+           (Signature (Just (Type (Natural :| []))) (Type (Boolean :| [])))
+           "isPrime"
+           [ "n" ]
+           (Conditional
+              [ Branch
+                  (ImmediateBool False) (Binary Less (Call "n" []) (ImmediateInt 2))
+              ]
+              (Call
+                 "check"
+                 [ Call "n" []
+                 , ImmediateInt 2
+                 , Unary Floor (Unary Sqrt (Call "n" []))
+                 ]))
+           []
+       , Declaration
+           []
+           "check"
+           (Signature
+              (Just (Type (Natural :| [ Natural , Natural ])))
+              (Type (Boolean :| [])))
+           "check"
+           [ "n" , "t" , "l" ]
+           (Conditional
+              [ Branch
+                  (ImmediateBool True) (Binary Greater (Call "t" []) (Call "l" []))
+              , Branch
+                  (ImmediateBool False) (Binary Divides (Call "t" []) (Call "n" []))
+              ]
+              (Call
+                 "check"
+                 [ Call "n" []
+                 , Binary Add (Call "t" []) (ImmediateInt 1)
+                 , Call "l" []
+                 ]))
+           []
+       ])
+, DefinitionFragment
+    (AST
+       [ BlockDisplay BoxBlock
+       , BlockClass "Algorithm"
+       , BlockName "Integer Square Root"
+       ]
+       [ Declaration
+           []
+           "isqrt"
+           (Signature (Just (Type (Positive :| []))) (Type (Positive :| [])))
+           "isqrt"
+           [ "n" ]
+           (Unconditional (Call "newtIter" [ Call "n" [] , Call "n" [] ]))
+           []
+       , Declaration
+           []
+           "newtIter"
+           (Signature
+              (Just (Type (Positive :| [ Positive ]))) (Type (Positive :| [])))
+           "newtIter"
+           [ "n" , "x" ]
+           (Conditional
+              [ Branch
+                  (Call "newtIter" [ Call "n" [] , Call "y" [] ])
+                  (Binary Less (Call "y" []) (Call "x" []))
+              ]
+              (Call "x" []))
+           [ LocalDecl
+               (Local
+                  ("y" :| [])
+                  (Unary
+                     Floor
+                     (Binary
+                        Div
+                        (Binary
+                           Add
+                           (Call "x" [])
+                           (Unary Floor (Binary Div (Call "n" []) (Call "x" []))))
+                        (ImmediateInt 2))))
+           ]
+       ])
+, TextFragment "\n\nWe do some test evaluation.\n\nEuclidean:\n"
+, EvalFragment (Call "gcd" [ ImmediateInt 1 , ImmediateInt 0 ])
+, TextFragment ", \n"
+, EvalFragment (Call "gcd" [ ImmediateInt 12 , ImmediateInt 9 ])
+, TextFragment ",\n"
+, EvalFragment (Call "gcd" [ ImmediateInt 27 , ImmediateInt 14 ])
+, TextFragment "\n\nExtended Euclidean:\n"
+, EvalFragment (Call "egcd" [ ImmediateInt 1 , ImmediateInt 0 ])
+, TextFragment ", \n"
+, EvalFragment (Call "egcd" [ ImmediateInt 12 , ImmediateInt 9 ])
+, TextFragment ", \n"
+, EvalFragment (Call "egcd" [ ImmediateInt 27 , ImmediateInt 14 ])
+, TextFragment "\n\nModular Inverse:\n"
+, EvalFragment
+    (Call "modInv" [ ImmediateInt 27 , ImmediateInt 14 ])
+, TextFragment ", \n"
+, EvalFragment
+    (Call "modInv" [ ImmediateInt 29 , ImmediateInt 12 ])
+, TextFragment "\n\nRepeated Squaring:\n"
+, EvalFragment (Call "fastExp" [ ImmediateInt 2 , ImmediateInt 8 ])
+, TextFragment ", \n"
+, EvalFragment
+    (Call
+       "fastExp"
+       [ Binary Div (ImmediateInt 1) (ImmediateInt 6) , ImmediateInt 5 ])
+, TextFragment ", \n"
+, EvalFragment
+    (Call "fastExp" [ ImmediateReal 1.25 , ImmediateInt 6 ])
+, TextFragment "\n\nPrime Testing:\n"
+, EvalFragment (Call "isPrime" [ ImmediateInt 1 ])
+, TextFragment ", \n"
+, EvalFragment (Call "isPrime" [ ImmediateInt 2 ])
+, TextFragment ", \n"
+, EvalFragment (Call "isPrime" [ ImmediateInt 4 ])
+, TextFragment ", \n"
+, EvalFragment (Call "isPrime" [ ImmediateInt 17 ])
+, TextFragment ", \n"
+, EvalFragment (Call "isPrime" [ ImmediateInt 59 ])
+, TextFragment "\n\nInteger Square Root:\n"
+, EvalFragment (Call "isqrt" [ ImmediateInt 1 ])
+, TextFragment ", \n"
+, EvalFragment (Call "isqrt" [ ImmediateInt 7 ])
+, TextFragment ", \n"
+, EvalFragment (Call "isqrt" [ ImmediateInt 16 ])
+, TextFragment ", \n"
+, EvalFragment (Call "isqrt" [ ImmediateInt 21 ])
+]
