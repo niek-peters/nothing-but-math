@@ -1,0 +1,92 @@
+[ TextFragment "% this file tests some type casting behaviour\n"
+, DefinitionFragment
+    (AST
+       []
+       [ Declaration
+           []
+           "f"
+           (Signature
+              (Just (Type (Natural :| [ Natural ]))) (Type (Integer :| [])))
+           "f"
+           [ "a" , "b" ]
+           (Unconditional (Binary Sub (Call "a" []) (Call "b" [])))
+           []
+       , Declaration
+           []
+           "g"
+           (Signature (Just (Type (Integer :| []))) (Type (Natural :| [])))
+           "g"
+           [ "x" ]
+           (Conditional
+              [ Branch
+                  (ImmediateInt 0) (Binary Less (Call "x" []) (ImmediateInt 0))
+              ]
+              (Call "x" []))
+           []
+       , Declaration
+           []
+           "h"
+           (Signature Nothing (Type (Real :| [])))
+           "h"
+           []
+           (Unconditional
+              (Binary
+                 Sub
+                 (ImmediateReal 1.25)
+                 (Binary Div (ImmediateInt 1) (ImmediateInt 2))))
+           []
+       , Declaration
+           []
+           "i"
+           (Signature Nothing (Type (Positive :| [])))
+           "i"
+           []
+           (Unconditional (Unary Sqrt (ImmediateInt 9)))
+           []
+       , Declaration
+           []
+           "j"
+           (Signature Nothing (Type (Positive :| [])))
+           "j"
+           []
+           (Unconditional (Binary Div (ImmediateInt 12) (ImmediateInt 3)))
+           []
+       , Declaration
+           []
+           "k"
+           (Signature Nothing (Type (Rational :| [])))
+           "k"
+           []
+           (Unconditional (ImmediateReal 0.25))
+           []
+       , Declaration
+           []
+           "l"
+           (Signature Nothing (Type (Integer :| [])))
+           "l"
+           []
+           (Unconditional
+              (Binary
+                 Mult
+                 (ImmediateInt 10)
+                 (Binary Add (ImmediateReal 0.1) (ImmediateReal 0.2))))
+           []
+       ])
+, TextFragment "\n\n"
+, EvalFragment (Call "f" [ ImmediateInt 1 , ImmediateInt 2 ])
+, TextFragment "\n\n"
+, EvalFragment
+    (Tuple
+       (Call "g" [ Unary Neg (ImmediateInt 1) ] :|
+          [ Call "g" [ ImmediateInt 1 ] ]))
+, TextFragment "\n\n"
+, EvalFragment (Call "h" [])
+, TextFragment ", \n"
+, EvalFragment (Call "i" [])
+, TextFragment ", \n"
+, EvalFragment (Call "j" [])
+, TextFragment ", \n"
+, EvalFragment (Call "k" [])
+, TextFragment " and \n"
+, EvalFragment (Call "l" [])
+]

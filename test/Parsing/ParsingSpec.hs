@@ -8,7 +8,7 @@ import Test.Hspec.Golden hiding (golden)
 -- import TestUtils (shouldBeGolden)
 import Text.Show.Pretty (ppShow)
 import System.FilePath (addExtension, splitExtension, splitFileName, (</>))
-import System.Directory (canonicalizePath, getDirectoryContents)
+import System.Directory (canonicalizePath, getDirectoryContents, listDirectory)
 
 
 -- spec :: Spec
@@ -35,7 +35,11 @@ shouldMapToGolden :: String -> String -> String -> (String -> IO String) -> IO [
 shouldMapToGolden inDir outDir msg f = do
     inputDir <- canonicalizePath inDir
     outputDir <- canonicalizePath outDir
-    inputFiles  <- getDirectoryContents inputDir
+    inputFiles <- map (\file -> inputDir </> file) <$> listDirectory inputDir
+
+    -- putStrLn inputDir
+    -- putStrLn outputDir
+    -- mapM_ putStrLn inputFiles
 
     mapM (\file -> shouldBeGolden file outputDir msg f) inputFiles 
     -- mapM (\file -> do
@@ -47,20 +51,21 @@ shouldMapToGolden inDir outDir msg f = do
 
 shouldBeGolden :: FilePath -> FilePath -> String -> (String -> IO String) -> IO Spec
 shouldBeGolden file outDir msg f = do
+    -- putStrLn file
     let (_, name) = splitFileName file
     res <- f =<< readFile file
     let golden = makeGolden file outDir res
     return $ it (msg ++ " " ++ name) golden
 
-makeGoldenDir :: String -> String -> (String -> IO String) -> IO [Golden String]
-makeGoldenDir inDir outDir f = do
-    inputDir <- canonicalizePath inDir
-    outputDir <- canonicalizePath outDir
-    inputFiles  <- getDirectoryContents inputDir
-    mapM (\file -> (makeGolden file outputDir) <$> (f =<< readFile file)) inputFiles
-    -- inputFile <- canonicalizePath file
-    -- res <- f =<< readFile inputFile
-    -- return $ makeGolden inputFile outputDir res
+-- makeGoldenDir :: String -> String -> (String -> IO String) -> IO [Golden String]
+-- makeGoldenDir inDir outDir f = do
+--     inputDir <- canonicalizePath inDir
+--     outputDir <- canonicalizePath outDir
+--     inputFiles  <- getDirectoryContents inputDir
+--     mapM (\file -> (makeGolden file outputDir) <$> (f =<< readFile file)) inputFiles
+--     -- inputFile <- canonicalizePath file
+--     -- res <- f =<< readFile inputFile
+--     -- return $ makeGolden inputFile outputDir res
 
 makeGolden :: FilePath -> FilePath -> String -> Golden String
 makeGolden file resDir res  = Golden {

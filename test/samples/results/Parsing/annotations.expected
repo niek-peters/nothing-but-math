@@ -1,0 +1,148 @@
+[ TextFragment
+    "% this file tests LaTeX annotations\nThis brings us to two new formulae. "
+, DefinitionFragment
+    (AST
+       [ BlockDisplay InLineBlock ]
+       [ Declaration
+           []
+           "f"
+           (Signature
+              (Just (Type (Natural :| [ Natural ]))) (Type (Integer :| [])))
+           "f"
+           [ "a" , "b" ]
+           (Unconditional (Call "c" []))
+           [ LocalDecl
+               (Local ("c" :| []) (Binary Sub (Call "a" []) (Call "b" [])))
+           ]
+       , Declaration
+           []
+           "g"
+           (Signature
+              (Just (Type (Natural :| [ Natural ]))) (Type (Integer :| [])))
+           "g"
+           [ "a" , "b" ]
+           (Unconditional (Call "d" []))
+           [ LocalDecl
+               (Local ("d" :| []) (Binary Add (Call "a" []) (Call "b" [])))
+           ]
+       ])
+, TextFragment " With these, we can define:\n"
+, DefinitionFragment
+    (AST
+       [ BlockDisplay BoxBlock
+       , BlockClass "Algorithm"
+       , BlockName "My Algorithm Name"
+       , BlockLabel "my_algorithm_name"
+       , BlockDescription
+           "This text provides a description of the algorithm"
+       ]
+       [ Declaration
+           [ DeclDisplay HiddenDecl ]
+           "abs"
+           (Signature (Just (Type (Integer :| []))) (Type (Natural :| [])))
+           "abs"
+           [ "x" ]
+           (Conditional
+              [ Branch
+                  (Unary Neg (Call "x" []))
+                  (Binary Less (Call "x" []) (ImmediateInt 0))
+              ]
+              (Call "x" []))
+           []
+       , Declaration
+           []
+           "h"
+           (Signature
+              (Just (Type (Natural :| [ Natural ]))) (Type (Rational :| [])))
+           "h"
+           [ "a" , "b" ]
+           (Unconditional (Binary Div (Call "e" []) (ImmediateInt 6)))
+           [ LocalDecl
+               (Local
+                  ("e" :| [])
+                  (Call
+                     "abs"
+                     [ Binary
+                         Mult
+                         (Call "f" [ Call "a" [] , Call "b" [] ])
+                         (Call "g" [ Call "a" [] , Call "b" [] ])
+                     ]))
+           ]
+       ])
+, TextFragment "\n\nTo give some example values: \n"
+, EvalFragment (Call "f" [ ImmediateInt 1 , ImmediateInt 2 ])
+, TextFragment ", "
+, EvalFragment (Call "g" [ ImmediateInt 1 , ImmediateInt 2 ])
+, TextFragment " and "
+, EvalFragment (Call "h" [ ImmediateInt 1 , ImmediateInt 2 ])
+, TextFragment
+    ".    % here we use evaluation fragments, which will be replaced by the evaluated results of the given expressions\n\nNow, we can finally use Algorithm~\\ref{my_algorithm_name} to...\n\n...\n"
+, DefinitionFragment
+    (AST
+       [ BlockDisplay HiddenBlock ]
+       [ Declaration
+           []
+           "id"
+           (Signature (Just (Type (Integer :| []))) (Type (Integer :| [])))
+           "id"
+           [ "x" ]
+           (Unconditional (Call "x" []))
+           []
+       , Declaration
+           []
+           "neg"
+           (Signature (Just (Type (Integer :| []))) (Type (Integer :| [])))
+           "neg"
+           [ "x" ]
+           (Unconditional (Unary Neg (Call "abs" [ Call "x" [] ])))
+           []
+       ])
+, DefinitionFragment
+    (AST
+       [ BlockDisplay InTextBlock ]
+       [ Declaration
+           []
+           "i"
+           (Signature (Just (Type (Integer :| []))) (Type (Integer :| [])))
+           "i"
+           [ "x" ]
+           (Unconditional (Call "id" [ Call "x" [] ]))
+           []
+       ])
+, DefinitionFragment
+    (AST
+       [ BlockDisplay BoxBlock
+       , BlockClass "Procedure"
+       , BlockLabel "doubling"
+       ]
+       [ Declaration
+           []
+           "k"
+           (Signature (Just (Type (Integer :| []))) (Type (Integer :| [])))
+           "k"
+           [ "x" ]
+           (Unconditional
+              (Binary
+                 Mult (Unary Neg (ImmediateInt 2)) (Call "neg" [ Call "y" [] ])))
+           [ LocalDecl (Local ("y" :| []) (Call "i" [ Call "x" [] ])) ]
+       ])
+, DefinitionFragment
+    (AST
+       [ BlockDisplay BoxBlock
+       , BlockClass "Algorithm"
+       , BlockName "Another Great Algorithm"
+       ]
+       [ Declaration
+           []
+           "l"
+           (Signature (Just (Type (Integer :| []))) (Type (Integer :| [])))
+           "l"
+           [ "x" ]
+           (Unconditional (Binary Pow (Call "x" []) (ImmediateInt 2)))
+           []
+       ])
+, TextFragment
+    "\n\nNow, using Produce~\\ref{doubling} together with this new algorithm, we can evaluate:\n"
+, EvalFragment
+    (Call "l" [ Call "k" [ Unary Neg (ImmediateInt 3) ] ])
+]

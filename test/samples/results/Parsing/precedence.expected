@@ -1,0 +1,250 @@
+[ TextFragment "% this file tests operator precedence\n"
+, DefinitionFragment
+    (AST
+       []
+       [ Declaration
+           []
+           "a"
+           (Signature Nothing (Type (Integer :| [])))
+           "a"
+           []
+           (Unconditional
+              (Unary Neg (Binary Pow (ImmediateInt 2) (ImmediateInt 2))))
+           []
+       , Declaration
+           []
+           "b"
+           (Signature Nothing (Type (Positive :| [])))
+           "b"
+           []
+           (Unconditional
+              (Binary Pow (Unary Neg (ImmediateInt 2)) (ImmediateInt 2)))
+           []
+       , Declaration
+           []
+           "c"
+           (Signature Nothing (Type (Rational :| [])))
+           "c"
+           []
+           (Unconditional
+              (Binary Pow (ImmediateInt 1) (Unary Neg (ImmediateInt 2))))
+           []
+       , Declaration
+           []
+           "d"
+           (Signature Nothing (Type (Rational :| [])))
+           "d"
+           []
+           (Unconditional
+              (Binary Div (Unary Sqrt (ImmediateInt 16)) (ImmediateInt 2)))
+           []
+       , Declaration
+           []
+           "e"
+           (Signature Nothing (Type (Integer :| [])))
+           "e"
+           []
+           (Unconditional
+              (Binary
+                 Add
+                 (ImmediateInt 1)
+                 (Binary Mult (ImmediateInt 2) (ImmediateInt 3))))
+           []
+       , Declaration
+           []
+           "f"
+           (Signature Nothing (Type (Integer :| [])))
+           "f"
+           []
+           (Unconditional
+              (Binary
+                 Sub
+                 (Binary Sub (ImmediateInt 1) (ImmediateInt 2))
+                 (ImmediateInt 3)))
+           []
+       , Declaration
+           []
+           "g"
+           (Signature Nothing (Type (Integer :| [])))
+           "g"
+           []
+           (Unconditional
+              (Binary
+                 Pow
+                 (ImmediateInt 1)
+                 (Binary Pow (ImmediateInt 2) (ImmediateInt 3))))
+           []
+       , Declaration
+           []
+           "h"
+           (Signature Nothing (Type (Integer :| [])))
+           "h"
+           []
+           (Unconditional
+              (Binary
+                 Add
+                 (Binary Mod (ImmediateInt 10) (ImmediateInt 3))
+                 (ImmediateInt 1)))
+           []
+       , Declaration
+           []
+           "i"
+           (Signature Nothing (Type (Rational :| [])))
+           "i"
+           []
+           (Unconditional
+              (Binary
+                 Add
+                 (Binary
+                    Add
+                    (ImmediateInt 1)
+                    (Binary
+                       Div
+                       (Binary
+                          Mult
+                          (Binary Div (ImmediateInt 2) (ImmediateInt 3))
+                          (ImmediateInt 4))
+                       (ImmediateInt 5)))
+                 (Binary Div (ImmediateInt 6) (ImmediateInt 7))))
+           []
+       , Declaration
+           []
+           "j"
+           (Signature Nothing (Type (Boolean :| [])))
+           "j"
+           []
+           (Unconditional
+              (Binary
+                 LessEq
+                 (Binary Add (ImmediateInt 1) (ImmediateInt 2))
+                 (Binary Add (ImmediateInt 3) (ImmediateInt 4))))
+           []
+       , Declaration
+           []
+           "k"
+           (Signature Nothing (Type (Boolean :| [])))
+           "k"
+           []
+           (Unconditional
+              (Binary
+                 Neq
+                 (Binary Eq (ImmediateInt 1) (ImmediateInt 2))
+                 (ImmediateBool True)))
+           []
+       , Declaration
+           []
+           "l"
+           (Signature Nothing (Type (Boolean :| [])))
+           "l"
+           []
+           (Unconditional
+              (Binary
+                 Or
+                 (ImmediateBool True)
+                 (Binary And (ImmediateBool False) (ImmediateBool False))))
+           []
+       , Declaration
+           []
+           "m"
+           (Signature Nothing (Type (Boolean :| [])))
+           "m"
+           []
+           (Unconditional
+              (Binary
+                 Or (Unary Not (ImmediateBool False)) (ImmediateBool False)))
+           []
+       , Declaration
+           []
+           "n"
+           (Signature Nothing (Type (Integer :| [])))
+           "n"
+           []
+           (Unconditional
+              (Unary Sqrt (Unary Neg (Unary Neg (ImmediateInt 9)))))
+           []
+       , Declaration
+           []
+           "o"
+           (Signature Nothing (Type (Integer :| [])))
+           "o"
+           []
+           (Unconditional
+              (Unary Neg (Unary Sqrt (Unary Sqrt (ImmediateInt 16)))))
+           []
+       , Declaration
+           []
+           "p"
+           (Signature Nothing (Type (Boolean :| [])))
+           "p"
+           []
+           (Unconditional (Unary Not (Unary Not (ImmediateBool True))))
+           []
+       , Declaration
+           []
+           "q"
+           (Signature (Just (Type (Integer :| []))) (Type (Rational :| [])))
+           "q"
+           [ "x" ]
+           (Conditional
+              [ Branch
+                  (Binary
+                     Add
+                     (Binary
+                        Mult
+                        (Binary Div (Call "x" []) (ImmediateInt 5))
+                        (Binary
+                           Div
+                           (Binary
+                              Mult (ImmediateInt 5) (Binary Add (ImmediateInt 1) (Call "x" [])))
+                           (Binary Pow (Unary Neg (Call "x" [])) (ImmediateInt 3))))
+                     (ImmediateInt 6))
+                  (Binary Greater (Call "x" []) (ImmediateInt 3))
+              ]
+              (Binary
+                 Div
+                 (Binary
+                    Add (ImmediateInt 1) (Binary Div (Call "x" []) (ImmediateInt 3)))
+                 (ImmediateInt 4)))
+           []
+       ])
+, TextFragment "\n\nAnd all evaluated:\n"
+, EvalFragment (Call "a" [])
+, TextFragment ", \n"
+, EvalFragment (Call "b" [])
+, TextFragment ", \n"
+, EvalFragment (Call "c" [])
+, TextFragment ", \n"
+, EvalFragment (Call "d" [])
+, TextFragment ", \n"
+, EvalFragment (Call "e" [])
+, TextFragment ", \n"
+, EvalFragment (Call "f" [])
+, TextFragment ", \n"
+, EvalFragment (Call "g" [])
+, TextFragment ", \n"
+, EvalFragment (Call "h" [])
+, TextFragment ", \n"
+, EvalFragment (Call "i" [])
+, TextFragment ", \n"
+, EvalFragment (Call "j" [])
+, TextFragment ", \n"
+, EvalFragment (Call "k" [])
+, TextFragment ", \n"
+, EvalFragment (Call "l" [])
+, TextFragment ", \n"
+, EvalFragment (Call "m" [])
+, TextFragment ", \n"
+, EvalFragment (Call "n" [])
+, TextFragment ", \n"
+, EvalFragment (Call "o" [])
+, TextFragment ",  \n"
+, EvalFragment (Call "p" [])
+, TextFragment " and finally \n"
+, EvalFragment
+    (Tuple
+       (Call "q" [ ImmediateInt 2 ] :|
+          [ Call "q" [ ImmediateInt 3 ]
+          , Call "q" [ ImmediateInt 4 ]
+          , Call "q" [ ImmediateInt 5 ]
+          ]))
+]

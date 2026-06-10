@@ -1,0 +1,119 @@
+[ TextFragment "% this file tests the boolean type and operators\n"
+, DefinitionFragment
+    (AST
+       []
+       [ Declaration
+           []
+           "isPos"
+           (Signature (Just (Type (Integer :| []))) (Type (Boolean :| [])))
+           "isPos"
+           [ "x" ]
+           (Unconditional (Binary Greater (Call "x" []) (ImmediateInt 0)))
+           []
+       , Declaration
+           []
+           "isNat"
+           (Signature (Just (Type (Integer :| []))) (Type (Boolean :| [])))
+           "isNat"
+           [ "x" ]
+           (Unconditional (Binary GreaterEq (Call "x" []) (ImmediateInt 0)))
+           []
+       , Declaration
+           []
+           "isNeg"
+           (Signature (Just (Type (Integer :| []))) (Type (Boolean :| [])))
+           "isNeg"
+           [ "x" ]
+           (Unconditional (Binary Less (Call "x" []) (ImmediateInt 0)))
+           []
+       , Declaration
+           []
+           "nonNeg"
+           (Signature (Just (Type (Integer :| []))) (Type (Boolean :| [])))
+           "nonNeg"
+           [ "x" ]
+           (Unconditional (Unary Not (Call "isNeg" [ Call "x" [] ])))
+           []
+       , Declaration
+           []
+           "nonZero"
+           (Signature (Just (Type (Integer :| []))) (Type (Boolean :| [])))
+           "nonZero"
+           [ "x" ]
+           (Unconditional (Binary Neq (Call "x" []) (ImmediateInt 0)))
+           []
+       , Declaration
+           []
+           "oneOrTwo"
+           (Signature (Just (Type (Integer :| []))) (Type (Boolean :| [])))
+           "oneOrTwo"
+           [ "x" ]
+           (Unconditional
+              (Binary
+                 Or
+                 (Binary Eq (Call "x" []) (ImmediateInt 1))
+                 (Binary Eq (Call "x" []) (ImmediateInt 2))))
+           []
+       , Declaration
+           []
+           "neitherOneOrTwo"
+           (Signature (Just (Type (Integer :| []))) (Type (Boolean :| [])))
+           "neitherOneOrTwo"
+           [ "x" ]
+           (Unconditional
+              (Binary
+                 And
+                 (Binary Neq (Call "x" []) (ImmediateInt 1))
+                 (Unary Not (Binary Eq (Call "x" []) (ImmediateInt 2)))))
+           []
+       ])
+, TextFragment "\nWe have\n\n"
+, EvalFragment
+    (Tuple
+       (Call "isPos" [ ImmediateInt 1 ] :|
+          [ Call "isPos" [ Unary Neg (ImmediateInt 1) ]
+          , Call "isPos" [ ImmediateInt 0 ]
+          ]))
+, TextFragment "\n\n"
+, EvalFragment
+    (Tuple
+       (Call "isNat" [ ImmediateInt 1 ] :|
+          [ Call "isNat" [ Unary Neg (ImmediateInt 1) ]
+          , Call "isNat" [ ImmediateInt 0 ]
+          ]))
+, TextFragment "\n\n"
+, EvalFragment
+    (Tuple
+       (Call "isNeg" [ ImmediateInt 1 ] :|
+          [ Call "isNeg" [ Unary Neg (ImmediateInt 1) ]
+          , Call "isNeg" [ ImmediateInt 0 ]
+          ]))
+, TextFragment "\n\n"
+, EvalFragment
+    (Tuple
+       (Call "nonNeg" [ ImmediateInt 1 ] :|
+          [ Call "nonNeg" [ Unary Neg (ImmediateInt 1) ]
+          , Call "nonNeg" [ ImmediateInt 0 ]
+          ]))
+, TextFragment "\n\n"
+, EvalFragment
+    (Tuple
+       (Call "nonZero" [ ImmediateInt 1 ] :|
+          [ Call "nonZero" [ Unary Neg (ImmediateInt 1) ]
+          , Call "nonZero" [ ImmediateInt 0 ]
+          ]))
+, TextFragment "\n\nAnd\n\n"
+, EvalFragment
+    (Tuple
+       (Call "oneOrTwo" [ ImmediateInt 0 ] :|
+          [ Call "oneOrTwo" [ ImmediateInt 1 ]
+          , Call "oneOrTwo" [ ImmediateInt 2 ]
+          ]))
+, TextFragment "\n\n"
+, EvalFragment
+    (Tuple
+       (Call "neitherOneOrTwo" [ ImmediateInt 0 ] :|
+          [ Call "neitherOneOrTwo" [ ImmediateInt 1 ]
+          , Call "neitherOneOrTwo" [ ImmediateInt 2 ]
+          ]))
+]

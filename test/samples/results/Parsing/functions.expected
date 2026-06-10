@@ -1,0 +1,116 @@
+[ DefinitionFragment
+    (AST
+       []
+       [ Declaration
+           []
+           "f"
+           (Signature (Just (Type (Natural :| []))) (Type (Positive :| [])))
+           "f"
+           [ "x" ]
+           (Unconditional
+              (Binary Mult (Call "y" []) (Unary Neg (ImmediateInt 2))))
+           [ LocalDecl
+               (Local
+                  ("y" :| [])
+                  (Unary Neg (Binary Add (Call "x" []) (ImmediateInt 1))))
+           ]
+       , Declaration
+           []
+           "g"
+           (Signature
+              (Just (Type (Integer :| [ Natural ]))) (Type (Rational :| [])))
+           "g"
+           [ "x" , "a" ]
+           (Unconditional
+              (Binary
+                 Div (Binary Pow (Call "x" []) (Call "a" [])) (ImmediateInt 2)))
+           []
+       , Declaration
+           []
+           "h"
+           (Signature
+              (Just (Type (Integer :| []))) (Type (Integer :| [ Real ])))
+           "h"
+           [ "x" ]
+           (Unconditional (Tuple (Call "x" [] :| [ Call "x" [] ])))
+           []
+       , Declaration
+           []
+           "i"
+           (Signature
+              (Just (Type (Integer :| []))) (Type (Integer :| [ Integer ])))
+           "i"
+           [ "x" ]
+           (Unconditional
+              (Tuple
+                 (Binary Mult (ImmediateInt 2) (Call "a" []) :|
+                    [ Binary Mult (ImmediateInt 2) (Call "b" []) ])))
+           [ LocalDecl
+               (Local ("a" :| [ "b" ]) (Tuple (Call "x" [] :| [ Call "x" [] ])))
+           ]
+       , Declaration
+           []
+           "j"
+           (Signature
+              (Just (Type (Integer :| []))) (Type (Natural :| [ Integer ])))
+           "j"
+           [ "x" ]
+           (Conditional
+              [ Branch
+                  (Tuple (Call "x" [] :| [ Call "x" [] ]))
+                  (Binary GreaterEq (Call "x" []) (ImmediateInt 0))
+              ]
+              (Tuple (Unary Neg (Call "x" []) :| [ Call "x" [] ])))
+           []
+       , Declaration
+           []
+           "k"
+           (Signature
+              (Just (Type (Integer :| []))) (Type (Natural :| [ Integer ])))
+           "k"
+           [ "x" ]
+           (Conditional
+              [ Branch
+                  (Tuple (Call "x" [] :| [ Call "x" [] ]))
+                  (Binary Greater (Call "x" []) (ImmediateInt 0))
+              ]
+              (Tuple (Call "y" [] :| [ Call "x" [] ])))
+           [ Constraint (Binary Neq (Call "x" []) (ImmediateInt 0))
+           , LocalDecl (Local ("y" :| []) (Unary Neg (Call "x" [])))
+           , Constraint (Binary Neq (Call "y" []) (ImmediateInt 0))
+           ]
+       ])
+, TextFragment "\n\n"
+, EvalFragment
+    (Tuple
+       (Call "f" [ ImmediateInt 0 ] :|
+          [ Call "f" [ ImmediateInt 1 ] , Call "f" [ ImmediateInt 2 ] ]))
+, TextFragment "\n\n"
+, EvalFragment
+    (Tuple
+       (Call "g" [ Unary Neg (ImmediateInt 1) , ImmediateInt 0 ] :|
+          [ Call "g" [ ImmediateInt 0 , ImmediateInt 0 ]
+          , Call "g" [ ImmediateInt 0 , ImmediateInt 1 ]
+          , Call "g" [ ImmediateInt 2 , ImmediateInt 3 ]
+          ]))
+, TextFragment "\n\n"
+, EvalFragment
+    (Tuple
+       (Call "h" [ Unary Neg (ImmediateInt 1) ] :|
+          [ Call "h" [ ImmediateInt 1 ] ]))
+, TextFragment "\n\n"
+, EvalFragment
+    (Tuple
+       (Call "i" [ Unary Neg (ImmediateInt 1) ] :|
+          [ Call "i" [ ImmediateInt 1 ] ]))
+, TextFragment "\n\n"
+, EvalFragment
+    (Tuple
+       (Call "j" [ Unary Neg (ImmediateInt 1) ] :|
+          [ Call "j" [ ImmediateInt 1 ] ]))
+, TextFragment "\n\n"
+, EvalFragment
+    (Tuple
+       (Call "k" [ Unary Neg (ImmediateInt 1) ] :|
+          [ Call "k" [ ImmediateInt 1 ] ]))
+]
