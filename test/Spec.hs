@@ -12,6 +12,7 @@ import qualified CodeGenLaTeX.CodeGenLaTeXSpec
 -- - Add happy path tests for the example algorithms
 -- - Make tests run in a chain to avoid redoing work (maybe this is stupid because parallelization)
 -- - Write way more golden tests
+-- - Actually check all the generated outputs for correctness
 
 -- Probably out of time/scope:
 -- - Add QuickCheck ParseResult -> pretty print -> ParseResult testing
