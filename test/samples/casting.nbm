@@ -1,0 +1,36 @@
+% this file tests some type casting behaviour
+<<<
+f : N x N -> Z
+f(a, b) := a - b
+
+g : Z -> N
+g(x) := {
+    0 if x < 0
+    x otherwise     % trust the developer that x can be narrowed to a Natural here
+}
+
+h : R
+h := 1.25 - 1 / 2
+
+i : Z+
+i := sqrt 9     % Real -> Integer conversion through proximity check
+
+j : Z+
+j := 12 / 3     % would runtime error if not a whole number
+
+k : Q
+k := 0.25
+
+l : Z
+l := 10 * (0.1 + 0.2)   % Real -> Integer conversion through proximity check
+>>>
+
+{{{f(1, 2)}}}
+
+{{{(g(-1), g(1))}}}
+
+{{{h}}}, 
+{{{i}}}, 
+{{{j}}}, 
+{{{k}}} and 
+{{{l}}}

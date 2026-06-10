@@ -1,0 +1,54 @@
+<<<
+% function with a single argument
+% more number types
+f : N -> Z+
+f(x) := y * -2
+where y := -(x + 1)    % local variable declaration
+
+% multiple declarations in a single code block
+% function with multiple arguments
+% even more number types!
+g : Z x N -> Q
+g(x, a) := x ^ a / 2    % more operators!
+
+% here we test tuple notation
+% and the Real type!
+h : Z -> Z x R
+h(x) := (x, x)
+
+% and tuple destructuring
+i : Z -> Z x Z
+i(x) := (2 * a, 2 * b)
+where (a, b) := (x, x)
+
+% piecewise function notation
+j : Z -> N x Z
+j(x) := {
+    (x, x)  if x >= 0
+    (-x, x) otherwise
+}
+
+% and with a where clause
+k : Z -> N x Z
+k(x) := {
+    (x, x)  if x > 0
+    (y, x) otherwise
+} where x /= 0, % we add a constraint here
+y := -x,        % and still a local declaration
+y /= 0          % on which we can also put constraints if we want
+                % another thing to note is the order of constraints/declarations here is preserved in the LaTeX output
+
+% and then no text/eval fragments at all
+>>>
+
+{{{(f(0), f(1), f(2))}}}
+
+{{{(g(-1, 0), g(0, 0), g(0, 1), g(2, 3))}}}
+
+{{{(h(-1), h(1))}}}
+
+{{{(i(-1), i(1))}}}
+
+{{{(j(-1), j(1))}}}
+
+{{{(k(-1), k(1))}}}

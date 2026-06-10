@@ -1,0 +1,40 @@
+% this file tests the boolean type and operators
+<<<
+isPos : Z -> B
+isPos(x) := x > 0
+
+isNat : Z -> B
+isNat(x) := x >= 0
+
+isNeg : Z -> B
+isNeg(x) := x < 0
+
+nonNeg : Z -> B
+nonNeg(x) := not isNeg(x)
+
+nonZero : Z -> B
+nonZero(x) := x /= 0
+
+oneOrTwo : Z -> B
+oneOrTwo(x) := x = 1 or x = 2
+
+neitherOneOrTwo : Z -> B
+neitherOneOrTwo(x) := x /= 1 and not (x = 2)
+>>>
+We have
+
+{{{(isPos(1), isPos(-1), isPos(0))}}}
+
+{{{(isNat(1), isNat(-1), isNat(0))}}}
+
+{{{(isNeg(1), isNeg(-1), isNeg(0))}}}
+
+{{{(nonNeg(1), nonNeg(-1), nonNeg(0))}}}
+
+{{{(nonZero(1), nonZero(-1), nonZero(0))}}}
+
+And
+
+{{{(oneOrTwo(0), oneOrTwo(1), oneOrTwo(2))}}}
+
+{{{(neitherOneOrTwo(0), neitherOneOrTwo(1), neitherOneOrTwo(2))}}}
