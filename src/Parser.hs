@@ -138,8 +138,7 @@ parseBlockAnnotation = try (BlockDisplay <$> parseBlockDisplay)
     parseKeyValue key = (tok $ TId key) *> (tok $ TBOp Eq) *> strTok
 
 parseBlockDisplay :: Parser BlockDisplayMode
-parseBlockDisplay = DefaultBlock <$ keyTok "default"
-                    <|> BoxBlock <$ keyTok "box"
+parseBlockDisplay = BoxBlock <$ keyTok "box"
                     <|> try (InTextBlock <$ keyTok "intext")
                     <|> try (InLineBlock <$ keyTok "inline")
                     <|> HiddenBlock <$ keyTok "hidden"
@@ -148,8 +147,7 @@ parseDeclAnnotation :: Parser DeclAnnotation
 parseDeclAnnotation = try (DeclDisplay <$> parseDeclDisplay)
 
 parseDeclDisplay :: Parser DeclDisplayMode
-parseDeclDisplay = DefaultDecl <$ keyTok "default"
-                    <|> HiddenDecl <$ keyTok "hidden"
+parseDeclDisplay = HiddenDecl <$ keyTok "hidden"
 
 
 -- Helper functions

@@ -56,7 +56,7 @@ data Expr   = Call Id [Expr]
 data BlockAnnotation = BlockDisplay BlockDisplayMode | BlockClass String | BlockName String | BlockLabel String | BlockDescription String
     deriving (Show, Eq)
 
-data BlockDisplayMode   = DefaultBlock  -- outputs block in \begin{flalign*}...\end{flalign*} block
+data BlockDisplayMode   = DefaultBlock  -- outputs block in \begin{flalign*}...\end{flalign*} block (this can not be parsed, only set by the elaboration phase)
                         | BoxBlock      -- outputs nicely boxed block
                         | InTextBlock   -- outputs block as in-text lines wrapped with $
                         | InLineBlock   -- outputs block as a single line wrapped with $
@@ -69,6 +69,6 @@ data BlockDisplayMode   = DefaultBlock  -- outputs block in \begin{flalign*}...\
 data DeclAnnotation = DeclDisplay DeclDisplayMode
     deriving (Show, Eq)
 
-data DeclDisplayMode    = DefaultDecl   -- declaration is emitted as usual
+data DeclDisplayMode    = DefaultDecl   -- declaration is emitted as usual (this can not be parsed, only set by the elaboration phase)
                         | HiddenDecl    -- omits the declaration from LaTeX output
     deriving (Show, Eq)
