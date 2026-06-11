@@ -1,0 +1,4 @@
+<<<
+f : Z -> B
+f(x) := x != 1  % NBM uses /= instead of !=
+>>>
