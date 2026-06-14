@@ -11,7 +11,7 @@ g(a, b) := d
 where d := a + b
 >>> With these, we can define:
 <<<
-#[box, class=Algorithm, name=My Algorithm Name, label=my_algorithm_name, description=This text provides a description of the algorithm]
+#[box, class="Algorithm", name="My Algorithm Name", label="my_algorithm_name", description="This text provides a description of the algorithm"]
 
 % a hidden formula is not shown in the LaTeX output, but is still available for use in other formulae
 @[hidden]

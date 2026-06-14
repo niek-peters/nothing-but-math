@@ -101,10 +101,10 @@ codeGenImpl (IRUnconditional e) = codeGenExpr e
 codeGenImpl (IRConditional branches other) = block "cases" $ intercalate newline (map codeGenBranch branches ++ [codeGenOther other])-- concat (map codeGenBranch branches) ++ codeGenOther other
 
 codeGenBranch :: IRBranch -> String
-codeGenBranch (IRBranch e cond) = tab ++ codeGenExpr e ++ ", & " ++ text "if" ++ textSep ++ codeGenExpr cond
+codeGenBranch (IRBranch e cond) = tab ++ codeGenExpr e ++ symbol "&" ++ text "if" ++ textSep ++ codeGenExpr cond
 
 codeGenOther :: IRExpr -> String
-codeGenOther e = tab ++ codeGenExpr e ++ ", & " ++ text "otherwise"
+codeGenOther e = tab ++ codeGenExpr e ++ symbol "&" ++ text "otherwise"
 
 codeGenWhereTerm :: IRWhereTerm -> String
 codeGenWhereTerm (IRLocalDecl (IRLocal idents e)) = maybeParenTuple idents ++ symbol "=" ++ codeGenExpr e

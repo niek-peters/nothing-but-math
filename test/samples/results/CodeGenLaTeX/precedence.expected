@@ -51,8 +51,8 @@
 \\
 &\text{Define}~q : \mathbb{Z} \to \mathbb{Q}~\text{by}&\\
 &q\left(x\right) = \begin{cases}
-  \frac{x}{5} \cdot \frac{5 \cdot \left(1 + x\right)}{\left(-x\right)^{3}} + 6, & \text{if}~x > 3\\
-  \frac{1 + \frac{x}{3}}{4}, & \text{otherwise}
+  \frac{x}{5} \cdot \frac{5 \cdot \left(1 + x\right)}{\left(-x\right)^{3}} + 6 & \text{if}~x > 3\\
+  \frac{1 + \frac{x}{3}}{4} & \text{otherwise}
 \end{cases}.&
 \end{flalign*}
 

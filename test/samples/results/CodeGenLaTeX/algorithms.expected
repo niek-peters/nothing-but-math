@@ -14,8 +14,8 @@
 \begin{flalign*}
 &\text{Define}~gcd : \mathbb{N} \times \mathbb{N} \to \mathbb{Z}^+~\text{by}&\\
 &gcd\left(a, b\right) = \begin{cases}
-  a, & \text{if}~b = 0\\
-  gcd\left(b, a \bmod b\right), & \text{otherwise}
+  a & \text{if}~b = 0\\
+  gcd\left(b, a \bmod b\right) & \text{otherwise}
 \end{cases}&\\
 &\text{where}~a \geq b.&
 \end{flalign*}
@@ -38,8 +38,8 @@
 \begin{flalign*}
 &\text{Define}~egcd : \mathbb{N} \times \mathbb{N} \to \mathbb{Z}^+ \times \mathbb{Z} \times \mathbb{Z}~\text{by}&\\
 &egcd\left(a, b\right) = \begin{cases}
-  \left(a, 1, 0\right), & \text{if}~b = 0\\
-  \left(g, y, x - \lfloor\frac{a}{b}\rfloor \cdot y\right), & \text{otherwise}
+  \left(a, 1, 0\right) & \text{if}~b = 0\\
+  \left(g, y, x - \lfloor\frac{a}{b}\rfloor \cdot y\right) & \text{otherwise}
 \end{cases}&\\
 &\text{where}~a \geq b~\text{and}~\left(g, x, y\right) = egcd\left(b, a \bmod b\right).&
 \end{flalign*}
@@ -83,9 +83,9 @@
 \begin{flalign*}
 &\text{Define}~fastExp : \mathbb{R} \times \mathbb{N} \to \mathbb{R}~\text{by}&\\
 &fastExp\left(a, n\right) = \begin{cases}
-  1, & \text{if}~n = 0\\
-  r, & \text{if}~2 \mid n\\
-  a \cdot r, & \text{otherwise}
+  1 & \text{if}~n = 0\\
+  r & \text{if}~2 \mid n\\
+  a \cdot r & \text{otherwise}
 \end{cases}&\\
 &\text{where}~r = fastExp\left(a^{2}, \lfloor\frac{n}{2}\rfloor\right).&
 \end{flalign*}
@@ -108,15 +108,15 @@
 \begin{flalign*}
 &\text{Define}~isPrime : \mathbb{N} \to \mathbb{B}~\text{by}&\\
 &isPrime\left(n\right) = \begin{cases}
-  False, & \text{if}~n < 2\\
-  check\left(n, 2, \lfloor\sqrt{n}\rfloor\right), & \text{otherwise}
+  False & \text{if}~n < 2\\
+  check\left(n, 2, \lfloor\sqrt{n}\rfloor\right) & \text{otherwise}
 \end{cases}.&\\
 \\
 &\text{Define}~check : \mathbb{N} \times \mathbb{N} \times \mathbb{N} \to \mathbb{B}~\text{by}&\\
 &check\left(n, t, l\right) = \begin{cases}
-  True, & \text{if}~t > l\\
-  False, & \text{if}~t \mid n\\
-  check\left(n, t + 1, l\right), & \text{otherwise}
+  True & \text{if}~t > l\\
+  False & \text{if}~t \mid n\\
+  check\left(n, t + 1, l\right) & \text{otherwise}
 \end{cases}.&
 \end{flalign*}
 \end{minipage}
@@ -141,8 +141,8 @@
 \\
 &\text{Define}~newtIter : \mathbb{Z}^+ \times \mathbb{Z}^+ \to \mathbb{Z}^+~\text{by}&\\
 &newtIter\left(n, x\right) = \begin{cases}
-  newtIter\left(n, y\right), & \text{if}~y < x\\
-  x, & \text{otherwise}
+  newtIter\left(n, y\right) & \text{if}~y < x\\
+  x & \text{otherwise}
 \end{cases}&\\
 &\text{where}~y = \lfloor\frac{x + \lfloor\frac{n}{x}\rfloor}{2}\rfloor.&
 \end{flalign*}

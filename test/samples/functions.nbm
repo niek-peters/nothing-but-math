@@ -32,7 +32,7 @@ j(x) := {
 k : Z -> N x Z
 k(x) := {
     (x, x)  if x > 0
-    (y, x) otherwise
+    (y, x)  otherwise
 } where x /= 0, % we add a constraint here
 y := -x,        % and still a local declaration
 y /= 0          % on which we can also put constraints if we want

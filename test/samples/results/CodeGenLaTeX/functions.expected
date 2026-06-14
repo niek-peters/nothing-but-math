@@ -16,14 +16,14 @@
 \\
 &\text{Define}~j : \mathbb{Z} \to \mathbb{N} \times \mathbb{Z}~\text{by}&\\
 &j\left(x\right) = \begin{cases}
-  \left(x, x\right), & \text{if}~x \geq 0\\
-  \left(-x, x\right), & \text{otherwise}
+  \left(x, x\right) & \text{if}~x \geq 0\\
+  \left(-x, x\right) & \text{otherwise}
 \end{cases}.&\\
 \\
 &\text{Define}~k : \mathbb{Z} \to \mathbb{N} \times \mathbb{Z}~\text{by}&\\
 &k\left(x\right) = \begin{cases}
-  \left(x, x\right), & \text{if}~x > 0\\
-  \left(y, x\right), & \text{otherwise}
+  \left(x, x\right) & \text{if}~x > 0\\
+  \left(y, x\right) & \text{otherwise}
 \end{cases}&\\
 &\text{where}~x \neq 0, y = -x~\text{and}~y \neq 0.&
 \end{flalign*}
