@@ -1,5 +1,7 @@
 # nothing-but-math
 
+This code repository will be documented for the final paper submission.
+
 TODO (write about):
 - Introduction (what is this? what does it do?)
 - How to install
