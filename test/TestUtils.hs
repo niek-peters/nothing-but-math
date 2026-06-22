@@ -1,4 +1,4 @@
-module TestUtils (testGolden, shouldThrowInPhase) where
+module TestUtils (testGolden, shouldThrowInPhase, apply2) where
     
 import System.Directory (canonicalizePath, listDirectory, createDirectoryIfMissing, doesFileExist)
 import System.FilePath (takeBaseName, (</>), addExtension)
@@ -46,11 +46,14 @@ makeGolden file res  = Golden {
 listOnlyFiles :: FilePath -> IO [FilePath]
 listOnlyFiles dir = listDirectory dir >>= filterM (doesFileExist . (dir </>))
 
-shouldThrowInPhase :: (Show b) => String -> (String -> IO a) -> (a -> IO b) -> Expectation
+shouldThrowInPhase :: (Show b) => String -> (FilePath -> String -> IO a) -> (FilePath -> a -> IO b) -> Expectation
 shouldThrowInPhase name prep final = do
     file <- canonicalizePath name
     src <- readFile file
-    tmp <- prep src -- it should not throw an error in previous compiler phases
+    tmp <- prep file src -- it should not throw an error in previous compiler phases
 
     -- then it should throw in the final phase
-    shouldThrow (final tmp >>= print) anyErrorCall  -- print forces evaluation (but nothing will be printed if there is an error as we expect)
+    shouldThrow (final file tmp >>= print) anyErrorCall  -- print forces evaluation (but nothing will be printed if there is an error as we expect)
+
+apply2 :: Functor f => (c -> d) -> (a -> b -> f c) -> a -> b -> f d
+apply2 f g x y = f <$> g x y

@@ -1,0 +1,7 @@
+<<<
+f : Z -> Q
+f(x) := 1 / x
+where x /= 0
+>>>
+
+{{{f(0)}}}  % constraint violation

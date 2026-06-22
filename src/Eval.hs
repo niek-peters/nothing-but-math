@@ -7,7 +7,7 @@ import qualified Data.Map as Map
 import Types (Fragment(..))
 import System.Process (readProcessWithExitCode)
 import GHC.IO.Exception (ExitCode(..))
-import Lexer (tokenize, runLexer)
+import Lexer (runLexer)
 
 type EvalResult = [Fragment String IR IREvalResult]
 

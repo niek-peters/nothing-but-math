@@ -1,7 +1,7 @@
 module Parsing.ParsingSpec (spec, parseFromSource) where
 
 import Parser (parse, ParseResult)
-import TestUtils (testGolden, shouldThrowInPhase)
+import TestUtils (testGolden, shouldThrowInPhase, apply2)
 import Lexing.LexingSpec (lexFromSource)
 
 import Test.Hspec
@@ -11,15 +11,15 @@ import Lexer (TokenizeResult)
 spec :: Spec
 spec = do
     describe "Sample Program Parsing" $ 
-        testGolden "test/samples" "test/samples/results/Parsing" "correctly parses example program" (const (\str -> ppShow <$> parseFromSource str))
+        testGolden "test/samples" "test/samples/results/Parsing" "correctly parses example program" (ppShow `apply2` parseFromSource)
 
     describe "Unhappy Path Parsing" $ do
         it ("throws an error when a definition is missing a signature") $ do
             shouldThrowInPhase "test/Parsing/no_signature.nbm" lexFromSource phase
             shouldThrowInPhase "test/Parsing/text_in_code.nbm" lexFromSource phase
 
-parseFromSource :: String -> IO ParseResult
-parseFromSource str = lexFromSource str >>= phase
+parseFromSource :: FilePath -> String -> IO ParseResult
+parseFromSource file str = lexFromSource file str >>= phase file
 
-phase :: TokenizeResult -> IO ParseResult
-phase = pure . parse
+phase :: FilePath -> TokenizeResult -> IO ParseResult
+phase = const $ pure . parse
