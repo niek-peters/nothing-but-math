@@ -7,7 +7,6 @@ import Test.Hspec (Spec, it, runIO, Expectation, anyErrorCall, shouldThrow)
 import Control.Monad (filterM)
 
 testGolden :: String -> String -> String -> (FilePath -> String -> IO String) -> Spec
--- testGolden inDir outDir msg f = sequence_ =<< (runIO $ shouldMapToGolden inDir outDir msg f)
 testGolden inDir outDir msg f = do
     specs <- runIO $ shouldMapToGolden inDir outDir msg f
     sequence_ specs

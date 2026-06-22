@@ -1,0 +1,4 @@
+<<<
+f : Z -> Z
+f(x) := x + a   % a is undefined
+>>>

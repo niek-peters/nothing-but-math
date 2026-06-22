@@ -5,6 +5,7 @@ import TestUtils (testGolden)
 
 import Test.Hspec
 import Eval.EvalSpec (evalFromSource)
+import Eval (EvalResult)
 
 spec :: Spec
 spec =
@@ -12,4 +13,7 @@ spec =
         testGolden "test/samples" "test/samples/results/CodeGenLaTeX" "generates correct LaTeX code for example program" codeGenLaTeXFromSource
 
 codeGenLaTeXFromSource :: FilePath -> String -> IO String
-codeGenLaTeXFromSource file src = codeGenLaTeX <$> evalFromSource file src
+codeGenLaTeXFromSource file src = evalFromSource file src >>= phase
+
+phase :: EvalResult -> IO String
+phase = pure . codeGenLaTeX
