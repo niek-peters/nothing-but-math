@@ -16,6 +16,8 @@ spec = do
     describe "Unhappy Path Evaluation" $ do
         it ("throws an error when a constraint is violated") $ do
             shouldThrowInPhase "test/Eval/constraint_violation.nbm" codeGenHaskellFromSource phase
+        it ("throws an error when an invalid cast is attempted") $ do
+            shouldThrowInPhase "test/Eval/invalid_cast.nbm" codeGenHaskellFromSource phase
 
 evalFromSource :: FilePath -> String -> IO EvalResult
 evalFromSource file src = codeGenHaskellFromSource file src >>= phase file

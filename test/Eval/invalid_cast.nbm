@@ -1,0 +1,6 @@
+<<<
+f : Z -> Z
+f(x) := sqrt x
+>>>
+
+{{{f(2)}}}  % `sqrt 2' cannot be cast to Integer

@@ -1,10 +1,11 @@
 module TestUtils (testGolden, shouldThrowInPhase, apply2) where
     
 import System.Directory (canonicalizePath, listDirectory, createDirectoryIfMissing, doesFileExist)
-import System.FilePath (takeBaseName, (</>), addExtension)
+import System.FilePath (takeBaseName, (</>), addExtension, splitExtension)
 import Test.Hspec.Golden hiding (golden)
 import Test.Hspec (Spec, it, runIO, Expectation, anyErrorCall, shouldThrow)
 import Control.Monad (filterM)
+import Control.Exception (evaluate)
 
 testGolden :: String -> String -> String -> (FilePath -> String -> IO String) -> Spec
 testGolden inDir outDir msg f = do
@@ -49,11 +50,13 @@ listOnlyFiles dir = listDirectory dir >>= filterM (doesFileExist . (dir </>))
 shouldThrowInPhase :: (Show b) => String -> (FilePath -> String -> IO a) -> (FilePath -> a -> IO b) -> Expectation
 shouldThrowInPhase name prep final = do
     file <- canonicalizePath name
+    let genFile = addExtension (fst $ splitExtension file) "generated.hs"
     src <- readFile file
-    tmp <- prep file src -- it should not throw an error in previous compiler phases
+    _ <- evaluate (length src)   -- force full evaluation of src (so the file is closed)
+    tmp <- prep genFile src -- it should not throw an error in previous compiler phases
 
     -- then it should throw in the final phase
-    shouldThrow (final file tmp >>= print) anyErrorCall  -- print forces evaluation (but nothing will be printed if there is an error as we expect)
+    shouldThrow (final genFile tmp >>= print) anyErrorCall  -- print forces evaluation (but nothing will be printed if there is an error as we expect)
 
 apply2 :: Functor f => (c -> d) -> (a -> b -> f c) -> a -> b -> f d
 apply2 f g x y = f <$> g x y
