@@ -1,6 +1,5 @@
-module Lib
-    ( compile
-    ) where
+-- | Orchestrates the full compilation pipeline from source file to generated outputs.
+module Lib (compile) where
 
 import Parser (parse)
 import Elab (elab)
@@ -14,8 +13,8 @@ import System.Exit (ExitCode(..))
 import Control.Monad (when)
 import Types (CLIOptions (..))
 import Lexer (tokenize)
-import Text.Show.Pretty (pPrint)
 
+-- | Compile a source file into Haskell, LaTeX, and optionally PDF output.
 compile :: CLIOptions -> IO ()
 compile options = do
     file <- resolveFilePath $ filePath options
@@ -36,7 +35,7 @@ compile options = do
     elaborated' <- eval elaborated pathHaskell evalFrags 
 
     let tmpLatex = codeGenLaTeX elaborated'
-    let latex = case wrapDoc options of
+    let latex = case wrapDoc options of     -- wrap the output LaTeX in a minimal document structure if requested
             True -> "\\documentclass{article}\n\\usepackage{amsmath, amssymb, hyperref}\n\n\\begin{document}\n\n" ++ tmpLatex ++ "\n\n\\end{document}"
             False -> tmpLatex
     
@@ -46,6 +45,7 @@ compile options = do
 
     when (toPDF options) (compileToPDF pathLaTeX dir)
 
+-- | Resolve the input source path, defaulting to a `.nbm` extension when needed.
 resolveFilePath :: FilePath -> IO FilePath
 resolveFilePath file = do
     let (_, ext) = splitExtension $ takeFileName file
@@ -59,6 +59,7 @@ resolveFilePath file = do
 
     canonicalizePath resFile
 
+-- | Canonicalize and create the output directory if it does not already exist.
 processOutDir :: FilePath -> IO FilePath
 processOutDir out = do
     dir <- canonicalizePath out
@@ -68,11 +69,13 @@ processOutDir out = do
 
     return dir
 
+-- | Compute output file paths for the generated Haskell and LaTeX files.
 outPaths :: FilePath -> FilePath -> IO (FilePath, FilePath, FilePath)
 outPaths name out = do
     dir <- processOutDir out
     return $ (dir </> (name ++ ".hs"), dir </> (name ++ ".tex"), dir)
 
+-- | Run `pdflatex` twice to produce a PDF and clean up temporary artifacts.
 compileToPDF :: FilePath -> FilePath -> IO ()
 compileToPDF texFile dir = do
     let options = ["-interaction=nonstopmode", "-output-directory=" ++ dir, texFile]
@@ -89,6 +92,7 @@ compileToPDF texFile dir = do
             putStrLn "LaTeX compilation with pdflatex failed"
             mapM_ putStrLn (lines stdout)
 
+-- | Remove intermediate LaTeX artifacts produced during PDF generation.
 cleanUpPDFArtifacts :: FilePath -> IO ()
 cleanUpPDFArtifacts texFile = do
     let replace = replaceExtension texFile
@@ -98,6 +102,7 @@ cleanUpPDFArtifacts texFile = do
     removeIfExists logFile
     removeIfExists outFile
 
+-- | Remove a file only when it exists.
 removeIfExists :: FilePath -> IO ()
 removeIfExists file = do
     exists <- doesFileExist file

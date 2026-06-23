@@ -1,5 +1,6 @@
 {-# LANGUAGE FlexibleInstances #-}
 
+-- | Token definitions and stream instances used by the lexer and parser.
 module Token (module Token) where
 
 import Text.Megaparsec hiding (Token)
@@ -8,6 +9,7 @@ import qualified Text.Megaparsec as M
 import qualified Data.List.NonEmpty as NonEmpty
 import Data.List (intercalate)
 
+-- | Tokens produced by the lexer and consumed by the parser.
 data Token
     = TId String
     | TStr String   -- string literals used for annotation values to allow arbitrary characters
@@ -42,17 +44,21 @@ data Token
     | TTextString String
     deriving (Show, Eq, Ord)
 
+-- | Binary operators supported by the language grammar.
 data BinaryOp = Add | Sub | Mult | Div | Pow | Mod | Eq | Neq | Less | Greater | LessEq | GreaterEq | Divides | And | Or
     deriving (Show, Eq, Ord)
 
+-- | Unary operators supported by the language grammar.
 data UnaryOp = Neg | Sqrt | Floor | Not
     deriving (Show, Eq, Ord)
 
+-- | Primitive numeric and boolean types supported by the language.
 data PrimitiveType = Positive | Natural | Integer | Rational | Real | Boolean
     deriving (Show, Eq)
 
--- we implement Ord for PrimitiveType to easily be able to see whether a number type is a subtype of another number type
--- this also gives us access to the min and max functions
+-- | Order primitive numeric types by widening rank, with Boolean excluded from ordering.
+-- This allows us to easily determine whether a number type is a subtype of another number type,
+-- also giving us access to the min and max functions.
 instance Ord PrimitiveType where
     -- we order types by a simple ranking
     pt1 <= pt2 = rank pt1 <= rank pt2
@@ -65,10 +71,14 @@ instance Ord PrimitiveType where
         rank Real     = 5
         rank Boolean  = error $ "LOGIC ERROR: Attempt at comparing Boolean to other type"
 
+-- For transparency: the pretty printing code below was AI-generated
+
+-- | Pretty-print token streams in parser error messages.
 instance M.VisualStream [Token] where
     showTokens _ chunks = unwords (map show (NonEmpty.toList chunks))
     tokensLength _ chunks = length chunks
   
+-- | Track source position while traversing token streams during parsing.
 instance TraversableStream [Token] where
     reachOffset offset state = (Just streamString, state  { M.pstateOffset = offset, M.pstateSourcePos = (M.pstateSourcePos state) { M.sourceColumn = M.mkPos caretColumn }})
         where 

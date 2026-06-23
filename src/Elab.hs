@@ -1,3 +1,4 @@
+-- | Elaboration phase: transform parsed AST into IR with resolved names and casts.
 module Elab (elab, ElabResult, Scope, elabTopLevelExpr) where
 
 import qualified Data.Map as Map
@@ -32,13 +33,15 @@ import Token (PrimitiveType(..), UnaryOp (..), BinaryOp (..))
 
 -- Another important thing to mention is that constraints are evaluated in order, from how they were written in the DSL, from left to right
 
--- TODO: make error messages always show the part of the AST where it went wrong
-
+-- | Result of elaboration: a list of `Fragment`s parameterised over IR types.
 type ElabResult = [Fragment String IR IRExpr]
 
+-- | A simple mapping from identifiers to their signatures (global/local scopes).
 type Scope = Map.Map Id Signature
+-- | Pair of (local scope, global scope) used during elaboration.
 type Scopes = (Scope, Scope)    -- local scope, global scope
 
+-- | Top-level elaboration entry: convert parsed fragments to IR fragments.
 elab :: ParseResult -> ElabResult
 elab frags = map elabFragment frags
     where   globals = collectGlobals frags
@@ -47,24 +50,28 @@ elab frags = map elabFragment frags
             elabFragment (DefinitionFragment (AST blockAns decls)) = DefinitionFragment $ IR (elabBlockAnnotations blockAns) $ map (`elabDeclaration` globals) decls
             elabFragment (EvalFragment e) = EvalFragment $ elabTopLevelExpr e globals
 
+-- | Elaborate a toplevel expression using the provided global scope.
 elabTopLevelExpr :: Expr -> Scope -> IRExpr
 elabTopLevelExpr e s = fst $ elabExpr e Nothing (Map.empty, s)
 
+-- | Collect global declarations (identifiers and their signatures) from fragments.
 collectGlobals :: ParseResult -> Scope
 collectGlobals frags = foldl collect Map.empty frags
     where   collect m (DefinitionFragment ast) = collectGlobalsFromAST m ast
             collect m _ = m
 
+-- | Insert declarations from an `AST` into the global scope map.
 collectGlobalsFromAST :: Scope -> AST -> Scope
 collectGlobalsFromAST m (AST _ decls) = foldl insertDeclaration m decls
     where   insertDeclaration scope (Declaration _ ident sig _ _ _ _) = insertIdent scope ident sig
 
+-- | Insert an identifier into a scope, erroring on duplicate declarations.
 insertIdent :: Scope -> Id -> Signature -> Scope
 insertIdent m ident sig 
     | Map.member ident m = error $ "ERROR: Duplicate declaration of '" ++ ident ++ "'"
     | otherwise = Map.insert ident sig m
 
--- boolean in returned tuple indicates whether the reference is to a global identifier
+-- | Resolve an identifier to its `Signature` and a boolean indicating if it's global.
 resolveIdent :: Id -> (Scope, Scope) -> (Signature, Bool)
 resolveIdent ident (locals, globals) = case Map.lookup ident locals of
     Just sig -> (sig, False)
@@ -72,6 +79,7 @@ resolveIdent ident (locals, globals) = case Map.lookup ident locals of
         Just sig -> (sig, True)
         Nothing -> error $ "ERROR: Reference to undefined value '" ++ ident ++  "'"
 
+-- | Elaborate a top-level `Declaration` into an `IRDeclaration` using the global scope.
 elabDeclaration :: Declaration -> Scope -> IRDeclaration
 elabDeclaration (Declaration declAns declIdent sig@(Signature from to) implIdent params impl whereTerms) globals 
     | declIdent /= implIdent = error $ "ERROR: Implementation identifier '" ++ implIdent ++ "' does not match declaration identifier '" ++ declIdent ++ "'"
@@ -111,6 +119,7 @@ elabDeclaration (Declaration declAns declIdent sig@(Signature from to) implIdent
             -- we initialize the local scope with the function parameters
             tmpLocalScope = collectLocals (elabParams from params) (Map.empty, globals)
 
+-- | Validate and convert parameter list against an optional function type.
 elabParams :: Maybe Type -> [Id] -> [(NonEmpty Id, Type)]
 elabParams Nothing [] = []
 elabParams Nothing params = error $ "TYPE ERROR: Constant signature specifies no parameters but implementation lists " ++ show (length params) ++ ", namely: " ++ show params
@@ -120,15 +129,17 @@ elabParams (Just (Type pts)) params
     where   paramTypeCount = length pts
             paramCount = length params
 
+-- | Build a local scope from a list of local declarations and existing scopes.
 collectLocals :: [(NonEmpty Id, Type)] -> Scopes -> Scope
 collectLocals decls (locals, globals) = foldl collect locals decls
     where   collect m decl = elabDestructure (m, globals) decl
 
--- NOTE: for now we disallow referencing locals in other locals
+-- | Elaborate a single local declaration into an `IRLocal`.
 elabLocal :: Local -> Scopes -> ((NonEmpty Id, Type), IRLocal)
 elabLocal (Local idents expr) scopes = ((idents, resType), (IRLocal idents resExpr))
     where   (resExpr, resType) = elabExpr expr Nothing scopes
 
+-- | Add destructured local declarations to the local scope, checking for destructuring size mismatches.
 elabDestructure :: Scopes -> (NonEmpty Id, Type) -> Scope
 elabDestructure (locals, globals) (idents@(i:|_), t@(Type pts)) 
                 | identCount == 1 = insertLocal locals (i, t)
@@ -137,22 +148,25 @@ elabDestructure (locals, globals) (idents@(i:|_), t@(Type pts))
     where   identCount = length idents
             valueCount = length pts
 
-            insertLocal locals' (ident, t) = case Map.lookup ident globals of
+            insertLocal locals' (ident, t') = case Map.lookup ident globals of
                 Just _ -> error $ "ERROR: Local declaration of '" ++ ident ++ "' is disallowed as it shadows a global declaration of the same name"
-                Nothing -> insertIdent locals' ident (Signature Nothing t)
+                Nothing -> insertIdent locals' ident (Signature Nothing t')
 
+-- | Elaborate an implementation (unconditional or conditional) into IR.
 elabImplementation :: Implementation -> Maybe Type -> Scopes -> IRImplementation
 elabImplementation (Unconditional expr) mt scopes = IRUnconditional $ fst $ elabExpr expr mt scopes
 elabImplementation (Conditional ifs other) mt scopes = IRConditional resIfs resOther
     where   resIfs = map (\branch -> elabBranch branch mt scopes) ifs
             resOther = fst $ elabExpr other mt scopes
 
+-- | Elaborate a single branch (expression guarded by condition) into IR.
 elabBranch :: Branch -> Maybe Type -> Scopes -> IRBranch
 elabBranch (Branch e1 e2) mt scopes = IRBranch resE1 resE2
     where   resE1 = fst $ elabExpr e1 mt scopes
             resE2 = fst $ elabExpr e2 (Just $ Type $ pure Boolean) scopes
 
--- expression to elaborate, possible requested type of expression, identifier scopes, elaborated expression with type 
+-- | Elaborate an expression into IR, performing necessary casts according to the requested type.
+-- Returns the elaborated `IRExpr` and its resolved `Type`.
 elabExpr :: Expr -> Maybe Type -> Scopes -> (IRExpr, Type)
 elabExpr (Call ident []) mt scopes = case maybeFrom of
     Just from -> error $ "TYPE ERROR: Call to function '" ++ ident ++ "' missing args '" ++ show from ++ "'"
@@ -178,7 +192,7 @@ elabExpr (Unary op e) mt scopes = maybeCastExpr resExpr resType mt
 elabExpr (Tuple es) mt scopes = (IRTuple resExprs, resType)
     where   (resExprs, resType) = elabExprs es mt scopes
 
--- used for tuples and function calls
+-- | Elaborate a non-empty collection of expressions (tuples or argument lists).
 elabExprs :: NonEmpty Expr -> Maybe Type -> Scopes -> (NonEmpty IRExpr, Type)
 elabExprs es mt scopes = (resExprs, Type resType)
     where   (resExprs, resType) = Data.Functor.unzip irExprs
@@ -188,6 +202,7 @@ elabExprs es mt scopes = (resExprs, Type resType)
             convert (e1, (Type (t :| []))) = (e1, t)
             convert (e1, _) = error $ "TYPE ERROR: Cannot use tuples inside other tuples or as function call arguments. Encountered nested tuple: " ++ show e1
 
+-- | Pair up elements with optional types for tuple/argument elaboration.
 zipMaybeTypes :: NonEmpty a -> Maybe Type -> NonEmpty (a, Maybe Type)
 zipMaybeTypes a Nothing = NonEmpty.map (\c -> (c, Nothing)) a
 zipMaybeTypes a (Just (Type b))
@@ -196,6 +211,7 @@ zipMaybeTypes a (Just (Type b))
     where   actualLength = length a
             expectedLength = length b
 
+-- | Elaborate a unary operation applied to a (IRExpr, Type) pair.
 elabUnary :: UnaryOp -> (IRExpr, Type) -> (IRExpr, Type)
 elabUnary Not (e, (Type (Boolean :| []))) = (IRUnary Not e, Type $ pure Boolean)
 
@@ -214,6 +230,7 @@ elabUnary Floor (e, (Type (Rational :| []))) = (IRUnary Floor e, Type $ pure Int
 elabUnary op (_, t) = error $ "TYPE ERROR: Unary operation '" ++ show op ++ "' not defined for type '" ++ show t ++ "'"
 
 
+-- | Elaborate a binary operation handling numeric promotions, powers and boolean ops.
 elabBinary :: BinaryOp -> (IRExpr, Type) -> (IRExpr, Type) -> (IRExpr, Type) 
 elabBinary op (e1, Type (Boolean :| [])) (e2, Type (Boolean :| [])) = (IRBinary (binaryBooleanOp op) e1 e2, Type $ pure Boolean)
 
@@ -252,6 +269,7 @@ elabBinary op (e1, t1@(Type pts1)) (e2, t2@(Type pts2))
 elabBinary op (_, t1) (_, t2) = error $ "TYPE ERROR: Binary operation '" ++ show op ++ "' not defined for types '" ++ show t1 ++ "' and '" ++ show t2 ++ "'"
 
 -- operations valid for two booleans
+-- | Map boolean binary operators to IR boolean operators; errors on non-boolean ops.
 binaryBooleanOp :: BinaryOp -> IRBinaryOp
 binaryBooleanOp And = IRAnd
 binaryBooleanOp Or = IROr
@@ -259,6 +277,7 @@ binaryBooleanOp Eq = IREq
 binaryBooleanOp Neq = IRNeq
 binaryBooleanOp op = error $ "TYPE ERROR: binaryBooleanOp called with non-boolean operator '" ++ show op ++ "'"
 
+-- | Determine the resulting primitive type of a binary operation for numeric operators.
 binaryResType :: BinaryOp -> PrimitiveType -> PrimitiveType
 binaryResType Div Real = Real
 binaryResType Div _ = Rational
@@ -271,6 +290,7 @@ binaryResType GreaterEq _ = Boolean
 binaryResType Divides _ = Boolean
 binaryResType _ t = t  -- generic case where resulting type is the same as the operands
 
+-- | Helper to create an `IRBinary` when both operands should be cast to the same primitive type.
 sameOperandTypesBinaryNumOp :: BinaryOp -> (IRExpr, Type) -> (IRExpr, Type) -> PrimitiveType -> IRExpr
 sameOperandTypesBinaryNumOp op (e1, t1) (e2, t2) pt = IRBinary (toIRBinaryNumOp op t1 t2) operand1 operand2
     where   operand1 = fst $ maybeCastExpr e1 t1 justResType
@@ -278,7 +298,8 @@ sameOperandTypesBinaryNumOp op (e1, t1) (e2, t2) pt = IRBinary (toIRBinaryNumOp 
             justResType = Just resType
             resType = Type $ pure pt
 
--- assume the special integer power case is already handled
+-- | Convert a numeric `BinaryOp` and operand types to the corresponding `IRBinaryOp`.
+-- Assumes the special integer power (^) and rational power (^^) cases are already handled.
 toIRBinaryNumOp :: BinaryOp -> Type -> Type -> IRBinaryOp
 toIRBinaryNumOp Add _ _ = IRAdd
 toIRBinaryNumOp Sub _ _ = IRSub
@@ -297,19 +318,22 @@ toIRBinaryNumOp GreaterEq _ _ = IRGreaterEq
 toIRBinaryNumOp Divides _ _ = IRDivides
 toIRBinaryNumOp _ _ _ = error "LOGIC ERROR: toIRBinaryNumOp called with boolean operator"
 
+-- | Check whether a `Type` represents an integer-like primitive type.
 isIntegerType :: Type -> Bool
 isIntegerType (Type (Positive :| [])) = True
 isIntegerType (Type (Natural :| [])) = True
 isIntegerType (Type (Integer :| [])) = True
 isIntegerType _ = False
 
+-- | Optionally cast an `IRExpr` from its inferred type to a requested type.
 maybeCastExpr :: IRExpr -> Type -> Maybe Type -> (IRExpr, Type)
 maybeCastExpr e f Nothing = (e, f)
 maybeCastExpr e f (Just t)  | f == t = (e, f)
                             | otherwise = castExpr e f t
 
+-- | Cast an expression between tuple or primitive types, returning the new IR and type.
 -- NOTE: a limitation is that identifiers referencing tuple values cannot be cast, as tuple casts are implemented by casting the individual elements
--- as a workaround, you can destructure tuples and construct them again at the return site (e.g. doing (a, b) := f(x) and then returning (a, b) again)
+-- as a workaround, you can destructure tuples and construct them again at the return site (e.g. doing (a, b) := f(x) and then returning (a, b) again).
 castExpr :: IRExpr -> Type -> Type -> (IRExpr, Type)
 castExpr (IRTuple es) (Type f) (Type t) 
     | length f == length t = (IRTuple resExprs, Type resType)
@@ -319,21 +343,24 @@ castExpr e (Type (f :| [])) (Type (t :| [])) = (resExpr, Type $ pure resType)
     where   (resExpr, resType) = castPrimitiveExpr e f t
 castExpr e f t = error $ "TYPE ERROR: Cannot cast from '" ++ show f ++ "' to '" ++ show t ++ "'. Tried casting expression: " ++ show e
 
+-- | Cast a primitive expression between primitive types, returning a wrapped `IRCast`.
 castPrimitiveExpr :: IRExpr -> PrimitiveType -> PrimitiveType -> (IRExpr, PrimitiveType)
 castPrimitiveExpr e f t | isPrimitiveCastLegal f t = (IRCast e f t, t)
                         | otherwise = error $ "TYPE ERROR: Cannot cast from '" ++ show f ++ "' to '" ++ show t ++ "'. Tried casting expression: " ++ show e
 
--- assumes types are not equal
+-- | Check whether a primitive cast is allowed (no boolean casts allowed).
+-- Assumes types are not equal.
 isPrimitiveCastLegal :: PrimitiveType -> PrimitiveType -> Bool
 isPrimitiveCastLegal Boolean _      = False -- casting to/from Booleans is illegal
 isPrimitiveCastLegal _ Boolean      = False
 isPrimitiveCastLegal _ _            = True  -- all casting between number types is legal
 
 
--- elaborating block annotations
+-- | Elaborate a list of block annotations into IR block annotations, checking duplicates.
 elabBlockAnnotations :: [BlockAnnotation] -> IRBlockAnnotations
 elabBlockAnnotations ans = fst $ foldl elabBlockAnnotation (defaultBlockAnnotations, SeenBlockAnnotations False False False False False) ans 
 
+-- | Process a single block annotation into `IRBlockAnnotations` while tracking seen annotations.
 elabBlockAnnotation :: (IRBlockAnnotations, SeenBlockAnnotations) -> BlockAnnotation -> (IRBlockAnnotations, SeenBlockAnnotations)
 elabBlockAnnotation (acc, seen) (BlockDisplay mode) | seenBlockDisplayMode seen = error $ "SEMANTIC ERROR: Duplicate block display mode annotation"
                                                     | otherwise = (acc {blockDisplayMode = mode}, seen {seenBlockDisplayMode = True})
@@ -347,14 +374,17 @@ elabBlockAnnotation (acc, seen) (BlockDescription d)| seenBlockDescription seen 
                                                     | otherwise = (acc {blockDescription = Just d}, seen {seenBlockDescription = True})
 
 
+-- | Internal record tracking which block annotations have been seen to prevent duplicates.
 data SeenBlockAnnotations = SeenBlockAnnotations {seenBlockDisplayMode :: Bool, seenBlockName :: Bool, seenBlockLabel :: Bool, seenBlockClass :: Bool, seenBlockDescription :: Bool}
 
--- elaborating declaration annotations
+-- | Elaborate declaration-level annotations into IR form, checking duplicates.
 elabDeclAnnotations :: [DeclAnnotation] -> IRDeclAnnotations
 elabDeclAnnotations ans = fst $ foldl elabDeclAnnotation (defaultDeclAnnotations, SeenDeclAnnotations False) ans 
 
+-- | Process a single declaration annotation while tracking seen annotations.
 elabDeclAnnotation :: (IRDeclAnnotations, SeenDeclAnnotations) -> DeclAnnotation -> (IRDeclAnnotations, SeenDeclAnnotations)
 elabDeclAnnotation (acc, seen) (DeclDisplay mode)   | seenDeclDisplayMode seen = error $ "SEMANTIC ERROR: Duplicate declaration display mode annotation"
                                                     | otherwise = (acc {declDisplayMode = mode}, seen {seenDeclDisplayMode = True})
 
+-- | Internal record tracking which declaration annotations have been seen to prevent duplicates.
 data SeenDeclAnnotations = SeenDeclAnnotations {seenDeclDisplayMode :: Bool}
