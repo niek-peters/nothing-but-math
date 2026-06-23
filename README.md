@@ -1,11 +1,11 @@
 # nothing-but-math
 
-Nothing But Math (NBM) is a domain-specific language for writing scientific text and algorithms in a single source file. From that source, the compiler generates two synchronized outputs:
+Nothing But Math (NBM) is a Domain-Specific Language for writing scientific text and algorithms in a single source file. From that source, the compiler generates two synchronized outputs:
 
 - a LaTeX document where algorithms are rendered in formal mathematical notation, and
 - a Haskell library that contains runnable implementations of the same algorithms.
 
-The project was designed for the research paper that accompanies this repository. Its goal is to make mathematical algorithm descriptions easier to write, easier to read, and easier to reproduce.
+The project was designed for the [research paper](https://github.com/niek-peters/nbm-paper-source) that accompanies this repository. Its goal is to make mathematical algorithm descriptions easier to write, easier to read, and easier to reproduce.
 
 ## Table of Contents
 
@@ -32,19 +32,13 @@ The compiler then produces:
 
 - a `.hs` file containing the generated Haskell module,
 - a `.tex` file containing the generated LaTeX document, and
-- optionally a PDF when `pdflatex` is available.
+- optionally a PDF (this requires `pdflatex` to be available in `PATH`).
 
 ## Installation
 
 ### From source
 
-Build the executable with Stack:
-
-```bash
-stack build
-```
-
-Install it globally into Stack's local bin directory:
+Build and install the executable using Stack:
 
 ```bash
 stack install
@@ -58,15 +52,15 @@ https://github.com/niek-peters/nothing-but-math/releases
 
 Download the release for your platform and add the `nbm` executable to your `PATH`.
 
-## Requirements
+## Dependencies
 
 The compiler itself is a Haskell application. For day-to-day use, the external tools you need depend on the features you use:
 
-| Feature                                | Extra requirement                                        |
-| -------------------------------------- | -------------------------------------------------------- |
-| Plain compilation to Haskell and LaTeX | none beyond the NBM executable                           |
-| Eval sections                          | `ghc` in `PATH`                                          |
-| `--pdf`                                | a LaTeX distribution with `pdflatex`                     |
+| Feature                                | Extra requirement                    |
+| -------------------------------------- | ------------------------------------ |
+| Plain compilation to Haskell and LaTeX | none beyond the NBM executable       |
+| Eval sections                          | `ghc` in `PATH`                      |
+| `--pdf`                                | a LaTeX distribution with `pdflatex` |
 
 If your source file uses eval sections and you also want PDF generation, you need both `ghc` in `PATH` and a LaTeX distribution.
 
@@ -96,19 +90,19 @@ nbm PATHNAME [--out-dir DIR] [--module-name MODULE_NAME] [--wrapdoc] [--pdf]
 Generate Haskell and LaTeX only:
 
 ```bash
-stack run nbm -- test/samples/functions.nbm -o out
+nbm test/samples/functions.nbm -o out
 ```
 
 Generate LaTeX plus a standalone PDF:
 
 ```bash
-stack run nbm -- test/samples/functions.nbm -o out -w -p
+nbm test/samples/functions.nbm -o out -w -p
 ```
 
 Change the generated Haskell module name:
 
 ```bash
-stack run nbm -- test/samples/booleans.nbm -o out -m MyNBM
+nbm test/samples/booleans.nbm -o out -m MyNBM
 ```
 
 ## Language overview
@@ -174,7 +168,7 @@ Examples:
 ```nbm
 f : Z -> Q
 f(x) := 1 / c
-where x /= 0, c := x + 1
+where c := x + 1, c /= 0
 ```
 
 Constraints are checked before the implementation runs. If a constraint fails, the generated Haskell code raises a runtime error instead of continuing.
@@ -211,9 +205,9 @@ Tuples are written with `x` between types, for example `Z x N -> Q` or `Z x R`.
 The parser supports the following operators:
 
 | Category   | Operators                         |
-| ---------- | --------------------------------- |
+| ---------- | --------------------------------- | --- |
 | Unary      | `-`, `sqrt`, `floor`, `not`       |
-| Arithmetic | `+`, `-`, `*`, `/`, `^`, `mod`, `|` |
+| Arithmetic | `+`, `-`, `*`, `/`, `^`, `mod`, ` | `   |
 | Comparison | `=`, `/=`, `<`, `<=`, `>`, `>=`   |
 | Boolean    | `and`, `or`                       |
 
@@ -223,7 +217,7 @@ The `|` operator denotes divisibility.
 
 Annotations let you control how code sections are rendered in the output document.
 
-Section-level annotations use `#[...]` and apply to the entire code block.
+Section-level annotations use `#[...]` and apply to the entire code block. Inside the square brackets, annotations are written as a comma-separated list of tags and key-value pairs.
 
 Supported section-level annotations are:
 
@@ -231,20 +225,23 @@ Supported section-level annotations are:
 - `#[intext]` - render the block as a multi-line in-text display,
 - `#[box]` - render the block inside a framed definition box,
 - `#[hidden]` - omit the block from the LaTeX output,
-- `#[class=...]` - set the box class name,
-- `#[name=...]` - set the box title,
-- `#[label=...]` - set the LaTeX label,
-- `#[description=...]` - add a short description under the title.
 
 Definition-level annotations use `@[...]` and currently support:
 
 - `@[hidden]` - omit a single definition from the LaTeX output.
 
+The `#[box]` annotation can also take box-specific metadata:
+
+- `class="..."` - set the box class name,
+- `name="..."` - set the box title,
+- `label="..."` - set the LaTeX label,
+- `description="..."` - add a short description under the title.
+
 Example:
 
 ```nbm
 <<<
-#[box, class="Algorithm", name="Doubling", label="doubling"]
+#[box, class="Algorithm", name="Doubling", label="doubling", description="Repeated doubling"]
 @[hidden]
 helper : Z -> Z
 helper(x) := x + 1
@@ -252,6 +249,7 @@ helper(x) := x + 1
 main : Z -> Z
 main(x) := 2 * helper(x)
 >>>
+Now, we use Algorithm~\ref{doubling} to...
 ```
 
 ## Project structure
@@ -272,12 +270,6 @@ Run the test suite with Stack:
 stack test
 ```
 
-If you want to build the executable before running tests or samples, use:
-
-```bash
-stack build
-```
-
 ## Implementation notes
 
 The compiler pipeline follows the structure described in the paper:
@@ -285,16 +277,17 @@ The compiler pipeline follows the structure described in the paper:
 1. tokenize the source file,
 2. parse code and eval fragments into ASTs,
 3. elaborate the definitions to resolve names and insert casts,
-4. generate a Haskell library and LaTeX output,
+4. generate a Haskell library,
 5. evaluate eval fragments against the generated library, and
-6. splice the results back into the LaTeX document.
+6. assemble the final LaTeX document with the text, definitions, and evaluated results.
 
 The generated Haskell code includes a small prelude with a custom positive-integer type and runtime casting helpers.
 
 ## Parser grammar
 
-The full grammar reference is kept in [docs/language-grammar.md](docs/language-grammar.md). It mirrors the lexer and parser implementation and stays separate from this README so the overview here remains readable.
+The full grammar reference is kept in [docs/language-grammar.md](docs/language-grammar.md).
 
 ## Related paper
 
-The repository implements the prototype described in the accompanying research paper on bridging mathematical notation and functional programming with a dual-target DSL for LaTeX and Haskell.
+The repository implements the prototype described in the accompanying research paper
+"Bridging the Gap between Mathematics and Programming via a Dual-Target DSL for LaTeX and Haskell" by Niek Peters. For more information on the design of NBM, the source code of the paper can be found [here](https://github.com/niek-peters/nbm-paper-source).
