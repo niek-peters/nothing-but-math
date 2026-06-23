@@ -1,0 +1,10 @@
+<<<
+#[box, class="Algorithm", name="Doubling", label="doubling", description="Repeated doubling"]
+@[hidden]
+helper : Z -> Z
+helper(x) := x + 1
+
+main : Z -> Z
+main(x) := 2 * helper(x)
+>>>
+Now, we use Algorithm~\ref{doubling} to...

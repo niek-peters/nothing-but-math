@@ -1,0 +1,13 @@
+<<<
+f : N x N -> Z
+f(a, b) := c
+where c := a + b
+
+pos : Z -> N
+pos(x) := {
+    x      if x >= 0
+    -x     otherwise
+}
+>>>
+
+We can evaluate sample values here: {{{(f(1, 2), pos(-3))}}}.
