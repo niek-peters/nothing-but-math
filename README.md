@@ -133,6 +133,9 @@ pos(x) := {
 We can evaluate sample values here: {{{(f(1, 2), pos(-3))}}}.
 ```
 
+Rendered LaTeX output:
+![Rendered output for the example source](docs/source_example.png)
+
 ### Definitions
 
 A definition has four parts:
@@ -249,8 +252,12 @@ helper(x) := x + 1
 main : Z -> Z
 main(x) := 2 * helper(x)
 >>>
+
 Now, we use Algorithm~\ref{doubling} to...
 ```
+
+Rendered LaTeX output:
+![Rendered output for the annotation example](docs/annotations_example.png)
 
 ## Project structure
 
