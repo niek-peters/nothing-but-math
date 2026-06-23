@@ -6,9 +6,9 @@ This document summarizes the grammar implemented by the lexer and parser.
 
 An NBM source file is split into fragments of three kinds:
 
-- text fragments outside special delimiters,
-- code fragments inside `<<< ... >>>`, and
-- eval fragments inside `{{{ ... }}}`.
+- **Text fragments** outside special delimiters,
+- **Code fragments** inside `<<< ... >>>`, and
+- **Eval fragments** inside `{{{ ... }}}`.
 
 Text fragments are copied to the LaTeX output as-is. Code fragments are parsed into definitions. Eval fragments are parsed as expressions and later evaluated against the generated Haskell library.
 
@@ -27,7 +27,7 @@ Eval fragments are written between `{{{` and `}}}` in the source file.
 A code fragment may start with a block annotation and then contains one or more declarations.
 
 ```ebnf
-codeFragment  ::= [blockAnnotation] declaration+
+codeFragment    ::= [blockAnnotation] declaration+
 blockAnnotation ::= "#[" blockAnnotationItem ("," blockAnnotationItem)* "]"
 ```
 
@@ -37,25 +37,25 @@ Supported block annotation items:
 - `intext`
 - `box`
 - `hidden`
-- `class = string`
-- `name = string`
-- `label = string`
-- `description = string`
+- `class = STRING`
+- `name = STRING`
+- `label = STRING`
+- `description = STRING`
 
 A declaration may start with a declaration annotation.
 
 ```ebnf
-declaration ::= [declAnnotation] ident ":" signature ident ["(" [ident ("," ident)*] ")"] ":=" implementation ["where" whereTerm ("," whereTerm)*]
+declaration    ::= [declAnnotation] IDENT ":" signature IDENT ["(" [IDENT ("," IDENT)*] ")"] ":=" implementation ["where" whereTerm ("," whereTerm)*]
 declAnnotation ::= "@[" "hidden" "]"
 ```
 
-The leading `ident` is the declared name. The optional parenthesized identifier list contains function parameters. If the parameter list is omitted, the declaration is a constant.
+The leading `IDENT` is the declared name used for its signature line. The second `IDENT` precedes the function parameters. If the parameter list is omitted, the declaration is a constant.
 
 ## Signatures and types
 
 ```ebnf
-signature ::= type ["->" type]
-type      ::= primitiveType ("x" primitiveType)*
+signature ::= type [" -> " type]
+type      ::= primitiveType (" x " primitiveType)*
 ```
 
 Primitive types are:
@@ -74,12 +74,12 @@ The `x` separator forms tuple types, for example `Z x N -> Q` or `Z x R`.
 Implementations are either a single expression or a piecewise block.
 
 ```ebnf
-implementation ::= expr | "{" branch+ otherwiseBranch "}"
+implementation  ::= expr | "{" branch* otherwiseBranch "}"
 branch          ::= expr "if" expr
 otherwiseBranch ::= expr "otherwise"
 ```
 
-The parser accepts the branches in order. The last branch must be the `otherwise` branch.
+The parser accepts zero or more conditional branches in order. The block must end with an `otherwise` branch acting as the fallback.
 
 ## Where clauses
 
@@ -87,43 +87,45 @@ A `where` clause contains a comma-separated list of constraints and local declar
 
 ```ebnf
 whereTerm ::= localDecl | expr
-localDecl ::= (ident | "(" ident ("," ident)+ ")") ":=" expr
+localDecl ::= (IDENT | "(" IDENT ("," IDENT)+ ")") ":=" expr
 ```
 
 A local declaration can bind either a single identifier or a tuple of identifiers.
 
 ## Expressions
 
-Expressions are parsed with precedence and associativity rules.
+Expressions are parsed according to strict precedence and associativity rules. The grammar below reflects this ordering, moving from lowest precedence (top) to highest precedence (bottom).
 
 ```ebnf
-expr        ::= orExpr
-orExpr      ::= andExpr ("or" andExpr)*
-andExpr     ::= compExpr ("and" compExpr)*
-compExpr    ::= addExpr (("=" | "/=" | "<" | "<=" | ">" | ">=" | "|") addExpr)*
-addExpr     ::= mulExpr (("+" | "-") mulExpr)*
-mulExpr     ::= unaryExpr (("*" | "/" | "mod") unaryExpr)*
-unaryExpr   ::= ("-" | "not" | "sqrt" | "floor")* powerExpr
-powerExpr   ::= atom ["^" powerExpr]
-atom        ::= NUMBER | BOOLEAN | IDENT | call | tuple | "(" expr ")"
-call        ::= IDENT "(" [expr ("," expr)*] ")"
-tuple       ::= "(" expr "," expr ("," expr)* ")"
+expr           ::= orExpr
+orExpr         ::= andExpr ("or" andExpr)*
+andExpr        ::= compExpr ("and" compExpr)*
+compExpr       ::= addExpr (("=" | "/=" | "<" | "<=" | ">" | ">=" | "|") addExpr)*
+addExpr        ::= mulExpr (("+" | "-") mulExpr)*
+mulExpr        ::= prefixExpr (("*" | "/" | "mod") prefixExpr)*
+prefixExpr     ::= ("-" | "not")* prefixExpr | powerExpr
+powerExpr      ::= tightUnaryExpr ["^" powerExpr]
+tightUnaryExpr ::= ("sqrt" | "floor")* tightUnaryExpr | atom
+atom           ::= INTEGER | REAL | BOOLEAN | IDENT | call | tuple | "(" expr ")"
+call           ::= IDENT "(" [expr ("," expr)*] ")"
+tuple          ::= "(" expr "," expr ("," expr)* ")"
 ```
 
 ### Operator notes
 
-- `-` is both unary negation and binary subtraction.
-- `|` means divisibility.
-- `^` is right-associative.
-- `sqrt` and `floor` are unary operators.
+- `-` can act as both a unary prefix negation operator (binding below exponentiation) and a binary subtraction operator.
+- `|` represents divisibility.
+- `^` is right-associative (e.g., `x^y^z` parses as `x^(y^z)`).
+- `sqrt` and `floor` are tight-binding unary prefix operators that bind stronger than exponentiation (e.g., `sqrt x ^ 2` parses as `(sqrt x) ^ 2`).
 
 ## Lexical notes
 
-The lexer also recognizes the following literals and keywords:
+The lexer recognizes the following literals and keywords:
 
-- integers,
-- real numbers,
-- booleans `True` and `False`,
-- `if`, `otherwise`, `where`, `not`, `and`, `or`, `mod`, `sqrt`, and `floor`.
+- Whole numbers (`INTEGER`),
+- Real/decimal numbers (`REAL`),
+- Text strings (`STRING`): e.g., `"hello"` or `"world"`,
+- Booleans (`BOOLEAN`): `True` and `False`,
+- Keywords: `if`, `otherwise`, `where`, `not`, `and`, `or`, `mod`, `sqrt`, and `floor`.
 
-Percent-prefixed comments are ignored inside code and eval fragments.
+Percent-prefixed (`%`) comments are ignored inside code and eval fragments.
