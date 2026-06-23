@@ -20,8 +20,6 @@ An eval fragment contains a single expression.
 evalFragment ::= expr
 ```
 
-Eval fragments are written between `{{{` and `}}}` in the source file.
-
 ## Code fragments
 
 A code fragment may start with a block annotation and then contains one or more declarations.
