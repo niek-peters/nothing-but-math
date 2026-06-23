@@ -7,6 +7,19 @@ Nothing But Math (NBM) is a domain-specific language for writing scientific text
 
 The project was designed for the research paper that accompanies this repository. Its goal is to make mathematical algorithm descriptions easier to write, easier to read, and easier to reproduce.
 
+## Table of Contents
+
+- [What NBM does](#what-nbm-does)
+- [Installation](#installation)
+- [Requirements](#requirements)
+- [Usage](#usage)
+- [Language overview](#language-overview)
+- [Project structure](#project-structure)
+- [Running tests](#running-tests)
+- [Implementation notes](#implementation-notes)
+- [Parser grammar](#parser-grammar)
+- [Related paper](#related-paper)
+
 ## What NBM does
 
 NBM lets you interleave three kinds of content in one `.nbm` file:
@@ -53,7 +66,9 @@ The compiler itself is a Haskell application. For day-to-day use, the external t
 | -------------------------------------- | -------------------------------------------------------- |
 | Plain compilation to Haskell and LaTeX | none beyond the NBM executable                           |
 | Eval sections                          | `ghc` in `PATH`                                          |
-| `--pdf`                                | `ghc` in `PATH` and a LaTeX distribution with `pdflatex` |
+| `--pdf`                                | a LaTeX distribution with `pdflatex`                     |
+
+If your source file uses eval sections and you also want PDF generation, you need both `ghc` in `PATH` and a LaTeX distribution.
 
 The repository contains Dockerfiles under `test/DependencyTesting/` that show the minimal dependency sets for these cases.
 
@@ -196,9 +211,9 @@ Tuples are written with `x` between types, for example `Z x N -> Q` or `Z x R`.
 The parser supports the following operators:
 
 | Category   | Operators                         |
-| ---------- | --------------------------------- | --- |
+| ---------- | --------------------------------- |
 | Unary      | `-`, `sqrt`, `floor`, `not`       |
-| Arithmetic | `+`, `-`, `*`, `/`, `^`, `mod`, ` | `   |
+| Arithmetic | `+`, `-`, `*`, `/`, `^`, `mod`, `|` |
 | Comparison | `=`, `/=`, `<`, `<=`, `>`, `>=`   |
 | Boolean    | `and`, `or`                       |
 
@@ -275,6 +290,10 @@ The compiler pipeline follows the structure described in the paper:
 6. splice the results back into the LaTeX document.
 
 The generated Haskell code includes a small prelude with a custom positive-integer type and runtime casting helpers.
+
+## Parser grammar
+
+The full grammar reference is kept in [docs/language-grammar.md](docs/language-grammar.md). It mirrors the lexer and parser implementation and stays separate from this README so the overview here remains readable.
 
 ## Related paper
 
