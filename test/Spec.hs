@@ -1,3 +1,6 @@
+-- | Test suite entry point for the compiler.
+--
+-- The suite groups the individual compilation phase tests so the full pipeline can be run from a single `stack test`
 import Test.Hspec (describe, hspec)
 
 import qualified Lexing.LexingSpec
@@ -7,17 +10,12 @@ import qualified CodeGenHaskell.CodeGenHaskellSpec
 import qualified Eval.EvalSpec
 import qualified CodeGenLaTeX.CodeGenLaTeXSpec
 
--- TODO:
--- - Add non-happy path tests (compile-time AND runtime errors)
--- - Make tests run in a chain to avoid redoing work (maybe this is stupid because parallelization)
--- - Write way more golden tests
--- - Actually check all the generated outputs for correctness
-
--- Probably out of time/scope:
+-- Future Work:
 -- - Add QuickCheck ParseResult -> pretty print -> ParseResult testing
 -- - Add QuickCheck ElabResult -> pretty print -> ElabResult testing
 -- - Add tests for specific critical functions
 
+-- | Run the full test suite.
 main :: IO ()
 main = hspec $ do
     describe "Lexing" Lexing.LexingSpec.spec

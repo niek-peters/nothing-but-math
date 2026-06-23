@@ -69,7 +69,7 @@ parseType = Type . fromList <$> sepBy1 primTypeTok (tok $ TId "x")  -- the 'cros
 parseImplementation :: Parser Implementation
 parseImplementation = braces parseConditional <|> Unconditional <$> parseExpr
     where
-        parseConditional = Conditional <$> many (try parseBranch) <*> (parseExpr <* tok TOtherwise)     -- TODO: consider not using many but something that requires at least 1
+        parseConditional = Conditional <$> many (try parseBranch) <*> (parseExpr <* tok TOtherwise)
         parseBranch = Branch <$> parseExpr <*> (tok TIf *> parseExpr)
 
 -- | Parse a local declaration in a where-clause.

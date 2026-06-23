@@ -60,7 +60,7 @@ codeGenDeclaration (IRDeclaration _ ident sig params impl whereTerms) moduleName
 
 -- | Generate a runtime constraint check for a declaration; throws an error on violation.
 codeGenConstraint :: Id -> IRExpr -> String -> String
-codeGenConstraint ident e moduleName = tab ++ "| not " ++ codeGenExpr e moduleName ++ " = error \"[" ++ ident ++ "] Violated constraint `" ++ show e ++ "`\"\n" -- TODO: use a pretty printed expression here instead, so it looks like in the DSL
+codeGenConstraint ident e moduleName = tab ++ "| not " ++ codeGenExpr e moduleName ++ " = error \"[" ++ ident ++ "] Violated constraint `" ++ show e ++ "`\"\n" -- Future Work: use a pretty printed expression here instead, so it looks like in the DSL
 
 -- | Render the implementation body: either unconditional or conditional branches.
 codeGenImpl :: IRImplementation -> String -> String
@@ -93,7 +93,7 @@ codeGenSignature (Signature maybeFrom (Type tos)) = fromPart ++ toPart
             
 -- | Render an `IRExpr` as a Haskell expression string qualified into the given module.
 codeGenExpr :: IRExpr -> String -> String
-codeGenExpr (IRCast e from to) moduleName = parens $ codeGenCast from to ++ " " ++ codeGenExpr e moduleName   -- TODO: consider implementing special cases for simplifying literal casting
+codeGenExpr (IRCast e from to) moduleName = parens $ codeGenCast from to ++ " " ++ codeGenExpr e moduleName   -- Future Work: consider implementing special cases for simplifying literal casting
 codeGenExpr (IRCall ident isGlobal []) moduleName = maybeGlobalIdent ident isGlobal moduleName
 codeGenExpr (IRCall ident isGlobal es) moduleName = parens $ (maybeGlobalIdent ident isGlobal moduleName) ++ " " ++ unwords (map (`codeGenExpr` moduleName) es) 
 codeGenExpr (IRImmediateInt i pt) _ = parens $ show i ++ " :: " ++ codeGenPrimitiveType pt

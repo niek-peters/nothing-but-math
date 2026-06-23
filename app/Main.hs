@@ -1,3 +1,6 @@
+-- | Command-line entry point for the Nothing But Math compiler.
+--
+-- This module wires the CLI parser into the shared compilation pipeline.
 module Main (main) where
 
 import Lib (compile)
@@ -7,9 +10,7 @@ import Types (CLIOptions (..))
 import Data.Version (showVersion)
 import Paths_nothing_but_math (version)
 
--- TODO: make release on GitHub
--- TODO: add ability to embed operator/syntax/grammar overview/table in output LaTeX (for Appendices)
-
+-- | Parse the command line arguments and run the compiler.
 main :: IO ()
 main = compile =<< execParser opts
   where
@@ -18,12 +19,14 @@ main = compile =<< execParser opts
         <> progDesc "Compile an NBM source file to Haskell and LaTeX. Optionally generates a PDF"
         <> header "nbm - Nothing But Math compiler" )
 
+-- | Parser option that prints the compiler version and exits.
 versionOption :: Parser (a -> a)
 versionOption = infoOption (showVersion version)
     ( long "version"
     <> short 'v'
     <> help "Show the compiler version" )
 
+-- | Parse the executable's input file and output options.
 cliParser :: Parser CLIOptions
 cliParser = CLIOptions
     <$> argument str (metavar "PATHNAME" <> help "The path to your .nbm file")
