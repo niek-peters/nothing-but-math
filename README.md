@@ -19,6 +19,7 @@ The project was designed for the [research paper](https://github.com/niek-peters
 - [Implementation notes](#implementation-notes)
 - [Parser grammar](#parser-grammar)
 - [Related paper](#related-paper)
+- [Future work](#future-work)
 
 ## What NBM does
 
@@ -298,3 +299,7 @@ The full grammar reference is kept in [docs/language-grammar.md](docs/language-g
 
 The repository implements the prototype described in the accompanying research paper
 "Bridging the Gap between Mathematics and Programming via a Dual-Target DSL for LaTeX and Haskell" by Niek Peters. For more information on the design of NBM, the source code of the paper can be found [here](https://github.com/niek-peters/nbm-paper-source).
+
+## Future work
+
+Some parts of the implementation have been delegated to Future Work. Descriptions are given in comments starting with "Future Work".
