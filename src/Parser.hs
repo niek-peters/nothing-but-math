@@ -11,6 +11,8 @@ import Types
 import Token
 import Lexer (TokenizeResult)
 
+-- Future Work: make use of sepBy vs sepBy1 consistent for sequences in parentheses/braces/brackets
+
 -- | Parser type specialized to token streams.
 type Parser = Parsec Void [Token]
 
