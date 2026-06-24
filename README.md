@@ -1,4 +1,5 @@
 # nothing-but-math
+[![DOI](https://zenodo.org/badge/1242272901.svg)](https://doi.org/10.5281/zenodo.20827013)
 
 Nothing But Math (NBM) is a Domain-Specific Language for writing scientific text and algorithms in a single source file. From that source, the compiler generates two synchronized outputs:
 
