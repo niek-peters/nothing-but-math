@@ -26,7 +26,7 @@ A code fragment may start with a block annotation and then contains one or more 
 
 ```ebnf
 codeFragment    ::= [blockAnnotation] declaration+
-blockAnnotation ::= "#[" blockAnnotationItem ("," blockAnnotationItem)* "]"
+blockAnnotation ::= "#[" [blockAnnotationItem ("," blockAnnotationItem)*] "]"
 ```
 
 Supported block annotation items:
@@ -44,10 +44,10 @@ A declaration may start with a declaration annotation.
 
 ```ebnf
 declaration    ::= [declAnnotation] IDENT ":" signature IDENT ["(" [IDENT ("," IDENT)*] ")"] ":=" implementation ["where" whereTerm ("," whereTerm)*]
-declAnnotation ::= "@[" "hidden" "]"
+declAnnotation ::= "@[" ["hidden"] "]"
 ```
 
-The leading `IDENT` is the declared name used for its signature line. The second `IDENT` precedes the function parameters. If the parameter list is omitted, the declaration is a constant.
+The leading `IDENT` is the declared name used for its signature line. The second `IDENT` precedes the function parameters. If the parameter list is omitted or empty, the declaration is a constant.
 
 ## Signatures and types
 
@@ -72,7 +72,7 @@ The `x` separator forms tuple types, for example `Z x N -> Q` or `Z x R`.
 Implementations are either a single expression or a piecewise block.
 
 ```ebnf
-implementation  ::= expr | "{" branch* otherwiseBranch "}"
+implementation  ::= "{" branch* otherwiseBranch "}" | expr
 branch          ::= expr "if" expr
 otherwiseBranch ::= expr "otherwise"
 ```
@@ -85,7 +85,7 @@ A `where` clause contains a comma-separated list of constraints and local declar
 
 ```ebnf
 whereTerm ::= localDecl | expr
-localDecl ::= (IDENT | "(" IDENT ("," IDENT)+ ")") ":=" expr
+localDecl ::= ("(" IDENT ("," IDENT)+ ")" | IDENT) ":=" expr
 ```
 
 A local declaration can bind either a single identifier or a tuple of identifiers.
@@ -98,15 +98,15 @@ Expressions are parsed according to strict precedence and associativity rules. T
 expr           ::= orExpr
 orExpr         ::= andExpr ("or" andExpr)*
 andExpr        ::= compExpr ("and" compExpr)*
-compExpr       ::= addExpr (("=" | "/=" | "<" | "<=" | ">" | ">=" | "|") addExpr)*
+compExpr       ::= addExpr (("=" | "/=" | "<=" | ">=" | "<" | ">" | "|") addExpr)*
 addExpr        ::= mulExpr (("+" | "-") mulExpr)*
 mulExpr        ::= prefixExpr (("*" | "/" | "mod") prefixExpr)*
 prefixExpr     ::= ("-" | "not")* prefixExpr | powerExpr
 powerExpr      ::= tightUnaryExpr ["^" powerExpr]
-tightUnaryExpr ::= ("sqrt" | "floor")* tightUnaryExpr | atom
-atom           ::= INTEGER | REAL | BOOLEAN | IDENT | call | tuple | "(" expr ")"
-call           ::= IDENT "(" [expr ("," expr)*] ")"
-tuple          ::= "(" expr "," expr ("," expr)* ")"
+tightUnaryExpr ::= ("sqrt" | "floor")* tightUnaryExpr | term
+term           ::= "(" (tuple | expr) ")" | call | REAL | INTEGER | BOOLEAN
+tuple          ::= expr "," expr ("," expr)*
+call           ::= IDENT ["(" expr ("," expr)* ")"]
 ```
 
 ### Operator notes
