@@ -1,0 +1,7 @@
+<<<
+f : Z -> Z
+f(x) := {
+    x   if x    % x is not of type boolean
+    0   otherwise
+}
+>>>

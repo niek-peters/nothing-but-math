@@ -4,8 +4,8 @@
 {
 \par
 \centering
-\fbox{
-\begin{minipage}[t]{\linewidth}
+\fbox{%
+\begin{minipage}[t]{\dimexpr\linewidth-2\fboxsep-2\fboxrule}
 \vspace{0.5em}
 \textbf{Algorithm \thenbmAlgorithmCounter: Euclidean}
 \vspace{0.5em}
@@ -19,7 +19,7 @@
 \end{cases}&\\
 &\text{where}~a \geq b.&
 \end{flalign*}
-\end{minipage}
+\end{minipage}%
 }
 \vspace{0.5em}
 \par
@@ -28,8 +28,8 @@
 {
 \par
 \centering
-\fbox{
-\begin{minipage}[t]{\linewidth}
+\fbox{%
+\begin{minipage}[t]{\dimexpr\linewidth-2\fboxsep-2\fboxrule}
 \vspace{0.5em}
 \textbf{Algorithm \thenbmAlgorithmCounter: Extended Euclidean}
 \vspace{0.5em}
@@ -43,7 +43,7 @@
 \end{cases}&\\
 &\text{where}~a \geq b~\text{and}~\left(g, x, y\right) = egcd\left(b, a \bmod b\right).&
 \end{flalign*}
-\end{minipage}
+\end{minipage}%
 }
 \vspace{0.5em}
 \par
@@ -52,8 +52,8 @@
 {
 \par
 \centering
-\fbox{
-\begin{minipage}[t]{\linewidth}
+\fbox{%
+\begin{minipage}[t]{\dimexpr\linewidth-2\fboxsep-2\fboxrule}
 \vspace{0.5em}
 \textbf{Algorithm \thenbmAlgorithmCounter: Modular Inverse}
 \vspace{0.5em}
@@ -64,7 +64,7 @@
 &modInv\left(a, m\right) = x \bmod m&\\
 &\text{where}~\left(g, x, y\right) = egcd\left(a, m\right)~\text{and}~g = 1.&
 \end{flalign*}
-\end{minipage}
+\end{minipage}%
 }
 \vspace{0.5em}
 \par
@@ -73,8 +73,8 @@
 {
 \par
 \centering
-\fbox{
-\begin{minipage}[t]{\linewidth}
+\fbox{%
+\begin{minipage}[t]{\dimexpr\linewidth-2\fboxsep-2\fboxrule}
 \vspace{0.5em}
 \textbf{Algorithm \thenbmAlgorithmCounter: Repeated Squaring}
 \vspace{0.5em}
@@ -89,7 +89,7 @@
 \end{cases}&\\
 &\text{where}~r = fastExp\left(a^{2}, \lfloor\frac{n}{2}\rfloor\right).&
 \end{flalign*}
-\end{minipage}
+\end{minipage}%
 }
 \vspace{0.5em}
 \par
@@ -98,8 +98,8 @@
 {
 \par
 \centering
-\fbox{
-\begin{minipage}[t]{\linewidth}
+\fbox{%
+\begin{minipage}[t]{\dimexpr\linewidth-2\fboxsep-2\fboxrule}
 \vspace{0.5em}
 \textbf{Algorithm \thenbmAlgorithmCounter: Prime Testing}
 \vspace{0.5em}
@@ -119,7 +119,7 @@
   check\left(n, t + 1, l\right) & \text{otherwise}
 \end{cases}.&
 \end{flalign*}
-\end{minipage}
+\end{minipage}%
 }
 \vspace{0.5em}
 \par
@@ -128,8 +128,8 @@
 {
 \par
 \centering
-\fbox{
-\begin{minipage}[t]{\linewidth}
+\fbox{%
+\begin{minipage}[t]{\dimexpr\linewidth-2\fboxsep-2\fboxrule}
 \vspace{0.5em}
 \textbf{Algorithm \thenbmAlgorithmCounter: Integer Square Root}
 \vspace{0.5em}
@@ -146,7 +146,7 @@
 \end{cases}&\\
 &\text{where}~y = \lfloor\frac{x + \lfloor\frac{n}{x}\rfloor}{2}\rfloor.&
 \end{flalign*}
-\end{minipage}
+\end{minipage}%
 }
 \vspace{0.5em}
 \par

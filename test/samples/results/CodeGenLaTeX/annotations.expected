@@ -8,8 +8,8 @@ This brings us to two new formulae. Define $f : \mathbb{N} \times \mathbb{N} \to
 {
 \par
 \centering
-\fbox{
-\begin{minipage}[t]{\linewidth}
+\fbox{%
+\begin{minipage}[t]{\dimexpr\linewidth-2\fboxsep-2\fboxrule}
 \vspace{0.5em}
 \textbf{Algorithm \thenbmAlgorithmCounter: My Algorithm Name}
 \\
@@ -21,7 +21,7 @@ This brings us to two new formulae. Define $f : \mathbb{N} \times \mathbb{N} \to
 &h\left(a, b\right) = \frac{e}{6}&\\
 &\text{where}~e = abs\left(f\left(a, b\right) \cdot g\left(a, b\right)\right).&
 \end{flalign*}
-\end{minipage}
+\end{minipage}%
 }
 \vspace{0.5em}
 \par
@@ -39,8 +39,8 @@ $i\left(x\right) = id\left(x\right).$\refstepcounter{nbmProcedureCounter}
 {
 \par
 \centering
-\fbox{
-\begin{minipage}[t]{\linewidth}
+\fbox{%
+\begin{minipage}[t]{\dimexpr\linewidth-2\fboxsep-2\fboxrule}
 \vspace{0.5em}
 \textbf{Procedure \thenbmProcedureCounter}
 \vspace{0.5em}
@@ -51,7 +51,7 @@ $i\left(x\right) = id\left(x\right).$\refstepcounter{nbmProcedureCounter}
 &k\left(x\right) = -2 \cdot neg\left(y\right)&\\
 &\text{where}~y = i\left(x\right).&
 \end{flalign*}
-\end{minipage}
+\end{minipage}%
 }
 \vspace{0.5em}
 \par
@@ -60,8 +60,8 @@ $i\left(x\right) = id\left(x\right).$\refstepcounter{nbmProcedureCounter}
 {
 \par
 \centering
-\fbox{
-\begin{minipage}[t]{\linewidth}
+\fbox{%
+\begin{minipage}[t]{\dimexpr\linewidth-2\fboxsep-2\fboxrule}
 \vspace{0.5em}
 \textbf{Algorithm \thenbmAlgorithmCounter: Another Great Algorithm}
 \vspace{0.5em}
@@ -71,7 +71,7 @@ $i\left(x\right) = id\left(x\right).$\refstepcounter{nbmProcedureCounter}
 &\text{Define}~l : \mathbb{Z} \to \mathbb{Z}~\text{by}&\\
 &l\left(x\right) = x^{2}.&
 \end{flalign*}
-\end{minipage}
+\end{minipage}%
 }
 \vspace{0.5em}
 \par

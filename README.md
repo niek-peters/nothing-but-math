@@ -1,4 +1,5 @@
 # nothing-but-math
+
 [![DOI](https://zenodo.org/badge/1242272901.svg)](https://doi.org/10.5281/zenodo.20827013)
 
 Nothing But Math (NBM) is a Domain-Specific Language for writing scientific text and algorithms in a single source file. From that source, the compiler generates two synchronized outputs:
@@ -278,6 +279,12 @@ Run the test suite with Stack:
 ```bash
 stack test
 ```
+
+The test suite employs the _golden testing_ strategy to test every phase of the compilation pipeline.
+The expected outputs of these tests can be found in the `test/samples/results` directory.
+
+Additionally, compilation phases that should throw errors given certain source code are tested with _unhappy path testing_
+in the individual compilation phase test specification files (e.g., `test/Eval/EvalSpec.hs`, `test/Elab/ElabSpec.hs`, etc.).
 
 ## Implementation notes
 

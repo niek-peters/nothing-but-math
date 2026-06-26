@@ -216,8 +216,8 @@ codeGenBox contents ans =
     "{\n" ++
         macro "par" ++ "\n" ++
         macro "centering" ++ "\n" ++
-            macro1 "fbox" ("\n" ++
-                block1 "minipage" (Just "t") (macro "linewidth") (
+            macro1 "fbox" ("%\n" ++
+                block1 "minipage" (Just "t") (macro "dimexpr" ++ macro "linewidth" ++ "-2" ++ macro "fboxsep" ++ "-2" ++ macro "fboxrule") (
                    vspace ++ "\n" ++
                    macro1 "textbf" (blockClass ans ++ " " ++ macro ("the" ++ refCounterName) ++ (\n -> ": " ++ n) `insertIfJust` blockName ans) ++ "\n" ++
                    (\d -> newline ++ "{" ++ macro "small" ++ " " ++ d ++ "}") `insertIfJust` blockDescription ans ++
@@ -226,7 +226,7 @@ codeGenBox contents ans =
                    macro1 "vspace" ("-" ++ macro "abovedisplayskip") ++ "\n" ++
                    contents
                 )
-            ++ "\n") ++ "\n" ++
+            ++ "%\n") ++ "\n" ++
         vspace ++ "\n" ++
         macro "par" ++
     "\n}"

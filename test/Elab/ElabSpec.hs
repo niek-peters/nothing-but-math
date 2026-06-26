@@ -16,6 +16,8 @@ spec = do
     describe "Unhappy Path Elaboration" $ do
         it ("throws an error when undefined identifiers are referenced") $ do
             shouldThrowInPhase "test/Elab/undefined.nbm" parseFromSource phase
+        it ("throws an error when an illegal cast is encountered") $ do
+            shouldThrowInPhase "test/Elab/illegal_cast.nbm" parseFromSource phase
 
 elabFromSource :: FilePath -> String -> IO ElabResult
 elabFromSource file str = parseFromSource file str >>= phase file
