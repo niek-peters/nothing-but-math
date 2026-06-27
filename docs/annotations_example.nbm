@@ -1,10 +1,10 @@
 <<<
-#[box, class="Algorithm", name="Doubling", label="doubling", description="Repeated doubling"]
+#[box, class="Algorithm", name="Computation", label="alg:computation", description="Runs a computation"]
 @[hidden]
 helper : Z -> Z
 helper(x) := x + 1
 
-main : Z -> Z
-main(x) := 2 * helper(x)
+comp : Z -> Z
+comp(x) := 2 * helper(x)
 >>>
-Now, we use Algorithm~\ref{doubling} to...
+Now, we use Algorithm~\ref{alg:computation} to evaluate: {{{comp(3)}}}.

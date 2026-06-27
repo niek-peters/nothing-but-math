@@ -120,7 +120,7 @@ Text sections are emitted as-is, so you can write ordinary LaTeX there. Code and
 
 ### Example source
 
-```nbm
+```
 <<<
 f : N x N -> Z
 f(a, b) := c
@@ -151,14 +151,14 @@ A definition has four parts:
 
 Constants are just definitions without arguments:
 
-```nbm
+```
 pi : R
 pi := 3.1415926535
 ```
 
 Functions use one or more arguments:
 
-```nbm
+```
 g : Z x N -> Q
 g(x, a) := x ^ a / 2
 ```
@@ -172,7 +172,7 @@ The `where` clause can contain two kinds of entries:
 
 Examples:
 
-```nbm
+```
 f : Z -> Q
 f(x) := 1 / c
 where c := x + 1, c /= 0
@@ -184,7 +184,7 @@ Constraints are checked before the implementation runs. If a constraint fails, t
 
 Conditional implementations are written with braces:
 
-```nbm
+```
 abs : Z -> N
 abs(x) := {
     -x if x < 0
@@ -225,20 +225,20 @@ The `|` operator denotes divisibility.
 
 Annotations let you control how code sections are rendered in the output document.
 
-Section-level annotations use `#[...]` and apply to the entire code block. Inside the square brackets, annotations are written as a comma-separated list of tags and key-value pairs.
+Section-level annotations use `#[...]` and apply to the entire code section. Inside the square brackets, annotations are written as a comma-separated list of tags and key-value pairs.
 
 Supported section-level annotations are:
 
-- `#[inline]` - render the block inline,
-- `#[intext]` - render the block as a multi-line in-text display,
-- `#[box]` - render the block inside a framed definition box,
-- `#[hidden]` - omit the block from the LaTeX output,
+- `#[inline]` - render the section inline,
+- `#[intext]` - render the section as a multi-line in-text display,
+- `#[box]` - render the section inside a framed definition box,
+- `#[hidden]` - omit the section from the LaTeX output,
 
 Definition-level annotations use `@[...]` and currently support:
 
 - `@[hidden]` - omit a single definition from the LaTeX output.
 
-The `#[box]` annotation can also take box-specific metadata:
+The `#[box]` annotation can also take specific metadata:
 
 - `class="..."` - set the box class name,
 - `name="..."` - set the box title,
@@ -247,18 +247,17 @@ The `#[box]` annotation can also take box-specific metadata:
 
 Example:
 
-```nbm
+```
 <<<
-#[box, class="Algorithm", name="Doubling", label="doubling", description="Repeated doubling"]
+#[box, class="Algorithm", name="Computation", label="alg:computation", description="Runs a computation"]
 @[hidden]
 helper : Z -> Z
 helper(x) := x + 1
 
-main : Z -> Z
-main(x) := 2 * helper(x)
+comp : Z -> Z
+comp(x) := 2 * helper(x)
 >>>
-
-Now, we use Algorithm~\ref{doubling} to...
+Now, we use Algorithm~\ref{alg:computation} to evaluate: {{{comp(3)}}}.
 ```
 
 Rendered LaTeX output:
@@ -272,8 +271,8 @@ Rendered LaTeX output:
 - `prelude/` - helper code injected into the generated Haskell module.
 - `test/` - Hspec and golden tests.
 - `test/samples/` - sample `.nbm` programs used by the tests.
-- `test/DependencyTesting/` - Dockerfiles and fixtures for feature-specific dependency checks.
-- `build.sh` - convenience build script.
+- `test/DependencyTesting/` - Dockerfiles and NBM source files for feature-specific dependency checks.
+- `build.sh` - build script.
 
 ## Running tests
 
@@ -294,13 +293,13 @@ in the individual compilation phase test specification files (e.g., `test/Eval/E
 The compiler pipeline follows the structure described in the paper:
 
 1. tokenize the source file,
-2. parse code and eval fragments into ASTs,
+2. parse code and eval sections into ASTs,
 3. elaborate the definitions to resolve names and insert casts,
 4. generate a Haskell library,
-5. evaluate eval fragments against the generated library, and
-6. assemble the final LaTeX document with the text, definitions, and evaluated results.
+5. evaluate eval sections against the generated library, and
+6. generate the final LaTeX document with the text, definitions, and evaluated results.
 
-The generated Haskell code includes a small prelude with a custom positive-integer type and runtime casting helpers.
+The generated Haskell code includes a prelude with a custom positive integer type and runtime casting helpers.
 
 ## Parser grammar
 
