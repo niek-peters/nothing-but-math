@@ -126,17 +126,18 @@ f : N x N -> Z
 f(a, b) := c
 where c := a + b
 
-pos : Z -> N
-pos(x) := {
-    x      if x >= 0
-    -x     otherwise
+min : Z x Z -> Z
+min(a, b) := {
+    a   if a < b
+    b   otherwise
 }
 >>>
 
-We can evaluate sample values here: {{{(f(1, 2), pos(-3))}}}.
+We can evaluate sample values here: {{{(f(1, 2), min(7, 4))}}}.
 ```
 
 Rendered LaTeX output:
+
 ![Rendered output for the example source](docs/source_example.png)
 
 ### Definitions
@@ -210,12 +211,13 @@ Tuples are written with `x` between types, for example `Z x N -> Q` or `Z x R`.
 
 The parser supports the following operators:
 
-| Category   | Operators                         |
-| ---------- | --------------------------------- | --- |
-| Unary      | `-`, `sqrt`, `floor`, `not`       |
-| Arithmetic | `+`, `-`, `*`, `/`, `^`, `mod`, ` | `   |
-| Comparison | `=`, `/=`, `<`, `<=`, `>`, `>=`   |
-| Boolean    | `and`, `or`                       |
+| Category   | Operators                       |
+| ---------- | ------------------------------- |
+| Unary      | `-`, `sqrt`, `floor`            |
+| Arithmetic | `+`, `-`, `*`, `/`, `^`, `mod`  |
+| Relational | `\|`                            |
+| Comparison | `=`, `/=`, `<`, `<=`, `>`, `>=` |
+| Boolean    | `not`, `and`, `or`              |
 
 The `|` operator denotes divisibility.
 
@@ -260,6 +262,7 @@ Now, we use Algorithm~\ref{doubling} to...
 ```
 
 Rendered LaTeX output:
+
 ![Rendered output for the annotation example](docs/annotations_example.png)
 
 ## Project structure
