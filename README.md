@@ -110,7 +110,7 @@ nbm test/samples/booleans.nbm -o out -m MyNBM
 
 ## Language overview
 
-An NBM source file is split into fragments by special delimiters:
+An NBM source file is split into sections by special delimiters:
 
 - `<<< ... >>>` for code sections,
 - `{{{ ... }}}` for eval sections, and
